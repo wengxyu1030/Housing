@@ -1,0 +1,2727 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}C:/Users/wb500886/OneDrive - WBG/7_Housing/NSS76_Housing_new/analysis/final/output_nss76.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}15 Jun 2020, 23:30:18
+{txt}
+{com}. 
+. **********************************
+. ***NSS76 for housing condition****
+. **********************************
+. 
+. //This file is to produce the statistics.
+. 
+. global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/NSS76_Housing_new/analysis"
+{txt}
+{com}. global raw "${c -(}ROOT{c )-}/raw"
+{txt}
+{com}. global dct "${c -(}ROOT{c )-}/raw/dct"
+{txt}
+{com}. global inter "${c -(}ROOT{c )-}/inter"
+{txt}
+{com}. global final "${c -(}ROOT{c )-}/final"
+{txt}
+{com}. 
+. ****************************
+. *****set as survey data*****
+. ****************************
+. 
+. /* 
+> based on the data consolidated using 
+> "C:\Users\wb500886\OneDrive - WBG\7_Housing\NSS76_Housing_new\analysis\dofile\nss76.do" 
+> */
+. 
+. use "${c -(}final{c )-}/nss76",clear
+{txt}
+{com}. svyset id [pw = hh_weight]
+
+      {txt}pweight:{col 16}{res}hh_weight
+          {txt}VCE:{col 16}{res}linearized
+  {txt}Single unit:{col 16}{res}missing
+     {txt}Strata 1:{col 16}<one>
+         SU 1:{col 16}{res}id
+        {txt}FPC 1:{col 16}<zero>
+{p2colreset}{...}
+
+{com}. 
+. ******************************
+. *****rural: TN vs. non-TN*****
+. ******************************
+. 
+. ***compare means***
+. 
+. /*indicators in order:
+> Housing quality:
+> 1.      cost
+> 2.      living facility
+> 3.      location
+> 4.      micro environment
+> 5.      ownership
+> 6.      overcrowding
+> 7.      physical structure
+> Household feature:
+> 8.  welfare
+> */
+. 
+. #delimit ;
+{txt}delimiter now ;
+{com}. global var_q "
+> 
+> hq_water_cost 
+> hq_water_rate
+> hq_san_cost 
+> hq_san_rate
+> hq_rent_cost
+> hq_rent_rate
+> 
+> hq_water 
+> hq_water_su
+> hq_water_in
+> hq_san
+> hq_san_in
+> 
+> hq_nslum
+> hq_travel_m
+> hq_travel_f 
+> hq_travel_t
+> 
+> hq_nflood
+> hq_path
+> 
+> hq_tenure_se 
+> hq_own
+> 
+> hq_floor_n 
+> hq_crowd_n
+> hq_floor_a
+> hq_crowd_a
+> hq_married_sep
+> 
+> hq_level
+> hq_floor_n
+> hq_resid
+> hq_period
+> hq_str_good
+> hq_elec
+> hq_drainage
+> hq_dwell_indi
+> hq_room
+> hq_floor_a
+> hq_ventilation
+> hq_kitchen
+> hq_pfloor
+> hq_pwall
+> hq_proof
+> 
+> hh_land
+> hh_umce
+> "
+> ;
+{txt}
+{com}. #delimit cr
+{txt}delimiter now cr
+{com}. 
+. foreach var in $var_q {c -(}
+{txt}  2{com}. svy,subpop(if hh_urban != 1) over(hh_tn): mean `var'
+{txt}  3{com}. lincom [`var']TN - [`var']_subpop_1 
+{txt}  4{com}. {c )-}
+{txt}(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         57,125
+{txt}{col 1}Number of PSUs{col 18}= {res} 57,125{txt}{col 30}Population size{col 46}={res}  13,178,535,131
+{txt}{col 30}Subpop. no. obs{col 46}={res}          14,023
+{txt}{col 30}Subpop. size{col 46}={res}   3,906,141,918
+{txt}{col 30}Design df{col 46}= {res}         57,124
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 14}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 15}{c |}{col 27}  Linearized
+{col 1}         Over{col 15}{c |}       Mean{col 27}   Std. Err.{col 39}     [95% Con{col 52}f. Interval]
+{hline 14}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_cost {txt}{c |}
+{space 4}_subpop_1 {c |}{col 15}{res}{space 2}  103.936{col 27}{space 2} 1.571733{col 38}{space 5} 100.8554{col 52}{space 3} 107.0166
+{txt}{space 11}TN {c |}{col 15}{res}{space 2} 104.5132{col 27}{space 2} 8.329501{col 38}{space 5}  88.1873{col 52}{space 3}  120.839
+{txt}{hline 14}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_cost]_subpop_1 + [hq_water_cost]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .5771674{col 26}{space 2} 8.476493{col 37}{space 1}    0.07{col 46}{space 3}0.946{col 54}{space 4}-16.03681{col 67}{space 3} 17.19114
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         57,085
+{txt}{col 1}Number of PSUs{col 18}= {res} 57,085{txt}{col 30}Population size{col 46}={res}  13,170,743,906
+{txt}{col 30}Subpop. no. obs{col 46}={res}          13,983
+{txt}{col 30}Subpop. size{col 46}={res}   3,898,350,693
+{txt}{col 30}Design df{col 46}= {res}         57,084
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 14}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 15}{c |}{col 27}  Linearized
+{col 1}         Over{col 15}{c |}       Mean{col 27}   Std. Err.{col 39}     [95% Con{col 52}f. Interval]
+{hline 14}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_rate {txt}{c |}
+{space 4}_subpop_1 {c |}{col 15}{res}{space 2} .0133946{col 27}{space 2} .0001895{col 38}{space 5} .0130232{col 52}{space 3}  .013766
+{txt}{space 11}TN {c |}{col 15}{res}{space 2} .0132461{col 27}{space 2} .0008495{col 38}{space 5}  .011581{col 52}{space 3} .0149113
+{txt}{hline 14}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_rate]_subpop_1 + [hq_water_rate]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0001485{col 26}{space 2} .0008704{col 37}{space 1}   -0.17{col 46}{space 3}0.865{col 54}{space 4}-.0018545{col 67}{space 3} .0015575
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,779
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,779{txt}{col 31}Population size{col 47}={res}  9,914,834,071
+{txt}{col 31}Subpop. no. obs{col 47}={res}          2,677
+{txt}{col 31}Subpop. size{col 47}={res}    642,440,858
+{txt}{col 31}Design df{col 47}= {res}        45,778
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san_cost  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1544.084{col 26}{space 2} 37.10434{col 37}{space 5} 1471.359{col 51}{space 3} 1616.809
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 2252.809{col 26}{space 2} 129.8726{col 37}{space 5} 1998.257{col 51}{space 3} 2507.362
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san_cost]_subpop_1 + [hq_san_cost]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} 708.7251{col 26}{space 2} 135.0689{col 37}{space 1}    5.25{col 46}{space 3}0.000{col 54}{space 4} 443.9878{col 67}{space 3} 973.4624
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,751
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,751{txt}{col 31}Population size{col 47}={res}  9,907,411,433
+{txt}{col 31}Subpop. no. obs{col 47}={res}          2,649
+{txt}{col 31}Subpop. size{col 47}={res}    635,018,220
+{txt}{col 31}Design df{col 47}= {res}        45,750
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san_rate  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .1699076{col 26}{space 2} .0048513{col 37}{space 5} .1603989{col 51}{space 3} .1794163
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .2763023{col 26}{space 2} .0236838{col 37}{space 5} .2298816{col 51}{space 3}  .322723
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san_rate]_subpop_1 + [hq_san_rate]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1063947{col 26}{space 2} .0241756{col 37}{space 1}    4.40{col 46}{space 3}0.000{col 54}{space 4} .0590101{col 67}{space 3} .1537793
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,019
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,019{txt}{col 31}Population size{col 47}={res}  9,771,033,879
+{txt}{col 31}Subpop. no. obs{col 47}={res}          1,917
+{txt}{col 31}Subpop. size{col 47}={res}    498,640,666
+{txt}{col 31}Design df{col 47}= {res}        45,018
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_rent_cost {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1284.059{col 26}{space 2} 49.77622{col 37}{space 5} 1186.497{col 51}{space 3} 1381.621
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1421.81{col 26}{space 2} 150.3709{col 37}{space 5} 1127.081{col 51}{space 3}  1716.54
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_rent_cost]_subpop_1 + [hq_rent_cost]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  137.751{col 26}{space 2} 158.3953{col 37}{space 1}    0.87{col 46}{space 3}0.384{col 54}{space 4}-172.7065{col 67}{space 3} 448.2085
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,012
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,012{txt}{col 31}Population size{col 47}={res}  9,770,788,629
+{txt}{col 31}Subpop. no. obs{col 47}={res}          1,910
+{txt}{col 31}Subpop. size{col 47}={res}    498,395,416
+{txt}{col 31}Design df{col 47}= {res}        45,011
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_rent_rate {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .1649739{col 26}{space 2} .0040005{col 37}{space 5} .1571328{col 51}{space 3} .1728149
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .1824304{col 26}{space 2} .0104266{col 37}{space 5} .1619941{col 51}{space 3} .2028666
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_rent_rate]_subpop_1 + [hq_rent_rate]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0174565{col 26}{space 2} .0111677{col 37}{space 1}    1.56{col 46}{space 3}0.118{col 54}{space 4}-.0044324{col 67}{space 3} .0393454
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .1545591{col 26}{space 2} .0019184{col 37}{space 5}  .150799{col 51}{space 3} .1583192
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .1306448{col 26}{space 2} .0072102{col 37}{space 5}  .116513{col 51}{space 3} .1447766
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water]_subpop_1 + [hq_water]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0239143{col 26}{space 2}  .007461{col 37}{space 1}   -3.21{col 46}{space 3}0.001{col 54}{space 4}-.0385378{col 67}{space 3}-.0092908
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_su  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1.121047{col 26}{space 2} .0016461{col 37}{space 5} 1.117821{col 51}{space 3} 1.124274
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 1.174187{col 26}{space 2} .0080452{col 37}{space 5} 1.158418{col 51}{space 3} 1.189955
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_su]_subpop_1 + [hq_water_su]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0531397{col 26}{space 2} .0082119{col 37}{space 1}    6.47{col 46}{space 3}0.000{col 54}{space 4} .0370445{col 67}{space 3} .0692349
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,476
+{txt}{col 1}Number of PSUs{col 18}= {res}106,476{txt}{col 30}Population size{col 46}={res}  27,059,478,550
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,374
+{txt}{col 30}Subpop. size{col 46}={res}  17,787,085,337
+{txt}{col 30}Design df{col 46}= {res}        106,475
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_in  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .5924717{col 26}{space 2} .0024693{col 37}{space 5} .5876319{col 51}{space 3} .5973115
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .4115529{col 26}{space 2} .0105032{col 37}{space 5} .3909668{col 51}{space 3}  .432139
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_in]_subpop_1 + [hq_water_in]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.1809189{col 26}{space 2} .0107895{col 37}{space 1}  -16.77{col 46}{space 3}0.000{col 54}{space 4}-.2020662{col 67}{space 3}-.1597715
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         90,779
+{txt}{col 1}Number of PSUs{col 18}= {res} 90,779{txt}{col 30}Population size{col 46}={res}  21,989,009,218
+{txt}{col 30}Subpop. no. obs{col 46}={res}          47,677
+{txt}{col 30}Subpop. size{col 46}={res}  12,716,616,005
+{txt}{col 30}Design df{col 46}= {res}         90,778
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san       {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .8583097{col 26}{space 2} .0019367{col 37}{space 5} .8545137{col 51}{space 3} .8621057
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9413875{col 26}{space 2} .0059684{col 37}{space 5} .9296895{col 51}{space 3} .9530855
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san]_subpop_1 + [hq_san]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0830778{col 26}{space 2} .0062748{col 37}{space 1}   13.24{col 46}{space 3}0.000{col 54}{space 4} .0707794{col 67}{space 3} .0953763
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san_in    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .4783424{col 26}{space 2} .0025202{col 37}{space 5} .4734029{col 51}{space 3} .4832819
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .5101173{col 26}{space 2} .0107053{col 37}{space 5} .4891351{col 51}{space 3} .5310994
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san_in]_subpop_1 + [hq_san_in]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0317749{col 26}{space 2} .0109979{col 37}{space 1}    2.89{col 46}{space 3}0.004{col 54}{space 4} .0102191{col 67}{space 3} .0533306
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_nslum     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}        1{col 26}{space 2}        .{col 37}{space 5}        .{col 51}{space 3}        .
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}        1{col 26}{space 2}        .{col 37}{space 5}        .{col 51}{space 3}        .
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_nslum]_subpop_1 + [hq_nslum]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}        0{col 26}{txt}  (omitted)
+{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_travel_m  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  3.63675{col 26}{space 2} .0111816{col 37}{space 5} 3.614834{col 51}{space 3} 3.658666
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  4.45926{col 26}{space 2} .0538513{col 37}{space 5} 4.353712{col 51}{space 3} 4.564808
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_travel_m]_subpop_1 + [hq_travel_m]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .8225102{col 26}{space 2}     .055{col 37}{space 1}   14.95{col 46}{space 3}0.000{col 54}{space 4}  .714711{col 67}{space 3} .9303093
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_travel_f  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 6.071495{col 26}{space 2} .0171854{col 37}{space 5} 6.037812{col 51}{space 3} 6.105178
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 6.000117{col 26}{space 2} .0690055{col 37}{space 5} 5.864867{col 51}{space 3} 6.135367
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_travel_f]_subpop_1 + [hq_travel_f]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0713778{col 26}{space 2} .0711132{col 37}{space 1}   -1.00{col 46}{space 3}0.316{col 54}{space 4}-.2107588{col 67}{space 3} .0680031
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_travel_t  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 8.999539{col 26}{space 2} .0002324{col 37}{space 5} 8.999083{col 51}{space 3} 8.999994
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}        9{col 26}{space 2}        .{col 37}{space 5}        .{col 51}{space 3}        .
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_travel_t]_subpop_1 + [hq_travel_t]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0004612{col 26}{space 2} .0002324{col 37}{space 1}    1.98{col 46}{space 3}0.047{col 54}{space 4} 5.78e-06{col 67}{space 3} .0009166
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_nflood    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9051105{col 26}{space 2} .0014459{col 37}{space 5} .9022766{col 51}{space 3} .9079445
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9488175{col 26}{space 2} .0044048{col 37}{space 5} .9401842{col 51}{space 3} .9574509
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_nflood]_subpop_1 + [hq_nflood]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  .043707{col 26}{space 2}  .004636{col 37}{space 1}    9.43{col 46}{space 3}0.000{col 54}{space 4} .0346204{col 67}{space 3} .0527936
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_path      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .8669376{col 26}{space 2} .0016428{col 37}{space 5} .8637177{col 51}{space 3} .8701575
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9433549{col 26}{space 2} .0048848{col 37}{space 5} .9337808{col 51}{space 3}  .952929
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_path]_subpop_1 + [hq_path]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0764173{col 26}{space 2} .0051536{col 37}{space 1}   14.83{col 46}{space 3}0.000{col 54}{space 4} .0663163{col 67}{space 3} .0865183
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_tenure_se {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9674722{col 26}{space 2} .0010972{col 37}{space 5} .9653217{col 51}{space 3} .9696226
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}   .94783{col 26}{space 2} .0051823{col 37}{space 5} .9376726{col 51}{space 3} .9579873
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_tenure_se]_subpop_1 + [hq_tenure_se]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0196422{col 26}{space 2} .0052972{col 37}{space 1}   -3.71{col 46}{space 3}0.000{col 54}{space 4}-.0300247{col 67}{space 3}-.0092597
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_own       {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9612202{col 26}{space 2} .0011713{col 37}{space 5} .9589245{col 51}{space 3}  .963516
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}   .94087{col 26}{space 2} .0054546{col 37}{space 5}  .930179{col 51}{space 3} .9515609
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_own]_subpop_1 + [hq_own]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0203503{col 26}{space 2}  .005579{col 37}{space 1}   -3.65{col 46}{space 3}0.000{col 54}{space 4} -.031285{col 67}{space 3}-.0094156
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_n   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  1.09617{col 26}{space 2} .0017779{col 37}{space 5} 1.092686{col 51}{space 3} 1.099655
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1.05337{col 26}{space 2} .0055089{col 37}{space 5} 1.042573{col 51}{space 3} 1.064168
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_n]_subpop_1 + [hq_floor_n]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0428002{col 26}{space 2} .0057887{col 37}{space 1}   -7.39{col 46}{space 3}0.000{col 54}{space 4}-.0541459{col 67}{space 3}-.0314544
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_crowd_n   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .3168857{col 26}{space 2} .0017072{col 37}{space 5} .3135396{col 51}{space 3} .3202318
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .3764062{col 26}{space 2}  .006774{col 37}{space 5} .3631293{col 51}{space 3} .3896831
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_crowd_n]_subpop_1 + [hq_crowd_n]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0595205{col 26}{space 2} .0069858{col 37}{space 1}    8.52{col 46}{space 3}0.000{col 54}{space 4} .0458284{col 67}{space 3} .0732126
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_a   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 504.7297{col 26}{space 2}  1.60902{col 37}{space 5}  501.576{col 51}{space 3} 507.8833
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 441.7757{col 26}{space 2} 6.673974{col 37}{space 5} 428.6948{col 51}{space 3} 454.8566
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_a]_subpop_1 + [hq_floor_a]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-62.95395{col 26}{space 2} 6.865192{col 37}{space 1}   -9.17{col 46}{space 3}0.000{col 54}{space 4}-76.40963{col 67}{space 3}-49.49826
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_crowd_a   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 129.2782{col 26}{space 2} .5682959{col 37}{space 5} 128.1644{col 51}{space 3} 130.3921
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 143.9685{col 26}{space 2} 2.521626{col 37}{space 5} 139.0261{col 51}{space 3} 148.9108
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_crowd_a]_subpop_1 + [hq_crowd_a]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} 14.69026{col 26}{space 2} 2.584871{col 37}{space 1}    5.68{col 46}{space 3}0.000{col 54}{space 4} 9.623946{col 67}{space 3} 19.75657
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         99,076
+{txt}{col 1}Number of PSUs{col 18}= {res} 99,076{txt}{col 30}Population size{col 46}={res}  24,827,506,330
+{txt}{col 30}Subpop. no. obs{col 46}={res}          55,974
+{txt}{col 30}Subpop. size{col 46}={res}  15,555,113,117
+{txt}{col 30}Design df{col 46}= {res}         99,075
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 15}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 16}{c |}{col 28}  Linearized
+{col 1}          Over{col 16}{c |}       Mean{col 28}   Std. Err.{col 40}     [95% Con{col 53}f. Interval]
+{hline 15}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_married_sep {txt}{c |}
+{space 5}_subpop_1 {c |}{col 16}{res}{space 2} .7277357{col 28}{space 2}  .002353{col 39}{space 5} .7231238{col 53}{space 3} .7323475
+{txt}{space 12}TN {c |}{col 16}{res}{space 2} .7173075{col 28}{space 2} .0106457{col 39}{space 5}  .696442{col 53}{space 3} .7381729
+{txt}{hline 15}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_married_sep]_subpop_1 + [hq_married_sep]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0104282{col 26}{space 2} .0109026{col 37}{space 1}   -0.96{col 46}{space 3}0.339{col 54}{space 4}-.0317972{col 67}{space 3} .0109409
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,816
+{txt}{col 1}Number of PSUs{col 18}= {res}106,816{txt}{col 30}Population size{col 46}={res}  27,103,117,417
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,714
+{txt}{col 30}Subpop. size{col 46}={res}  17,830,724,204
+{txt}{col 30}Design df{col 46}= {res}        106,815
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_level     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1.170579{col 26}{space 2} .0053247{col 37}{space 5} 1.160143{col 51}{space 3} 1.181016
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1.27073{col 26}{space 2} .0223854{col 37}{space 5} 1.226854{col 51}{space 3} 1.314605
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_level]_subpop_1 + [hq_level]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1001501{col 26}{space 2}   .02301{col 37}{space 1}    4.35{col 46}{space 3}0.000{col 54}{space 4} .0550509{col 67}{space 3} .1452493
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_n   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  1.09617{col 26}{space 2} .0017779{col 37}{space 5} 1.092686{col 51}{space 3} 1.099655
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1.05337{col 26}{space 2} .0055089{col 37}{space 5} 1.042573{col 51}{space 3} 1.064168
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_n]_subpop_1 + [hq_floor_n]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0428002{col 26}{space 2} .0057887{col 37}{space 1}   -7.39{col 46}{space 3}0.000{col 54}{space 4}-.0541459{col 67}{space 3}-.0314544
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_resid     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9661305{col 26}{space 2}  .000952{col 37}{space 5} .9642645{col 51}{space 3} .9679965
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9835609{col 26}{space 2} .0029093{col 37}{space 5} .9778587{col 51}{space 3} .9892631
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_resid]_subpop_1 + [hq_resid]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0174304{col 26}{space 2} .0030611{col 37}{space 1}    5.69{col 46}{space 3}0.000{col 54}{space 4} .0114306{col 67}{space 3} .0234301
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        104,371
+{txt}{col 1}Number of PSUs{col 18}= {res}104,371{txt}{col 30}Population size{col 46}={res}  26,398,412,380
+{txt}{col 30}Subpop. no. obs{col 46}={res}          61,269
+{txt}{col 30}Subpop. size{col 46}={res}  17,126,019,167
+{txt}{col 30}Design df{col 46}= {res}        104,370
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_period    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 7.144629{col 26}{space 2} .0100527{col 37}{space 5} 7.124925{col 51}{space 3} 7.164332
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  6.72156{col 26}{space 2} .0413682{col 37}{space 5} 6.640479{col 51}{space 3} 6.802641
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_period]_subpop_1 + [hq_period]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.4230683{col 26}{space 2} .0425721{col 37}{space 1}   -9.94{col 46}{space 3}0.000{col 54}{space 4} -.506509{col 67}{space 3}-.3396276
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_str_good  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .0161398{col 26}{space 2} .0006307{col 37}{space 5} .0149036{col 51}{space 3}  .017376
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .0177604{col 26}{space 2} .0031108{col 37}{space 5} .0116634{col 51}{space 3} .0238575
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_str_good]_subpop_1 + [hq_str_good]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0016206{col 26}{space 2} .0031741{col 37}{space 1}    0.51{col 46}{space 3}0.610{col 54}{space 4}-.0046005{col 67}{space 3} .0078417
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_elec      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9360038{col 26}{space 2} .0011861{col 37}{space 5}  .933679{col 51}{space 3} .9383285
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9879719{col 26}{space 2} .0022095{col 37}{space 5} .9836414{col 51}{space 3} .9923024
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_elec]_subpop_1 + [hq_elec]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0519681{col 26}{space 2} .0025077{col 37}{space 1}   20.72{col 46}{space 3}0.000{col 54}{space 4}  .047053{col 67}{space 3} .0568832
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_drainage  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .2136616{col 26}{space 2} .0021456{col 37}{space 5} .2094562{col 51}{space 3} .2178669
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .1408516{col 26}{space 2} .0076067{col 37}{space 5} .1259427{col 51}{space 3} .1557606
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_drainage]_subpop_1 + [hq_drainage]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0728099{col 26}{space 2} .0079035{col 37}{space 1}   -9.21{col 46}{space 3}0.000{col 54}{space 4}-.0883006{col 67}{space 3}-.0573193
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 14}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 15}{c |}{col 27}  Linearized
+{col 1}         Over{col 15}{c |}       Mean{col 27}   Std. Err.{col 39}     [95% Con{col 52}f. Interval]
+{hline 14}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_dwell_indi {txt}{c |}
+{space 4}_subpop_1 {c |}{col 15}{res}{space 2} .8884362{col 27}{space 2} .0016806{col 38}{space 5} .8851422{col 52}{space 3} .8917301
+{txt}{space 11}TN {c |}{col 15}{res}{space 2} .9138383{col 27}{space 2} .0061382{col 38}{space 5} .9018076{col 52}{space 3}  .925869
+{txt}{hline 14}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_dwell_indi]_subpop_1 + [hq_dwell_indi]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0254022{col 26}{space 2} .0063641{col 37}{space 1}    3.99{col 46}{space 3}0.000{col 54}{space 4} .0129287{col 67}{space 3} .0378757
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        105,324
+{txt}{col 1}Number of PSUs{col 18}= {res}105,324{txt}{col 30}Population size{col 46}={res}  26,608,227,508
+{txt}{col 30}Subpop. no. obs{col 46}={res}          62,222
+{txt}{col 30}Subpop. size{col 46}={res}  17,335,834,295
+{txt}{col 30}Design df{col 46}= {res}        105,323
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_room      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 3.772646{col 26}{space 2} .0093517{col 37}{space 5} 3.754317{col 51}{space 3} 3.790975
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 3.888713{col 26}{space 2} .0364238{col 37}{space 5} 3.817322{col 51}{space 3} 3.960103
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_room]_subpop_1 + [hq_room]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1160667{col 26}{space 2} .0376051{col 37}{space 1}    3.09{col 46}{space 3}0.002{col 54}{space 4} .0423612{col 67}{space 3} .1897722
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_a   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 504.7297{col 26}{space 2}  1.60902{col 37}{space 5}  501.576{col 51}{space 3} 507.8833
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 441.7757{col 26}{space 2} 6.673974{col 37}{space 5} 428.6948{col 51}{space 3} 454.8566
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_a]_subpop_1 + [hq_floor_a]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-62.95395{col 26}{space 2} 6.865192{col 37}{space 1}   -9.17{col 46}{space 3}0.000{col 54}{space 4}-76.40963{col 67}{space 3}-49.49826
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 15}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 16}{c |}{col 28}  Linearized
+{col 1}          Over{col 16}{c |}       Mean{col 28}   Std. Err.{col 40}     [95% Con{col 53}f. Interval]
+{hline 15}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_ventilation {txt}{c |}
+{space 5}_subpop_1 {c |}{col 16}{res}{space 2} .3310524{col 28}{space 2} .0024226{col 39}{space 5} .3263042{col 53}{space 3} .3358006
+{txt}{space 12}TN {c |}{col 16}{res}{space 2} .4872419{col 28}{space 2} .0107265{col 39}{space 5} .4662181{col 53}{space 3} .5082657
+{txt}{hline 15}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_ventilation]_subpop_1 + [hq_ventilation]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1561894{col 26}{space 2} .0109967{col 37}{space 1}   14.20{col 46}{space 3}0.000{col 54}{space 4} .1346361{col 67}{space 3} .1777427
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_kitchen   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .5130849{col 26}{space 2} .0025138{col 37}{space 5} .5081579{col 51}{space 3} .5180118
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .7051311{col 26}{space 2} .0096913{col 37}{space 5} .6861364{col 51}{space 3} .7241259
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_kitchen]_subpop_1 + [hq_kitchen]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1920463{col 26}{space 2}  .010012{col 37}{space 1}   19.18{col 46}{space 3}0.000{col 54}{space 4}  .172423{col 67}{space 3} .2116696
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_pfloor    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  .581389{col 26}{space 2} .0024547{col 37}{space 5} .5765778{col 51}{space 3} .5862002
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9419113{col 26}{space 2} .0046925{col 37}{space 5} .9327141{col 51}{space 3} .9511085
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_pfloor]_subpop_1 + [hq_pfloor]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .3605223{col 26}{space 2} .0052958{col 37}{space 1}   68.08{col 46}{space 3}0.000{col 54}{space 4} .3501427{col 67}{space 3} .3709019
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_pwall     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .7829355{col 26}{space 2} .0020082{col 37}{space 5} .7789994{col 51}{space 3} .7868716
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9282314{col 26}{space 2} .0052866{col 37}{space 5} .9178697{col 51}{space 3} .9385931
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_pwall]_subpop_1 + [hq_pwall]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1452959{col 26}{space 2} .0056552{col 37}{space 1}   25.69{col 46}{space 3}0.000{col 54}{space 4} .1342118{col 67}{space 3} .1563801
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_proof     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9168826{col 26}{space 2} .0013512{col 37}{space 5} .9142342{col 51}{space 3} .9195309
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9138623{col 26}{space 2} .0057142{col 37}{space 5} .9026626{col 51}{space 3}  .925062
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_proof]_subpop_1 + [hq_proof]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0030203{col 26}{space 2} .0058718{col 37}{space 1}   -0.51{col 46}{space 3}0.607{col 54}{space 4}-.0145289{col 67}{space 3} .0084883
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hh_land      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 3.876615{col 26}{space 2} .0280619{col 37}{space 5} 3.821615{col 51}{space 3} 3.931616
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 2.830359{col 26}{space 2} .0348366{col 37}{space 5}  2.76208{col 51}{space 3} 2.898638
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hh_land]_subpop_1 + [hh_land]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-1.046256{col 26}{space 2} .0447332{col 37}{space 1}  -23.39{col 46}{space 3}0.000{col 54}{space 4}-1.133933{col 67}{space 3}  -.95858
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,713
+{txt}{col 1}Number of PSUs{col 18}= {res}106,713{txt}{col 30}Population size{col 46}={res}  27,080,810,210
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,611
+{txt}{col 30}Subpop. size{col 46}={res}  17,808,416,997
+{txt}{col 30}Design df{col 46}= {res}        106,712
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hh_umce      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 7952.003{col 26}{space 2} 23.39848{col 37}{space 5} 7906.142{col 51}{space 3} 7997.863
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 8012.968{col 26}{space 2} 92.30152{col 37}{space 5} 7832.058{col 51}{space 3} 8193.878
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hh_umce]_subpop_1 + [hh_umce]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} 60.96541{col 26}{space 2}  95.2211{col 37}{space 1}    0.64{col 46}{space 3}0.522{col 54}{space 4}-125.6666{col 67}{space 3} 247.5975
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. ***compare distribution among umce (dummy and continuous)***
+. twoway kdensity hh_umce_ln if hh_tn == 1 & hq_own == 1 & hh_urban == 0|| ///
+> kdensity hh_umce_ln if hh_tn == 1  & hq_own == 0 & hh_urban == 0, ///
+> legend(label(1 "hq_own == 1") label(2 "hq_own == 0"))
+{res}{txt}
+{com}. 
+. //need to compare with other similar state instead of overall non-TN states?
+. reg hq_floor_a c.hh_umce_ln#i.hh_tn hh_umce_ln hh_size if hh_urban == 0,absorb(hh_state) cluster(hh_state)
+
+{txt}Linear regression, absorbing indicators         Number of obs     = {res}    63,607
+                                                {txt}{help j_robustsingular:F(1, 35) }         =  {res}        .
+                                                {txt}Prob > F          = {res}         .
+                                                {txt}R-squared         = {res}    0.2481
+                                                {txt}Adj R-squared     = {res}    0.2477
+                                                {txt}Root MSE          =    {res} 280.81
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:36} clusters in hh_state)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}  hq_floor_a{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 7}hh_tn#{c |}
+c.hh_umce_ln {c |}
+{space 9}TN  {c |}{col 14}{res}{space 2}-70.41484{col 26}{space 2}  13.4069{col 37}{space 1}   -5.25{col 46}{space 3}0.000{col 54}{space 4} -97.6323{col 67}{space 3}-43.19737
+{txt}{space 12} {c |}
+{space 2}hh_umce_ln {c |}{col 14}{res}{space 2} 188.4417{col 26}{space 2}  16.0769{col 37}{space 1}   11.72{col 46}{space 3}0.000{col 54}{space 4} 155.8038{col 67}{space 3} 221.0795
+{txt}{space 5}hh_size {c |}{col 14}{res}{space 2} 10.98518{col 26}{space 2} 1.869498{col 37}{space 1}    5.88{col 46}{space 3}0.000{col 54}{space 4} 7.189892{col 67}{space 3} 14.78046
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} -1168.76{col 26}{space 2} 130.9313{col 37}{space 1}   -8.93{col 46}{space 3}0.000{col 54}{space 4}-1434.564{col 67}{space 3} -902.955
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. reg hq_own c.hh_umce_ln#i.hh_tn hh_umce_ln hh_size if hh_urban == 0,absorb(hh_state) cluster(hh_state)
+
+{txt}Linear regression, absorbing indicators         Number of obs     = {res}    63,611
+                                                {txt}{help j_robustsingular:F(1, 35) }         =  {res}        .
+                                                {txt}Prob > F          = {res}         .
+                                                {txt}R-squared         = {res}    0.0686
+                                                {txt}Adj R-squared     = {res}    0.0680
+                                                {txt}Root MSE          =    {res} .18614
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:36} clusters in hh_state)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}      hq_own{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 7}hh_tn#{c |}
+c.hh_umce_ln {c |}
+{space 9}TN  {c |}{col 14}{res}{space 2}  -.01652{col 26}{space 2} .0064876{col 37}{space 1}   -2.55{col 46}{space 3}0.015{col 54}{space 4}-.0296904{col 67}{space 3}-.0033495
+{txt}{space 12} {c |}
+{space 2}hh_umce_ln {c |}{col 14}{res}{space 2}  .022677{col 26}{space 2}  .007182{col 37}{space 1}    3.16{col 46}{space 3}0.003{col 54}{space 4} .0080967{col 67}{space 3} .0372572
+{txt}{space 5}hh_size {c |}{col 14}{res}{space 2} .0056492{col 26}{space 2} .0017947{col 37}{space 1}    3.15{col 46}{space 3}0.003{col 54}{space 4} .0020057{col 67}{space 3} .0092926
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .7407156{col 26}{space 2} .0582678{col 37}{space 1}   12.71{col 46}{space 3}0.000{col 54}{space 4} .6224257{col 67}{space 3} .8590056
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. 
+. ******************************
+. *****urban: TN vs. non-TN***** 
+. ******************************
+. 
+. #delimit ;
+{txt}delimiter now ;
+{com}. global var_slum "
+> hq_nslum 
+> hq_slum_doc 
+> hq_slum_be
+> "
+> ;
+{txt}
+{com}. #delimit cr
+{txt}delimiter now cr
+{com}. 
+. foreach var in $var_q {c -(}
+{txt}  2{com}. svy,subpop(if hh_urban != 1) over(hh_tn): mean `var'
+{txt}  3{com}. lincom  [`var']TN - [`var']_subpop_1 
+{txt}  4{com}. {c )-}
+{txt}(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         57,125
+{txt}{col 1}Number of PSUs{col 18}= {res} 57,125{txt}{col 30}Population size{col 46}={res}  13,178,535,131
+{txt}{col 30}Subpop. no. obs{col 46}={res}          14,023
+{txt}{col 30}Subpop. size{col 46}={res}   3,906,141,918
+{txt}{col 30}Design df{col 46}= {res}         57,124
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 14}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 15}{c |}{col 27}  Linearized
+{col 1}         Over{col 15}{c |}       Mean{col 27}   Std. Err.{col 39}     [95% Con{col 52}f. Interval]
+{hline 14}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_cost {txt}{c |}
+{space 4}_subpop_1 {c |}{col 15}{res}{space 2}  103.936{col 27}{space 2} 1.571733{col 38}{space 5} 100.8554{col 52}{space 3} 107.0166
+{txt}{space 11}TN {c |}{col 15}{res}{space 2} 104.5132{col 27}{space 2} 8.329501{col 38}{space 5}  88.1873{col 52}{space 3}  120.839
+{txt}{hline 14}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_cost]_subpop_1 + [hq_water_cost]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .5771674{col 26}{space 2} 8.476493{col 37}{space 1}    0.07{col 46}{space 3}0.946{col 54}{space 4}-16.03681{col 67}{space 3} 17.19114
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         57,085
+{txt}{col 1}Number of PSUs{col 18}= {res} 57,085{txt}{col 30}Population size{col 46}={res}  13,170,743,906
+{txt}{col 30}Subpop. no. obs{col 46}={res}          13,983
+{txt}{col 30}Subpop. size{col 46}={res}   3,898,350,693
+{txt}{col 30}Design df{col 46}= {res}         57,084
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 14}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 15}{c |}{col 27}  Linearized
+{col 1}         Over{col 15}{c |}       Mean{col 27}   Std. Err.{col 39}     [95% Con{col 52}f. Interval]
+{hline 14}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_rate {txt}{c |}
+{space 4}_subpop_1 {c |}{col 15}{res}{space 2} .0133946{col 27}{space 2} .0001895{col 38}{space 5} .0130232{col 52}{space 3}  .013766
+{txt}{space 11}TN {c |}{col 15}{res}{space 2} .0132461{col 27}{space 2} .0008495{col 38}{space 5}  .011581{col 52}{space 3} .0149113
+{txt}{hline 14}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_rate]_subpop_1 + [hq_water_rate]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0001485{col 26}{space 2} .0008704{col 37}{space 1}   -0.17{col 46}{space 3}0.865{col 54}{space 4}-.0018545{col 67}{space 3} .0015575
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,779
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,779{txt}{col 31}Population size{col 47}={res}  9,914,834,071
+{txt}{col 31}Subpop. no. obs{col 47}={res}          2,677
+{txt}{col 31}Subpop. size{col 47}={res}    642,440,858
+{txt}{col 31}Design df{col 47}= {res}        45,778
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san_cost  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1544.084{col 26}{space 2} 37.10434{col 37}{space 5} 1471.359{col 51}{space 3} 1616.809
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 2252.809{col 26}{space 2} 129.8726{col 37}{space 5} 1998.257{col 51}{space 3} 2507.362
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san_cost]_subpop_1 + [hq_san_cost]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} 708.7251{col 26}{space 2} 135.0689{col 37}{space 1}    5.25{col 46}{space 3}0.000{col 54}{space 4} 443.9878{col 67}{space 3} 973.4624
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,751
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,751{txt}{col 31}Population size{col 47}={res}  9,907,411,433
+{txt}{col 31}Subpop. no. obs{col 47}={res}          2,649
+{txt}{col 31}Subpop. size{col 47}={res}    635,018,220
+{txt}{col 31}Design df{col 47}= {res}        45,750
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san_rate  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .1699076{col 26}{space 2} .0048513{col 37}{space 5} .1603989{col 51}{space 3} .1794163
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .2763023{col 26}{space 2} .0236838{col 37}{space 5} .2298816{col 51}{space 3}  .322723
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san_rate]_subpop_1 + [hq_san_rate]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1063947{col 26}{space 2} .0241756{col 37}{space 1}    4.40{col 46}{space 3}0.000{col 54}{space 4} .0590101{col 67}{space 3} .1537793
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,019
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,019{txt}{col 31}Population size{col 47}={res}  9,771,033,879
+{txt}{col 31}Subpop. no. obs{col 47}={res}          1,917
+{txt}{col 31}Subpop. size{col 47}={res}    498,640,666
+{txt}{col 31}Design df{col 47}= {res}        45,018
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_rent_cost {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1284.059{col 26}{space 2} 49.77622{col 37}{space 5} 1186.497{col 51}{space 3} 1381.621
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1421.81{col 26}{space 2} 150.3709{col 37}{space 5} 1127.081{col 51}{space 3}  1716.54
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_rent_cost]_subpop_1 + [hq_rent_cost]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  137.751{col 26}{space 2} 158.3953{col 37}{space 1}    0.87{col 46}{space 3}0.384{col 54}{space 4}-172.7065{col 67}{space 3} 448.2085
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 31}Number of obs{col 47}= {res}        45,012
+{txt}{col 1}Number of PSUs{col 18}= {res} 45,012{txt}{col 31}Population size{col 47}={res}  9,770,788,629
+{txt}{col 31}Subpop. no. obs{col 47}={res}          1,910
+{txt}{col 31}Subpop. size{col 47}={res}    498,395,416
+{txt}{col 31}Design df{col 47}= {res}        45,011
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_rent_rate {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .1649739{col 26}{space 2} .0040005{col 37}{space 5} .1571328{col 51}{space 3} .1728149
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .1824304{col 26}{space 2} .0104266{col 37}{space 5} .1619941{col 51}{space 3} .2028666
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_rent_rate]_subpop_1 + [hq_rent_rate]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0174565{col 26}{space 2} .0111677{col 37}{space 1}    1.56{col 46}{space 3}0.118{col 54}{space 4}-.0044324{col 67}{space 3} .0393454
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .1545591{col 26}{space 2} .0019184{col 37}{space 5}  .150799{col 51}{space 3} .1583192
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .1306448{col 26}{space 2} .0072102{col 37}{space 5}  .116513{col 51}{space 3} .1447766
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water]_subpop_1 + [hq_water]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0239143{col 26}{space 2}  .007461{col 37}{space 1}   -3.21{col 46}{space 3}0.001{col 54}{space 4}-.0385378{col 67}{space 3}-.0092908
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_su  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1.121047{col 26}{space 2} .0016461{col 37}{space 5} 1.117821{col 51}{space 3} 1.124274
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 1.174187{col 26}{space 2} .0080452{col 37}{space 5} 1.158418{col 51}{space 3} 1.189955
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_su]_subpop_1 + [hq_water_su]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0531397{col 26}{space 2} .0082119{col 37}{space 1}    6.47{col 46}{space 3}0.000{col 54}{space 4} .0370445{col 67}{space 3} .0692349
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,476
+{txt}{col 1}Number of PSUs{col 18}= {res}106,476{txt}{col 30}Population size{col 46}={res}  27,059,478,550
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,374
+{txt}{col 30}Subpop. size{col 46}={res}  17,787,085,337
+{txt}{col 30}Design df{col 46}= {res}        106,475
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_water_in  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .5924717{col 26}{space 2} .0024693{col 37}{space 5} .5876319{col 51}{space 3} .5973115
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .4115529{col 26}{space 2} .0105032{col 37}{space 5} .3909668{col 51}{space 3}  .432139
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_water_in]_subpop_1 + [hq_water_in]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.1809189{col 26}{space 2} .0107895{col 37}{space 1}  -16.77{col 46}{space 3}0.000{col 54}{space 4}-.2020662{col 67}{space 3}-.1597715
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         90,779
+{txt}{col 1}Number of PSUs{col 18}= {res} 90,779{txt}{col 30}Population size{col 46}={res}  21,989,009,218
+{txt}{col 30}Subpop. no. obs{col 46}={res}          47,677
+{txt}{col 30}Subpop. size{col 46}={res}  12,716,616,005
+{txt}{col 30}Design df{col 46}= {res}         90,778
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san       {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .8583097{col 26}{space 2} .0019367{col 37}{space 5} .8545137{col 51}{space 3} .8621057
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9413875{col 26}{space 2} .0059684{col 37}{space 5} .9296895{col 51}{space 3} .9530855
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san]_subpop_1 + [hq_san]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0830778{col 26}{space 2} .0062748{col 37}{space 1}   13.24{col 46}{space 3}0.000{col 54}{space 4} .0707794{col 67}{space 3} .0953763
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_san_in    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .4783424{col 26}{space 2} .0025202{col 37}{space 5} .4734029{col 51}{space 3} .4832819
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .5101173{col 26}{space 2} .0107053{col 37}{space 5} .4891351{col 51}{space 3} .5310994
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_san_in]_subpop_1 + [hq_san_in]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0317749{col 26}{space 2} .0109979{col 37}{space 1}    2.89{col 46}{space 3}0.004{col 54}{space 4} .0102191{col 67}{space 3} .0533306
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_nslum     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}        1{col 26}{space 2}        .{col 37}{space 5}        .{col 51}{space 3}        .
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}        1{col 26}{space 2}        .{col 37}{space 5}        .{col 51}{space 3}        .
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_nslum]_subpop_1 + [hq_nslum]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}        0{col 26}{txt}  (omitted)
+{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_travel_m  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  3.63675{col 26}{space 2} .0111816{col 37}{space 5} 3.614834{col 51}{space 3} 3.658666
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  4.45926{col 26}{space 2} .0538513{col 37}{space 5} 4.353712{col 51}{space 3} 4.564808
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_travel_m]_subpop_1 + [hq_travel_m]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .8225102{col 26}{space 2}     .055{col 37}{space 1}   14.95{col 46}{space 3}0.000{col 54}{space 4}  .714711{col 67}{space 3} .9303093
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_travel_f  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 6.071495{col 26}{space 2} .0171854{col 37}{space 5} 6.037812{col 51}{space 3} 6.105178
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 6.000117{col 26}{space 2} .0690055{col 37}{space 5} 5.864867{col 51}{space 3} 6.135367
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_travel_f]_subpop_1 + [hq_travel_f]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0713778{col 26}{space 2} .0711132{col 37}{space 1}   -1.00{col 46}{space 3}0.316{col 54}{space 4}-.2107588{col 67}{space 3} .0680031
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_travel_t  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 8.999539{col 26}{space 2} .0002324{col 37}{space 5} 8.999083{col 51}{space 3} 8.999994
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}        9{col 26}{space 2}        .{col 37}{space 5}        .{col 51}{space 3}        .
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_travel_t]_subpop_1 + [hq_travel_t]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0004612{col 26}{space 2} .0002324{col 37}{space 1}    1.98{col 46}{space 3}0.047{col 54}{space 4} 5.78e-06{col 67}{space 3} .0009166
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_nflood    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9051105{col 26}{space 2} .0014459{col 37}{space 5} .9022766{col 51}{space 3} .9079445
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9488175{col 26}{space 2} .0044048{col 37}{space 5} .9401842{col 51}{space 3} .9574509
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_nflood]_subpop_1 + [hq_nflood]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  .043707{col 26}{space 2}  .004636{col 37}{space 1}    9.43{col 46}{space 3}0.000{col 54}{space 4} .0346204{col 67}{space 3} .0527936
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_path      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .8669376{col 26}{space 2} .0016428{col 37}{space 5} .8637177{col 51}{space 3} .8701575
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9433549{col 26}{space 2} .0048848{col 37}{space 5} .9337808{col 51}{space 3}  .952929
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_path]_subpop_1 + [hq_path]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0764173{col 26}{space 2} .0051536{col 37}{space 1}   14.83{col 46}{space 3}0.000{col 54}{space 4} .0663163{col 67}{space 3} .0865183
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_tenure_se {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9674722{col 26}{space 2} .0010972{col 37}{space 5} .9653217{col 51}{space 3} .9696226
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}   .94783{col 26}{space 2} .0051823{col 37}{space 5} .9376726{col 51}{space 3} .9579873
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_tenure_se]_subpop_1 + [hq_tenure_se]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0196422{col 26}{space 2} .0052972{col 37}{space 1}   -3.71{col 46}{space 3}0.000{col 54}{space 4}-.0300247{col 67}{space 3}-.0092597
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_own       {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9612202{col 26}{space 2} .0011713{col 37}{space 5} .9589245{col 51}{space 3}  .963516
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}   .94087{col 26}{space 2} .0054546{col 37}{space 5}  .930179{col 51}{space 3} .9515609
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_own]_subpop_1 + [hq_own]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0203503{col 26}{space 2}  .005579{col 37}{space 1}   -3.65{col 46}{space 3}0.000{col 54}{space 4} -.031285{col 67}{space 3}-.0094156
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_n   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  1.09617{col 26}{space 2} .0017779{col 37}{space 5} 1.092686{col 51}{space 3} 1.099655
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1.05337{col 26}{space 2} .0055089{col 37}{space 5} 1.042573{col 51}{space 3} 1.064168
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_n]_subpop_1 + [hq_floor_n]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0428002{col 26}{space 2} .0057887{col 37}{space 1}   -7.39{col 46}{space 3}0.000{col 54}{space 4}-.0541459{col 67}{space 3}-.0314544
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_crowd_n   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .3168857{col 26}{space 2} .0017072{col 37}{space 5} .3135396{col 51}{space 3} .3202318
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .3764062{col 26}{space 2}  .006774{col 37}{space 5} .3631293{col 51}{space 3} .3896831
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_crowd_n]_subpop_1 + [hq_crowd_n]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0595205{col 26}{space 2} .0069858{col 37}{space 1}    8.52{col 46}{space 3}0.000{col 54}{space 4} .0458284{col 67}{space 3} .0732126
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_a   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 504.7297{col 26}{space 2}  1.60902{col 37}{space 5}  501.576{col 51}{space 3} 507.8833
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 441.7757{col 26}{space 2} 6.673974{col 37}{space 5} 428.6948{col 51}{space 3} 454.8566
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_a]_subpop_1 + [hq_floor_a]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-62.95395{col 26}{space 2} 6.865192{col 37}{space 1}   -9.17{col 46}{space 3}0.000{col 54}{space 4}-76.40963{col 67}{space 3}-49.49826
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_crowd_a   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 129.2782{col 26}{space 2} .5682959{col 37}{space 5} 128.1644{col 51}{space 3} 130.3921
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 143.9685{col 26}{space 2} 2.521626{col 37}{space 5} 139.0261{col 51}{space 3} 148.9108
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_crowd_a]_subpop_1 + [hq_crowd_a]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} 14.69026{col 26}{space 2} 2.584871{col 37}{space 1}    5.68{col 46}{space 3}0.000{col 54}{space 4} 9.623946{col 67}{space 3} 19.75657
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}         99,076
+{txt}{col 1}Number of PSUs{col 18}= {res} 99,076{txt}{col 30}Population size{col 46}={res}  24,827,506,330
+{txt}{col 30}Subpop. no. obs{col 46}={res}          55,974
+{txt}{col 30}Subpop. size{col 46}={res}  15,555,113,117
+{txt}{col 30}Design df{col 46}= {res}         99,075
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 15}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 16}{c |}{col 28}  Linearized
+{col 1}          Over{col 16}{c |}       Mean{col 28}   Std. Err.{col 40}     [95% Con{col 53}f. Interval]
+{hline 15}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_married_sep {txt}{c |}
+{space 5}_subpop_1 {c |}{col 16}{res}{space 2} .7277357{col 28}{space 2}  .002353{col 39}{space 5} .7231238{col 53}{space 3} .7323475
+{txt}{space 12}TN {c |}{col 16}{res}{space 2} .7173075{col 28}{space 2} .0106457{col 39}{space 5}  .696442{col 53}{space 3} .7381729
+{txt}{hline 15}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_married_sep]_subpop_1 + [hq_married_sep]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0104282{col 26}{space 2} .0109026{col 37}{space 1}   -0.96{col 46}{space 3}0.339{col 54}{space 4}-.0317972{col 67}{space 3} .0109409
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,816
+{txt}{col 1}Number of PSUs{col 18}= {res}106,816{txt}{col 30}Population size{col 46}={res}  27,103,117,417
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,714
+{txt}{col 30}Subpop. size{col 46}={res}  17,830,724,204
+{txt}{col 30}Design df{col 46}= {res}        106,815
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_level     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 1.170579{col 26}{space 2} .0053247{col 37}{space 5} 1.160143{col 51}{space 3} 1.181016
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1.27073{col 26}{space 2} .0223854{col 37}{space 5} 1.226854{col 51}{space 3} 1.314605
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_level]_subpop_1 + [hq_level]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1001501{col 26}{space 2}   .02301{col 37}{space 1}    4.35{col 46}{space 3}0.000{col 54}{space 4} .0550509{col 67}{space 3} .1452493
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_n   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  1.09617{col 26}{space 2} .0017779{col 37}{space 5} 1.092686{col 51}{space 3} 1.099655
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  1.05337{col 26}{space 2} .0055089{col 37}{space 5} 1.042573{col 51}{space 3} 1.064168
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_n]_subpop_1 + [hq_floor_n]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0428002{col 26}{space 2} .0057887{col 37}{space 1}   -7.39{col 46}{space 3}0.000{col 54}{space 4}-.0541459{col 67}{space 3}-.0314544
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_resid     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9661305{col 26}{space 2}  .000952{col 37}{space 5} .9642645{col 51}{space 3} .9679965
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9835609{col 26}{space 2} .0029093{col 37}{space 5} .9778587{col 51}{space 3} .9892631
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_resid]_subpop_1 + [hq_resid]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0174304{col 26}{space 2} .0030611{col 37}{space 1}    5.69{col 46}{space 3}0.000{col 54}{space 4} .0114306{col 67}{space 3} .0234301
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        104,371
+{txt}{col 1}Number of PSUs{col 18}= {res}104,371{txt}{col 30}Population size{col 46}={res}  26,398,412,380
+{txt}{col 30}Subpop. no. obs{col 46}={res}          61,269
+{txt}{col 30}Subpop. size{col 46}={res}  17,126,019,167
+{txt}{col 30}Design df{col 46}= {res}        104,370
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_period    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 7.144629{col 26}{space 2} .0100527{col 37}{space 5} 7.124925{col 51}{space 3} 7.164332
+{txt}{space 10}TN {c |}{col 14}{res}{space 2}  6.72156{col 26}{space 2} .0413682{col 37}{space 5} 6.640479{col 51}{space 3} 6.802641
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_period]_subpop_1 + [hq_period]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.4230683{col 26}{space 2} .0425721{col 37}{space 1}   -9.94{col 46}{space 3}0.000{col 54}{space 4} -.506509{col 67}{space 3}-.3396276
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_str_good  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .0161398{col 26}{space 2} .0006307{col 37}{space 5} .0149036{col 51}{space 3}  .017376
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .0177604{col 26}{space 2} .0031108{col 37}{space 5} .0116634{col 51}{space 3} .0238575
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_str_good]_subpop_1 + [hq_str_good]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0016206{col 26}{space 2} .0031741{col 37}{space 1}    0.51{col 46}{space 3}0.610{col 54}{space 4}-.0046005{col 67}{space 3} .0078417
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_elec      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9360038{col 26}{space 2} .0011861{col 37}{space 5}  .933679{col 51}{space 3} .9383285
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9879719{col 26}{space 2} .0022095{col 37}{space 5} .9836414{col 51}{space 3} .9923024
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_elec]_subpop_1 + [hq_elec]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0519681{col 26}{space 2} .0025077{col 37}{space 1}   20.72{col 46}{space 3}0.000{col 54}{space 4}  .047053{col 67}{space 3} .0568832
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_drainage  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .2136616{col 26}{space 2} .0021456{col 37}{space 5} .2094562{col 51}{space 3} .2178669
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .1408516{col 26}{space 2} .0076067{col 37}{space 5} .1259427{col 51}{space 3} .1557606
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_drainage]_subpop_1 + [hq_drainage]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0728099{col 26}{space 2} .0079035{col 37}{space 1}   -9.21{col 46}{space 3}0.000{col 54}{space 4}-.0883006{col 67}{space 3}-.0573193
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 14}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 15}{c |}{col 27}  Linearized
+{col 1}         Over{col 15}{c |}       Mean{col 27}   Std. Err.{col 39}     [95% Con{col 52}f. Interval]
+{hline 14}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_dwell_indi {txt}{c |}
+{space 4}_subpop_1 {c |}{col 15}{res}{space 2} .8884362{col 27}{space 2} .0016806{col 38}{space 5} .8851422{col 52}{space 3} .8917301
+{txt}{space 11}TN {c |}{col 15}{res}{space 2} .9138383{col 27}{space 2} .0061382{col 38}{space 5} .9018076{col 52}{space 3}  .925869
+{txt}{hline 14}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_dwell_indi]_subpop_1 + [hq_dwell_indi]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0254022{col 26}{space 2} .0063641{col 37}{space 1}    3.99{col 46}{space 3}0.000{col 54}{space 4} .0129287{col 67}{space 3} .0378757
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        105,324
+{txt}{col 1}Number of PSUs{col 18}= {res}105,324{txt}{col 30}Population size{col 46}={res}  26,608,227,508
+{txt}{col 30}Subpop. no. obs{col 46}={res}          62,222
+{txt}{col 30}Subpop. size{col 46}={res}  17,335,834,295
+{txt}{col 30}Design df{col 46}= {res}        105,323
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_room      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 3.772646{col 26}{space 2} .0093517{col 37}{space 5} 3.754317{col 51}{space 3} 3.790975
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 3.888713{col 26}{space 2} .0364238{col 37}{space 5} 3.817322{col 51}{space 3} 3.960103
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_room]_subpop_1 + [hq_room]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1160667{col 26}{space 2} .0376051{col 37}{space 1}    3.09{col 46}{space 3}0.002{col 54}{space 4} .0423612{col 67}{space 3} .1897722
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_floor_a   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 504.7297{col 26}{space 2}  1.60902{col 37}{space 5}  501.576{col 51}{space 3} 507.8833
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 441.7757{col 26}{space 2} 6.673974{col 37}{space 5} 428.6948{col 51}{space 3} 454.8566
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_floor_a]_subpop_1 + [hq_floor_a]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-62.95395{col 26}{space 2} 6.865192{col 37}{space 1}   -9.17{col 46}{space 3}0.000{col 54}{space 4}-76.40963{col 67}{space 3}-49.49826
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 15}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 16}{c |}{col 28}  Linearized
+{col 1}          Over{col 16}{c |}       Mean{col 28}   Std. Err.{col 40}     [95% Con{col 53}f. Interval]
+{hline 15}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_ventilation {txt}{c |}
+{space 5}_subpop_1 {c |}{col 16}{res}{space 2} .3310524{col 28}{space 2} .0024226{col 39}{space 5} .3263042{col 53}{space 3} .3358006
+{txt}{space 12}TN {c |}{col 16}{res}{space 2} .4872419{col 28}{space 2} .0107265{col 39}{space 5} .4662181{col 53}{space 3} .5082657
+{txt}{hline 15}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_ventilation]_subpop_1 + [hq_ventilation]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1561894{col 26}{space 2} .0109967{col 37}{space 1}   14.20{col 46}{space 3}0.000{col 54}{space 4} .1346361{col 67}{space 3} .1777427
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_kitchen   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .5130849{col 26}{space 2} .0025138{col 37}{space 5} .5081579{col 51}{space 3} .5180118
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .7051311{col 26}{space 2} .0096913{col 37}{space 5} .6861364{col 51}{space 3} .7241259
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_kitchen]_subpop_1 + [hq_kitchen]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1920463{col 26}{space 2}  .010012{col 37}{space 1}   19.18{col 46}{space 3}0.000{col 54}{space 4}  .172423{col 67}{space 3} .2116696
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_pfloor    {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2}  .581389{col 26}{space 2} .0024547{col 37}{space 5} .5765778{col 51}{space 3} .5862002
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9419113{col 26}{space 2} .0046925{col 37}{space 5} .9327141{col 51}{space 3} .9511085
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_pfloor]_subpop_1 + [hq_pfloor]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .3605223{col 26}{space 2} .0052958{col 37}{space 1}   68.08{col 46}{space 3}0.000{col 54}{space 4} .3501427{col 67}{space 3} .3709019
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_pwall     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .7829355{col 26}{space 2} .0020082{col 37}{space 5} .7789994{col 51}{space 3} .7868716
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9282314{col 26}{space 2} .0052866{col 37}{space 5} .9178697{col 51}{space 3} .9385931
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_pwall]_subpop_1 + [hq_pwall]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .1452959{col 26}{space 2} .0056552{col 37}{space 1}   25.69{col 46}{space 3}0.000{col 54}{space 4} .1342118{col 67}{space 3} .1563801
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,834
+{txt}{col 1}Number of PSUs{col 18}= {res}106,834{txt}{col 30}Population size{col 46}={res}  27,109,009,451
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,732
+{txt}{col 30}Subpop. size{col 46}={res}  17,836,616,238
+{txt}{col 30}Design df{col 46}= {res}        106,833
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_proof     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9168826{col 26}{space 2} .0013512{col 37}{space 5} .9142342{col 51}{space 3} .9195309
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9138623{col 26}{space 2} .0057142{col 37}{space 5} .9026626{col 51}{space 3}  .925062
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_proof]_subpop_1 + [hq_proof]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0030203{col 26}{space 2} .0058718{col 37}{space 1}   -0.51{col 46}{space 3}0.607{col 54}{space 4}-.0145289{col 67}{space 3} .0084883
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,838
+{txt}{col 1}Number of PSUs{col 18}= {res}106,838{txt}{col 30}Population size{col 46}={res}  27,110,552,516
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,736
+{txt}{col 30}Subpop. size{col 46}={res}  17,838,159,303
+{txt}{col 30}Design df{col 46}= {res}        106,837
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hh_land      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 3.876615{col 26}{space 2} .0280619{col 37}{space 5} 3.821615{col 51}{space 3} 3.931616
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 2.830359{col 26}{space 2} .0348366{col 37}{space 5}  2.76208{col 51}{space 3} 2.898638
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hh_land]_subpop_1 + [hh_land]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-1.046256{col 26}{space 2} .0447332{col 37}{space 1}  -23.39{col 46}{space 3}0.000{col 54}{space 4}-1.133933{col 67}{space 3}  -.95858
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,713
+{txt}{col 1}Number of PSUs{col 18}= {res}106,713{txt}{col 30}Population size{col 46}={res}  27,080,810,210
+{txt}{col 30}Subpop. no. obs{col 46}={res}          63,611
+{txt}{col 30}Subpop. size{col 46}={res}  17,808,416,997
+{txt}{col 30}Design df{col 46}= {res}        106,712
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hh_umce      {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} 7952.003{col 26}{space 2} 23.39848{col 37}{space 5} 7906.142{col 51}{space 3} 7997.863
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} 8012.968{col 26}{space 2} 92.30152{col 37}{space 5} 7832.058{col 51}{space 3} 8193.878
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hh_umce]_subpop_1 + [hh_umce]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} 60.96541{col 26}{space 2}  95.2211{col 37}{space 1}    0.64{col 46}{space 3}0.522{col 54}{space 4}-125.6666{col 67}{space 3} 247.5975
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. foreach var in $var_slum {c -(}
+{txt}  2{com}. svy, over(hh_tn): mean `var'
+{txt}  3{com}. lincom [`var']TN - [`var']_subpop_1 
+{txt}  4{com}. {c )-}
+{txt}(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 30}Number of obs{col 46}= {res}        106,804
+{txt}{col 1}Number of PSUs{col 18}= {res}106,804{txt}{col 30}Population size{col 46}={res}  27,105,638,071
+{txt}{col 30}Design df{col 46}= {res}        106,803
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_nslum     {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .9744196{col 26}{space 2} .0006253{col 37}{space 5}  .973194{col 51}{space 3} .9756452
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .9847253{col 26}{space 2} .0015943{col 37}{space 5} .9816004{col 51}{space 3} .9878502
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_nslum]_subpop_1 + [hq_nslum]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0103057{col 26}{space 2} .0017126{col 37}{space 1}    6.02{col 46}{space 3}0.000{col 54}{space 4}  .006949{col 67}{space 3} .0136623
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 33}Number of obs{col 49}= {res}       2,658
+{txt}{col 1}Number of PSUs{col 18}= {res}  2,658{txt}{col 33}Population size{col 49}={res}  672,556,541
+{txt}{col 33}Design df{col 49}= {res}       2,657
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_slum_doc  {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .8584877{col 26}{space 2} .0091019{col 37}{space 5} .8406401{col 51}{space 3} .8763352
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .8081067{col 26}{space 2} .0426522{col 37}{space 5} .7244718{col 51}{space 3} .8917416
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_slum_doc]_subpop_1 + [hq_slum_doc]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} -.050381{col 26}{space 2} .0436126{col 37}{space 1}   -1.16{col 46}{space 3}0.248{col 54}{space 4} -.135899{col 67}{space 3} .0351371
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+(running mean on estimation sample)
+{res}
+{txt}Survey: Mean estimation
+
+{col 1}Number of strata{col 18}= {res}      1{txt}{col 33}Number of obs{col 49}= {res}       2,658
+{txt}{col 1}Number of PSUs{col 18}= {res}  2,658{txt}{col 33}Population size{col 49}={res}  672,556,541
+{txt}{col 33}Design df{col 49}= {res}       2,657
+
+    {txt}_subpop_1: hh_tn = {res}non-TN
+           {txt}TN: hh_tn = {res}TN
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 14}{hline 12}
+{col 14}{c |}{col 26}  Linearized
+{col 1}        Over{col 14}{c |}       Mean{col 26}   Std. Err.{col 38}     [95% Con{col 51}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 14}{hline 12}
+{res}hq_slum_be   {txt}{c |}
+{space 3}_subpop_1 {c |}{col 14}{res}{space 2} .1891039{col 26}{space 2} .0103542{col 37}{space 5} .1688008{col 51}{space 3}  .209407
+{txt}{space 10}TN {c |}{col 14}{res}{space 2} .2934309{col 26}{space 2} .0482107{col 37}{space 5} .1988967{col 51}{space 3} .3879651
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 14}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1}{space 1}{res}- [hq_slum_be]_subpop_1 + [hq_slum_be]TN = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}        Mean{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  .104327{col 26}{space 2}   .04931{col 37}{space 1}    2.12{col 46}{space 3}0.034{col 54}{space 4} .0076372{col 67}{space 3} .2010169
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. //need to compare with other similar state instead of overall non-TN states?
+. reg hq_floor_a c.hh_umce_ln#i.hh_tn hh_umce_ln hh_size if hh_urban == 1,absorb(hh_state) cluster(hh_state)
+
+{txt}Linear regression, absorbing indicators         Number of obs     = {res}    41,646
+                                                {txt}{help j_robustsingular:F(1, 35) }         =  {res}        .
+                                                {txt}Prob > F          = {res}         .
+                                                {txt}R-squared         = {res}    0.2757
+                                                {txt}Adj R-squared     = {res}    0.2751
+                                                {txt}Root MSE          =    {res} 294.48
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:36} clusters in hh_state)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}  hq_floor_a{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 7}hh_tn#{c |}
+c.hh_umce_ln {c |}
+{space 9}TN  {c |}{col 14}{res}{space 2}-74.75672{col 26}{space 2} 12.00053{col 37}{space 1}   -6.23{col 46}{space 3}0.000{col 54}{space 4}-99.11909{col 67}{space 3}-50.39436
+{txt}{space 12} {c |}
+{space 2}hh_umce_ln {c |}{col 14}{res}{space 2} 216.4422{col 26}{space 2} 14.66871{col 37}{space 1}   14.76{col 46}{space 3}0.000{col 54}{space 4} 186.6632{col 67}{space 3} 246.2213
+{txt}{space 5}hh_size {c |}{col 14}{res}{space 2} 12.19955{col 26}{space 2} 2.863853{col 37}{space 1}    4.26{col 46}{space 3}0.000{col 54}{space 4}  6.38562{col 67}{space 3} 18.01348
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2}-1501.927{col 26}{space 2} 121.3289{col 37}{space 1}  -12.38{col 46}{space 3}0.000{col 54}{space 4}-1748.238{col 67}{space 3}-1255.617
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. reg hq_own c.hh_umce_ln#i.hh_tn hh_umce_ln hh_size if hh_urban == 1,absorb(hh_state) cluster(hh_state)
+
+{txt}Linear regression, absorbing indicators         Number of obs     = {res}    41,676
+                                                {txt}{help j_robustsingular:F(1, 35) }         =  {res}        .
+                                                {txt}Prob > F          = {res}         .
+                                                {txt}R-squared         = {res}    0.1439
+                                                {txt}Adj R-squared     = {res}    0.1431
+                                                {txt}Root MSE          =    {res}  .4359
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:36} clusters in hh_state)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}      hq_own{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 7}hh_tn#{c |}
+c.hh_umce_ln {c |}
+{space 9}TN  {c |}{col 14}{res}{space 2}-.0396505{col 26}{space 2} .0131639{col 37}{space 1}   -3.01{col 46}{space 3}0.005{col 54}{space 4}-.0663746{col 67}{space 3}-.0129264
+{txt}{space 12} {c |}
+{space 2}hh_umce_ln {c |}{col 14}{res}{space 2} .0648987{col 26}{space 2} .0160168{col 37}{space 1}    4.05{col 46}{space 3}0.000{col 54}{space 4} .0323828{col 67}{space 3} .0974146
+{txt}{space 5}hh_size {c |}{col 14}{res}{space 2}  .052744{col 26}{space 2} .0036324{col 37}{space 1}   14.52{col 46}{space 3}0.000{col 54}{space 4} .0453698{col 67}{space 3} .0601182
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2}-.1171082{col 26}{space 2} .1321074{col 37}{space 1}   -0.89{col 46}{space 3}0.381{col 54}{space 4}-.3853004{col 67}{space 3}  .151084
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}
+{com}. 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}C:/Users/wb500886/OneDrive - WBG/7_Housing/NSS76_Housing_new/analysis/final/output_nss76.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}15 Jun 2020, 23:32:27
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
