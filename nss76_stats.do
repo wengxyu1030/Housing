@@ -12,10 +12,14 @@ global dct "${ROOT}/raw/dct"
 global inter "${ROOT}/inter"
 global final "${ROOT}/final"
 
+
+****************************
+*******clean up survey******
+****************************
+
 ****************************
 *****set as survey data*****
 ****************************
-
 /* 
 based on the data consolidated using 
 "C:\Users\wb500886\OneDrive - WBG\7_Housing\NSS76_Housing_new\analysis\dofile\nss76.do" 
@@ -70,21 +74,20 @@ hq_path
 hq_tenure_se 
 hq_own
 
+hq_level
 hq_floor_n 
-hq_crowd_n
+hq_room
+hq_crowd_r
 hq_floor_a
 hq_crowd_a
 hq_married_sep
 
-hq_level
-hq_floor_n
 hq_resid
 hq_period
 hq_str_good
 hq_elec
 hq_drainage
 hq_dwell_indi
-hq_room
 hq_floor_a
 hq_ventilation
 hq_kitchen
@@ -98,10 +101,17 @@ hh_umce
 ;
 #delimit cr
 
+tempname test_rural
+postfile `test_rural' est p using "${inter}/test_rural.dta",replace
+
 foreach var in $var_q {
 svy,subpop(if hh_urban != 1) over(hh_tn): mean `var'
 lincom [`var']TN - [`var']_subpop_1 
+
+post `test_rural' (r(estimate)) (r(p))
 }
+
+postclose `test_rural'  //save it as table
 
 ***compare distribution among umce (dummy and continuous)***
 twoway kdensity hh_umce_ln if hh_tn == 1 & hq_own == 1 & hh_urban == 0|| ///
@@ -125,18 +135,44 @@ hq_slum_be
 ;
 #delimit cr
 
+tempname test_urban
+postfile `test_urban' est p using "${inter}/test_urban.dta",replace
+
 foreach var in $var_q {
-svy,subpop(if hh_urban != 1) over(hh_tn): mean `var'
+svy,subpop(if hh_urban == 1) over(hh_tn): mean `var'
 lincom  [`var']TN - [`var']_subpop_1 
+
+post `test_urban' (r(estimate)) (r(p))
 }
 
 foreach var in $var_slum {
 svy, over(hh_tn): mean `var'
 lincom [`var']TN - [`var']_subpop_1 
+
+post `test_urban' (r(estimate)) (r(p))
 }
+
+postclose `test_urban'  
 
 //need to compare with other similar state instead of overall non-TN states?
 reg hq_floor_a c.hh_umce_ln#i.hh_tn hh_umce_ln hh_size if hh_urban == 1,absorb(hh_state) cluster(hh_state)
 reg hq_own c.hh_umce_ln#i.hh_tn hh_umce_ln hh_size if hh_urban == 1,absorb(hh_state) cluster(hh_state)
 
+
 log close
+
+******************************
+*****Reulst To Excel Table****
+******************************
+u "${inter}/test_rural.dta", clear
+l, noo
+br 
+
+u "${inter}/test_urban.dta", clear
+l, noo
+br 
+
+//rename the vars accordingly
+//add var index. 
+//c_bind the two table
+//formate the digits later

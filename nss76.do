@@ -114,7 +114,7 @@ use "${raw}\b4_1",clear
 	gen hq_nslum = 0 if inrange(b4_11,1,3)
 	replace hq_nslum = 1 if b4_11 == 9 
 	
-	*hq_travel: maximum distance travelled: male, female, transgender
+	*hq_travel: maximum distance travelled to the place of work: male, female, transgender
 	gen hq_travel_m = b4_16a
 	gen hq_travel_f = b4_16b
 	gen hq_travel_t = b4_16c
@@ -265,7 +265,7 @@ merge 1:1 id using "${inter}/`file'", nogen  //there are section only survyed ho
 
 *****generate extra indicator*****
     *overcrowding measured by dwelling room number 
-    gen hq_crowd_n = hq_floor_n / hh_size
+    gen hq_crowd_r = hq_room / hh_size
     
 	*overcrowding measured by dwelling area
     gen hq_crowd_a = hq_floor_a / hh_size 
@@ -283,4 +283,4 @@ codebook,c
 //later
 
 save "${final}/nss76",replace
-
+export excel using "${final}/nss76.xlsx", sheet("nss76") sheetreplace firstrow(var)
