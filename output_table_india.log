@@ -3,7 +3,7 @@
        log:  C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/final/output
 > _table_india.smcl
   log type:  smcl
- opened on:   2 Jul 2020, 02:08:46
+ opened on:   2 Jul 2020, 02:27:41
 
 . 
 . *****************************
@@ -92,169 +92,13 @@
 . *****************India: 12-18***********************
 . 
 . *mean for all india nss76
-. eststo stats_76: estpost summarize `tab_list' [aw = hh_weight] if id_survey =
-> = "76", detail 
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)
->   e(kurto~)     e(sum) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |    106804   2.71e+10   .9405469    .055919   .2364719  -3.726015
->    14.88319   2.55e+10 
-infra_pucc~l |    106804   2.71e+10   .8507706   .1269612   .3563162  -1.968882
->    4.876496   2.31e+10 
-infra_pucc~r |    106804   2.71e+10   .7221135   .2006675   .4479592  -.9916731
->    1.983416   1.96e+10 
-infra_wate~n |    106219   2.70e+10   .6591253   .2246813   .4740056  -.6714099
->    1.450791   1.78e+10 
-infra_pucc~e |    106804   2.71e+10   .5708332   .2449849   .4949595  -.2862195
->    1.081922   1.55e+10 
-legal_tenu~e |    106804   2.71e+10   .8877026   .0996876   .3157334  -2.455897
->    7.031431   2.41e+10 
-   legal_own |    106838   2.71e+10    .849948   .1275376   .3571241  -1.959821
->    4.840897   2.30e+10 
-  legal_rent |    106838   2.71e+10   .1308348   .1137181   .3372212   2.189465
->    5.793755   3.55e+09 
-   cost_rent |     14102   3.43e+09     3036.2    7936193   2817.125   2.943526
->    17.46821   1.04e+13 
-  infra_room |    104544   2.64e+10   3.961551   3.836155   1.958611   .9917726
->     5.30213   1.05e+11 
-infra_crow~r |    104544   2.64e+10   1.336888   .9476288   .9734623   2.424571
->    12.14481   3.54e+10 
-  infra_area |    106804   2.71e+10   499.6408   108292.5   329.0783    2.14268
->    13.48929   1.35e+13 
-infra_crow~a |    106804   2.71e+10   .0113545   .0000658   .0081089   2.409139
->     14.2768   3.08e+08 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)
->      e(p50)     e(p75) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |         0          1          0          0          1          1
->           1          1 
-infra_pucc~l |         0          1          0          0          0          1
->           1          1 
-infra_pucc~r |         0          1          0          0          0          0
->           1          1 
-infra_wate~n |         0          1          0          0          0          0
->           1          1 
-infra_pucc~e |         0          1          0          0          0          0
->           1          1 
-legal_tenu~e |         0          1          0          0          0          1
->           1          1 
-   legal_own |         0          1          0          0          0          1
->           1          1 
-  legal_rent |         0          1          0          0          0          0
->           0          0 
-   cost_rent |         1      30000        100        400        600       1200
->        2500       4000 
-  infra_room |         1         41          1          1          2          3
->           4          5 
-infra_crow~r |  .0714286         11         .2   .3333333         .5        .75
->           1   1.666667 
-  infra_area |        20      10400         65        130        180        280
->         430        632 
-infra_crow~a |  .0003509   .1388889   .0016327   .0028986    .003876   .0060332
->     .009375   .0142857 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
-infra_pucc~f |         1          1          1 
-infra_pucc~l |         1          1          1 
-infra_pucc~r |         1          1          1 
-infra_wate~n |         1          1          1 
-infra_pucc~e |         1          1          1 
-legal_tenu~e |         1          1          1 
-   legal_own |         1          1          1 
-  legal_rent |         1          1          1 
-   cost_rent |      6000       8000      14170 
-  infra_room |         6          7         10 
-infra_crow~r |       2.5          3          5 
-  infra_area |       900       1110       1657 
-infra_crow~a |   .020979    .026455        .04 
+. qui eststo stats_76: estpost summarize `tab_list' [aw = hh_weight] if id_surv
+> ey == "76", detail 
 
 . 
 . *mean for all india nss69
-. eststo stats_69: estpost summarize `tab_list' [aw = hh_weight] if id_survey =
-> = "69", detail
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)
->   e(kurto~)     e(sum) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |     95508   5.08e+10    .905542   .0855365   .2924663  -2.773271
->    8.691031   4.60e+10 
-infra_pucc~l |     95508   5.08e+10   .7708793   .1766262   .4202692  -1.289082
->    2.661732   3.92e+10 
-infra_pucc~r |     95508   5.08e+10   .6352153   .2317192   .4813723   -.561794
->    1.315612   3.23e+10 
-infra_wate~n |     94600   5.06e+10   .5618195    .246181   .4961663    -.24919
->    1.062096   2.84e+10 
-infra_pucc~e |     95505   5.08e+10    .478265   .2495302     .49953   .0870223
->    1.007573   2.43e+10 
-legal_tenu~e |     95517   5.08e+10   .8696488    .113361   .3366912  -2.195785
->     5.82147   4.42e+10 
-   legal_own |     95548   5.08e+10   .8310363   .1404164   .3747218  -1.766847
->    4.121748   4.23e+10 
-  legal_rent |     95548   5.08e+10   .1469328   .1253449   .3540408    1.99451
->    4.978072   7.47e+09 
-   cost_rent |     13265   6.79e+09   1836.435    4876842   2208.357   4.299124
->    34.07566   1.25e+13 
-  infra_room |     80626   4.25e+10   4.070836   4.190422   2.047052   1.419083
->     13.8696   1.73e+11 
-infra_crow~r |     80602   4.25e+10   1.409354   1.104704   1.051049   2.433766
->    12.45022   5.99e+10 
-  infra_area |     95508   5.08e+10    428.114   101714.6   318.9273   3.564981
->    45.31024   2.18e+13 
-infra_crow~a |     95508   5.08e+10   .0147259   .0001271   .0112743   2.582112
->    16.18213   7.49e+08 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)
->      e(p50)     e(p75) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |         0          1          0          0          1          1
->           1          1 
-infra_pucc~l |         0          1          0          0          0          1
->           1          1 
-infra_pucc~r |         0          1          0          0          0          0
->           1          1 
-infra_wate~n |         0          1          0          0          0          0
->           1          1 
-infra_pucc~e |         0          1          0          0          0          0
->           0          1 
-legal_tenu~e |         0          1          0          0          0          1
->           1          1 
-   legal_own |         0          1          0          0          0          1
->           1          1 
-  legal_rent |         0          1          0          0          0          0
->           0          0 
-   cost_rent |         1      35000         50        200        300        600
->        1200       2200 
-  infra_room |         0         91          1          1          2          3
->           4          5 
-infra_crow~r |   .021978         13        .25   .3333333         .5        .75
->           1       1.75 
-  infra_area |         6      10803         49        104        140        220
->         354        550 
-infra_crow~a |  .0001851   .2666667       .002   .0035294    .004717   .0073529
->    .0117925   .0185185 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
-infra_pucc~f |         1          1          1 
-infra_pucc~l |         1          1          1 
-infra_pucc~r |         1          1          1 
-infra_wate~n |         1          1          1 
-infra_pucc~e |         1          1          1 
-legal_tenu~e |         1          1          1 
-   legal_own |         1          1          1 
-  legal_rent |         1          1          1 
-   cost_rent |      4000       5500      10000 
-  infra_room |         7          8         11 
-infra_crow~r |       2.5   3.333333          6 
-  infra_area |       798        996       1530 
-infra_crow~a |      .028   .0355556   .0573248 
+. qui eststo stats_69: estpost summarize `tab_list' [aw = hh_weight] if id_surv
+> ey == "69", detail
 
 . 
 . *Means mean
@@ -262,7 +106,15 @@ infra_crow~a |      .028   .0355556   .0573248
 >         replace main(mean %6.2f) label wide varwidth(40) modelwidth(4) onecel
 > l not ///
 >         mtitle("India 69" "India 76") nonotes /// 
->         title("2012 to 2018: Table of Means")
+>         title("2012 to 2018: Table of Means") ///
+>         addnotes("a. The Montly Rent is encoded as missing if the response is
+>  0." ///
+>         "b. Person per Room is defined as household size divide by total numb
+> er" ///
+>     "   of rooms in the dwelling." ///
+>         "c. Square Feet per Person is defined as household size divide by tot
+> al" ///
+>         "   floor area of the dwelling that measured in square feet." )
 
 2012 to 2018: Table of Means
 --------------------------------------------------------
@@ -285,6 +137,11 @@ Square Feet per Person                   0.01    0.01
 --------------------------------------------------------
 Observations                             95548    106838   
 --------------------------------------------------------
+a. The Montly Rent is encoded as missing if the response is 0.
+b. Person per Room is defined as household size divide by total number
+   of rooms in the dwelling.
+c. Square Feet per Person is defined as household size divide by total
+   floor area of the dwelling that measured in square feet.
 
 . 
 . *Means median
@@ -312,169 +169,13 @@ Observations                             95548    106838
 . *****************India: rural-urban***********************
 . 
 . *mean for all india nss76 urban
-. eststo stats_76_u: estpost summarize `tab_list' [aw = hh_weight] ///
+. qui eststo stats_76_u: estpost summarize `tab_list' [aw = hh_weight] ///
 > if id_survey == "76" & hh_urban == 1, detail 
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)
->   e(kurto~)     e(sum) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |     43072   9.27e+09   .9864111   .0134046   .1157782  -8.402559
->    71.60299   9.14e+09 
-infra_pucc~l |     43072   9.27e+09   .9656087   .0332093   .1822343  -5.110059
->    27.11271   8.95e+09 
-infra_pucc~r |     43072   9.27e+09   .9539602   .0439212   .2095738  -4.332273
->    19.76859   8.84e+09 
-infra_wate~n |     42845   9.25e+09   .8069051   .1558129   .3947315  -1.555025
->    3.418103   7.46e+09 
-infra_pucc~e |     43072   9.27e+09   .8759502    .108664   .3296422  -2.280985
->    6.202894   8.12e+09 
-legal_tenu~e |     43072   9.27e+09   .7363224   .1941563   .4406316  -1.072665
->     2.15061   6.82e+09 
-   legal_own |     43102   9.27e+09   .6380812   .2309389   .4805611  -.5746731
->    1.330249   5.92e+09 
-  legal_rent |     43102   9.27e+09   .3287164    .220667   .4697521   .7292597
->     1.53182   3.05e+09 
-   cost_rent |     12328   2.97e+09   3283.124    8487427   2913.319    2.86518
->    16.54876   9.75e+12 
-  infra_room |     42322   9.11e+09     4.3083   4.564792   2.136537   .9899819
->    5.790851   3.93e+10 
-infra_crow~r |     42322   9.11e+09   1.098382   .7634533   .8737582   3.041698
->    17.56818   1.00e+10 
-  infra_area |     43072   9.27e+09     496.65   131043.8   361.9997   2.156832
->    13.50047   4.60e+12 
-infra_crow~a |     43072   9.27e+09   .0109971   .0000796   .0089212   2.788317
->     16.9699   1.02e+08 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)
->      e(p50)     e(p75) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |         0          1          0          1          1          1
->           1          1 
-infra_pucc~l |         0          1          0          1          1          1
->           1          1 
-infra_pucc~r |         0          1          0          1          1          1
->           1          1 
-infra_wate~n |         0          1          0          0          0          1
->           1          1 
-infra_pucc~e |         0          1          0          0          0          1
->           1          1 
-legal_tenu~e |         0          1          0          0          0          0
->           1          1 
-   legal_own |         0          1          0          0          0          0
->           1          1 
-  legal_rent |         0          1          0          0          0          0
->           0          1 
-   cost_rent |         1      30000        100        500        800       1500
->        2500       4000 
-  infra_room |         1         41          1          1          2          3
->           4          5 
-infra_crow~r |  .0769231         11         .2   .3333333       .375   .5714286
->           1   1.333333 
-  infra_area |        20       8840         50        100        145        250
->         420        645 
-infra_crow~a |  .0003571   .1166667   .0013699      .0025   .0033333   .0053191
->    .0085837   .0137363 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
-infra_pucc~f |         1          1          1 
-infra_pucc~l |         1          1          1 
-infra_pucc~r |         1          1          1 
-infra_wate~n |         1          1          1 
-infra_pucc~e |         1          1          1 
-legal_tenu~e |         1          1          1 
-   legal_own |         1          1          1 
-  legal_rent |         1          1          1 
-   cost_rent |      6136       8500      15000 
-  infra_room |         7          8         10 
-infra_crow~r |         2        2.5          5 
-  infra_area |       940       1190       1800 
-infra_crow~a |  .0214286   .0275229     .04375 
 
 . 
 . *mean for all india nss76 rural
-. eststo stats_76_r: estpost summarize `tab_list' [aw = hh_weight] ///
+. qui eststo stats_76_r: estpost summarize `tab_list' [aw = hh_weight] ///
 > if id_survey == "76" & hh_urban == 0, detail
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)
->   e(kurto~)     e(sum) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |     63732   1.78e+10    .916713   .0763515   .2763177  -3.016211
->    10.09753   1.64e+10 
-infra_pucc~l |     63732   1.78e+10   .7910935   .1652672   .4065307  -1.432098
->    3.050903   1.41e+10 
-infra_pucc~r |     63732   1.78e+10   .6016315   .2396748   .4895659  -.4151935
->    1.172386   1.07e+10 
-infra_wate~n |     63374   1.78e+10   .5822853    .243233   .4931865  -.3336909
->     1.11135   1.04e+10 
-infra_pucc~e |     63732   1.78e+10   .4122754   .2423082   .4922481   .3564273
->     1.12704   7.35e+09 
-legal_tenu~e |     63732   1.78e+10   .9663693   .0325002   .1802781  -5.173928
->    27.76953   1.72e+10 
-   legal_own |     63736   1.78e+10   .9600777   .0383291   .1957782  -4.700026
->    23.09025   1.71e+10 
-  legal_rent |     63736   1.78e+10   .0279747   .0271925   .1649016   5.724979
->    33.77539   4.99e+08 
-   cost_rent |      1774   4.55e+08     1423.6    1338571   1156.966   1.568902
->    6.058091   6.48e+11 
-  infra_room |     62222   1.73e+10   3.779315   3.356871   1.832177   .9133806
->    4.460938   6.55e+10 
-infra_crow~r |     62222   1.73e+10   1.462236   .9988266   .9994131   2.266398
->    10.93204   2.53e+10 
-  infra_area |     63732   1.78e+10   501.1949   96464.06   310.5866   2.103841
->    12.91377   8.94e+12 
-infra_crow~a |     63732   1.78e+10   .0115402   .0000585   .0076464   2.091713
->     11.3162   2.06e+08 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)
->      e(p50)     e(p75) 
--------------+-----------------------------------------------------------------
------------------------
-infra_pucc~f |         0          1          0          0          1          1
->           1          1 
-infra_pucc~l |         0          1          0          0          0          1
->           1          1 
-infra_pucc~r |         0          1          0          0          0          0
->           1          1 
-infra_wate~n |         0          1          0          0          0          0
->           1          1 
-infra_pucc~e |         0          1          0          0          0          0
->           0          1 
-legal_tenu~e |         0          1          0          1          1          1
->           1          1 
-   legal_own |         0          1          0          1          1          1
->           1          1 
-  legal_rent |         0          1          0          0          0          0
->           0          0 
-   cost_rent |         1      10000          1        200        300        500
->        1000       2000 
-  infra_room |         1         21          1          1          2          2
->           4          5 
-infra_crow~r |  .0714286         11        .25   .4285714         .5         .8
->        1.25        1.8 
-  infra_area |        22      10400        100        150        200        290
->         436        630 
-infra_crow~a |  .0003509   .1388889   .0018519   .0032258   .0042105   .0064516
->    .0097222   .0144231 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
-infra_pucc~f |         1          1          1 
-infra_pucc~l |         1          1          1 
-infra_pucc~r |         1          1          1 
-infra_wate~n |         1          1          1 
-infra_pucc~e |         1          1          1 
-legal_tenu~e |         1          1          1 
-   legal_own |         1          1          1 
-  legal_rent |         0          0          1 
-   cost_rent |      3000       4000       5000 
-  infra_room |         6          7          9 
-infra_crow~r |       2.5        3.5          5 
-  infra_area |       880       1080       1588 
-infra_crow~a |  .0208333   .0258065        .04 
 
 . 
 . *Means mean
@@ -536,5 +237,5 @@ Observations                             43102    63736
        log:  C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/final/output
 > _table_india.smcl
   log type:  smcl
- closed on:   2 Jul 2020, 02:08:52
+ closed on:   2 Jul 2020, 02:27:47
 -------------------------------------------------------------------------------
