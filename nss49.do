@@ -153,7 +153,7 @@ destring `var',replace
 	gen infra_room = B6_q7 + B6_q8
 	
 	*infra_area: total floor area of the dwelling: in square feet/ Area of covered verandah(NSS49)
-	gen infra_area = B6_q11
+	gen infra_area = (B6_q9 + B6_q10 + B6_q11 + B6_q12)*10.7639
 	
 	/*Check the definition: The floor space of the covered verandah and that of uncovered verandah are to be recorded agains items 11 and
 12 respectively in square metres. C overed and uncovered verandahs are defined in para 4.0.3 (f). ( 1 sq. ft. =
