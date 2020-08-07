@@ -17,7 +17,7 @@ global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all"
 global raw "${ROOT}/raw"
 global inter "${ROOT}/inter"
 global final "${ROOT}/final"
-
+global github "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/ihds"
 
 /*
 This file is to:
@@ -41,3 +41,4 @@ append using "${raw}/ihds2.dta"
 *label and order the vars. 
 
 save "${final}/ihds",replace
+save "${github}/ihds",replace

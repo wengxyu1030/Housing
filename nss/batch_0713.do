@@ -18,6 +18,7 @@ global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all"
 global raw "${ROOT}/raw"
 global inter "${ROOT}/inter"
 global final "${ROOT}/final"
+global github "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/nss"
 
 
 /*
@@ -33,6 +34,7 @@ global surveys "nss49 nss65 nss69 nss76"
 
 *data source
 use "${raw}/nss76.dta", clear	
+append using "${raw}/nss58.dta"
 append using "${raw}/nss69.dta"
 append using "${raw}/nss65.dta"
 append using "${raw}/nss49.dta"
@@ -90,6 +92,13 @@ label var hh_state "Household State"
 label var hh_tn "Household in Tamil Nadu" 
 label var hh_weight "Household Weight" 
 
+*consolidate the states
+do "${github}/01_Add State Names to Housing NSS Rounds v2.do"
 
-save "${final}/master",replace
+*merge with the iso code
+merge m:1 hh_state using "${raw}/state_code.dta"
+keep if _merge == 1
+drop _merge
 
+save "${final}/nss",replace
+save "${github}/nss",replace
