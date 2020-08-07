@@ -47,7 +47,7 @@ replace hh_state =31 if hh_state49 ==32 & id_survey == 49
 replace hh_state =34 if hh_state49 ==33 & id_survey == 49
 
 gen hh_state76 = hh_state if id_survey == 76
-replace hh_state = 28 if hh_state49 == 36 & id_survey == 76
+replace hh_state = 28 if hh_state76 == 36 & id_survey == 76
 
 label define state 28 "Andhra Pardesh", add
 label define state 12 "Arunachal Pradesh", add

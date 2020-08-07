@@ -97,8 +97,19 @@ do "${github}/01_Add State Names to Housing NSS Rounds v2.do"
 
 *merge with the iso code
 merge m:1 hh_state using "${raw}/state_code.dta"
-keep if _merge == 1
+
+rename isocode state_iso
+keep if _merge == 3
 drop _merge
+
+*generate year and survey id data
+gen year = .
+replace year = 2018 if id_survey ==76
+replace year = 2012 if id_survey ==69
+replace year = 2008 if id_survey ==65
+replace year = 2002 if id_survey ==58
+replace year = 1993 if id_survey ==49
+
 
 save "${final}/nss",replace
 save "${github}/nss",replace
