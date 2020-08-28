@@ -63,8 +63,11 @@ use "${raw}/ihds1/DS0002/22626-0002-Data",clear
 	*hq_rent_se: Do you have a rental agreement? only for renter. //not available in this round
 	/* gen hq_rent_se = (CG1A == 1) if !mi(CG1A) */  
 	
+	*household owns TV. 
+	gen ast_tv = (CG7+CG8>0)
+	replace ast_tv = . if !inlist(CG7,1,0) | !inlist(CG8,1,0)
 	
 *******save file*****  
-keep id* hh_* hq_* legal_* 
+keep id* hh_* hq_* legal_* ast_*
 save "${final}/ihds1",replace
 save "${raw_batch}/ihds1",replace

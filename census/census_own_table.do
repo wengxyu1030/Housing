@@ -20,13 +20,9 @@ replace hv025 = 2 if hh_sector == "Total"
 
 * Generate own_dwelling 
 
-gen d_own = own/total
+gen c_11_own = own/total
 
-
-
-
-duplicates drop state_iso,force
-keep state_iso d_*
+keep state_iso hh_sector c_*
 
 *Save 
 save "${github}/census_hse_own_11.dta", replace

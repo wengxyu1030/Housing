@@ -62,8 +62,10 @@ use "${raw}/ihds2/DS0002/36151-0002-Data.dta",clear
 	*hq_rent_se: Do you have a rental agreement? only for renter.
 	gen hq_rent_se = (CG1A == 1) if !mi(CG1A)
 	
+	*household owns TV. 
+	gen ast_tv = CGTV
 	
 *******save file*****  
-keep id* hh_* hq_* legal_* 
+keep id* hh_* hq_* legal_* ast_*
 save "${final}/ihds2",replace
 save "${raw_batch}/ihds2",replace

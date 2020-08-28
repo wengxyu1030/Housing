@@ -4,8 +4,8 @@
 ***Consolidate the Surveys***
 *****************************
 
-global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all"
-global do "${ROOT}/script"
+global github "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/ihds"
+global do "${github}"
 
 ***run files by survey****
 do "${do}/ihds1.do"
@@ -17,7 +17,6 @@ global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all"
 global raw "${ROOT}/raw"
 global inter "${ROOT}/inter"
 global final "${ROOT}/final"
-global github "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/ihds"
 
 /*
 This file is to:
