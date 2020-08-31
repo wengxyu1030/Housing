@@ -3,16 +3,6 @@
 *****************************
 ***Consolidate the Surveys***
 *****************************
-
-
-
-***set the environment****
-global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/nss"
-global raw "${ROOT}/MASTER_NSS/raw"
-global inter "${ROOT}/MASTER_NSS/inter"
-global final "${ROOT}/MASTER_NSS/final"
-
-
 /*
 This file is to:
 1. Consolidate the surveys
@@ -20,22 +10,31 @@ This file is to:
 */
 
 ***run files by survey****
-do "${ROOT}/NSS65/nss65.do"
-do "${ROOT}/NSS69/nss69.do"
-do "${ROOT}/NSS76/nss76.do"
-do "${ROOT}/NSS49/nss49.do"
-do "${ROOT}/NSS58/nss58.do"
+global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/nss/Survey_NSS"
+
+do "${ROOT}/nss49.do"
+do "${ROOT}/nss58.do"
+do "${ROOT}/nss65.do"
+do "${ROOT}/nss69.do"
+do "${ROOT}/nss76.do"
+
 
 ***Specify the Surveys***
-global surveys "nss49 nss65 nss69 nss76"
+global surveys "nss49 nss58 nss65 nss69 nss76"
+
+***set the environment****
+global ROOT "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/nss/MASTER_NSS"
+global raw "${ROOT}/raw"
+global inter "${ROOT}/inter"
+global final "${ROOT}/final"
 
 //log using "${final}/output_table_india_6576",replace
 
 *data source
 use "${raw}/nss76.dta", clear	
-append using "${raw}/nss58.dta"
 append using "${raw}/nss69.dta"
 append using "${raw}/nss65.dta"
+append using "${raw}/nss58.dta"
 append using "${raw}/nss49.dta"
 
 *calculate indicators
