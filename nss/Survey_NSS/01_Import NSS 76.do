@@ -2,7 +2,7 @@
 * Description: Import NSS76 from Raw Files and save dta to Output Folder
 * Date: September 1, 2020
 * Version 1.0
-* Last Editor: Aline
+* Last Editor: Nadeem 
 ****************************************************************************
 
 ****************************************************************************
@@ -14,6 +14,7 @@ clear matrix
 * Determine Whose Machine is running the code and set the global directory
 ****************************************************************************
 if "`c(username)'" == "wb308830" local pc = 0
+if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76\"
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housin\survey_all\Housing_git\nss\"
 
@@ -25,6 +26,8 @@ global r_output "${root}\Data Output Files"
 ****************************************************************************
 * Import TXT Files with the DCT files
 ****************************************************************************
+
+
 forvalues i=1(1)8 { 
 
  infile using "${r_input}\R76120L0`i' v2.dct", using("${r_input}\R76120L0`i'.txt") clear
