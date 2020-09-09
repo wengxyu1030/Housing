@@ -15,8 +15,8 @@ clear matrix
 ****************************************************************************
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
-if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76\"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housin\survey_all\Housing_git\nss\"
+if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
@@ -92,7 +92,7 @@ use "${r_output}\NSS76_3",clear
 	gen hh_land = b4_4
 	
 	*hh_umce: household monthly consumer expenditure
-	gen hh_umce = b4_9
+	gen hh_umce = b4_9/hh_size
 	gen hh_umce_ln = ln(hh_umce)
 	
 	*hq_tenure: the tenurial status

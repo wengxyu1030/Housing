@@ -144,9 +144,16 @@ use "${raw}\b4_1",clear
 	replace hq_nslum = 1 if b4_11 == 9 
 	
 	*hq_travel: maximum distance travelled to the place of work: male, female, transgender
+	
 	gen hq_travel_m = b4_16a
+	replace hq_travel_m = . if hq_travel_m==9
+	
 	gen hq_travel_f = b4_16b
+	replace hq_travel_f = . if hq_travel_f == 9
+	
 	gen hq_travel_t = b4_16c
+	replace hq_travel_t = . if hq_travel_t == 9
+	
 	//need to code later.
 	
 	save "${inter}\b4_1",replace
@@ -227,7 +234,7 @@ use "${raw}\b7",clear
 	gen hq_dwell_type = b7_1
 	
 	*hq_dwell_indi: type of dwelling is independent house
-	gen hq_dwell_indi = (hq_dwell_type == 1)
+	gen hq_dwell_indi = (hq_dwell_type == 1 | hq_dwell_type == 9)
 	
 	*hq_room: total number of rooms in the dwelling
 	gen infra_room = b7_2 + b7_3
