@@ -276,6 +276,10 @@ tab hse_quality_grp [aw = hh_weight],sort
 
 *cross validate with other indicator: slum, consumption, rent, overcrowding
 
+**distribution of slum and renter
+tab hse_quality_grp hq_slum [aw = hh_weight],col
+tab hse_quality_grp legal_rent [aw = hh_weight],col
+
 **mean
 table hse_quality_grp [aw = hh_weight],c(mean hq_slum med hh_umce mean legal_rent mean in_ppl_area) format(%9.2f) center
 
