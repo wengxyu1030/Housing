@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Generate a summary table of NSS 76 
-* Date: September 1, 2020
+* Date: September 15, 2020
 * Version 1.0
 * Last Editor: Nadeem 
 ****************************************************************************
@@ -15,8 +15,8 @@ clear matrix
 ****************************************************************************
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
-if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76"
+if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76\"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housin\survey_all\Housing_git\nss\"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
@@ -57,8 +57,9 @@ label var in_flat "Flat (%)"
 gen in_size = b7_8 
 label var in_size "Dwelling Size (sq ft)"
 
-gen in_room = b7_2 + b7_3 
+egen in_room = rowtotal(b7_2  b7_3)
 label var in_room "Number of Rooms"
+replace in_room =1 if in_room == 0
 
 gen in_ppl_room = hh_size / in_room
 label var in_ppl_room "People per room"
@@ -205,7 +206,7 @@ local num : word count `vars'
 
 local if1 "< 3"
 local if2 "==0"
-local if3 "==1"
+local if3 "==1 | location == 2"
 local if4 "==2"
 
 local mkt1 "All"
@@ -226,11 +227,13 @@ foreach v of var `var_summary' {
 	qui recode `v' (100=1)
 	*di `j'
 	*di "`if`i''"
-	qui reg log_`lhs' `v' [aw=hh_weight] if location `if`i'', nocons
+	**** CHECK THE CONSTANT ***** 
+	
+	qui reg log_`lhs' `v' [aw=hh_weight] if location `if`i''
 	*di `j'
 	matrix c`j' = e(b)
 	matrix se`j' = e(V)
-	matrix C`i'[`j',1] = c`j'
+	matrix C`i'[`j',1] = c`j'[1,1]
 	matrix SE`i'[`j',1] = sqrt(se`j'[1,1])
 	local r2 = `r2' + e(r2)
 	local n =e(N)
@@ -261,19 +264,14 @@ foreach v of var `var_summary' {
 	addnotes("Regressions are weighted by survey weights and dependent variables is log of spending measure.") ///
 		title("Bivariate Regressions of Log Consumption and Rent on Housing Features")
 	
-	
-	
-	
-*************** SINGLE REGRESSION **********************
+****************** WATER ***********************************
 
-*All - Rural - Urban - Big City :: bilateral, together, rent
 
-drop in_all_permanent
-
-local var_summary  in_* h20* san*
+estimates clear 
+local var_summary  h20* 
 local if1 "< 3"
 local if2 "==0"
-local if3 "==1"
+local if3 "==1 | location == 2"
 local if4 "==2"
 
 local mkt1 "All"
@@ -293,6 +291,111 @@ forvalues i=1(1)4 {
 	
 	esttab d1_c d1_r d2_c d2_r d3_c d3_r d4_c d4_r , nose not label b("%9.2f")	r2 ///
 	stats(mkt N r2 , label(Region Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+	title("Combined Hedonic Regression of Log Consumption and Rent on Water Features") ///
+	addnotes("Regressions are weighted by survey weights and dependent variables is log of spending measure.")	
+	
+
+****************** Sanitation ***********************************
+
+
+estimates clear 
+local var_summary  san* 
+local if1 "< 3"
+local if2 "==0"
+local if3 "==1 | location == 2"
+local if4 "==2"
+
+local mkt1 "All"
+local mkt2 "Rural"
+local mkt3 "Urban"
+local mkt4 "Mega Cities"
+
+foreach lhs in c r {
+forvalues i=1(1)4 {
+
+	qui reg log_`lhs' `var_summary' [aw=hh_weight] if location `if`i''
+	qui estadd local mkt  `mkt`i''
+	eststo d`i'_`lhs'
+	
+	}
+	}
+	
+	esttab d1_c d1_r d2_c d2_r d3_c d3_r d4_c d4_r , nose not label b("%9.2f")	r2 ///
+	stats(mkt N r2 , label(Region Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+	title("Combined Hedonic Regression of Log Consumption and Rent on Sanitation Features") ///
+	addnotes("Regressions are weighted by survey weights and dependent variables is log of spending measure.")		
+	
+	
+	
+	
+****************** NUMBER OF ROOMS ***********************************
+
+
+gen in_rm_2 = in_room == 2
+gen in_rm_3 = in_room == 3
+gen in_rm_4 = in_room == 4
+gen in_rm_5 = in_room == 5
+gen in_rm_6p = in_room >= 6 
+
+local var_summary  in_rm_* 
+local if1 "< 3"
+local if2 "==0"
+local if3 "==1 | location == 2"
+local if4 "==2"
+
+local mkt1 "All"
+local mkt2 "Rural"
+local mkt3 "Urban"
+local mkt4 "Mega Cities"
+
+foreach lhs in c r {
+forvalues i=1(1)4 {
+
+	qui reg log_`lhs' `var_summary' [aw=hh_weight] if location `if`i''
+	qui estadd local mkt  `mkt`i''
+	eststo d`i'_`lhs'
+	
+	}
+	}
+	
+	esttab d1_c d1_r d2_c d2_r d3_c d3_r d4_c d4_r , nose not label b("%9.2f")	r2 ///
+	stats(mkt N r2 , label(Region Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+	title("Combined Hedonic Regression of Log Consumption and Rent on Number of Rooms") ///
+	addnotes("Regressions are weighted by survey weights and dependent variables is log of spending measure. Omitted is one room dwelling.")		
+	
+	
+	
+	
+	
+*************** SINGLE REGRESSION **********************
+
+*All - Rural - Urban - Big City :: bilateral, together, rent
+
+
+
+local var_summary  in_wall* in_floor* in_roof* in_rm_* in_sep_kitch in_flat h20_piped_in h20_yard   san_flush san_imp_pit
+local if1 "< 3"
+local if2 "==0"
+local if3 "==1 | location == 2"
+local if4 "==2"
+
+local mkt1 "All"
+local mkt2 "Rural"
+local mkt3 "Urban"
+local mkt4 "Mega Cities"
+
+foreach lhs in c r {
+forvalues i=1(1)4 {
+
+	areg log_`lhs' `var_summary' [aw=hh_weight] if location `if`i'', absorb(hh_district)
+	qui estadd local mkt  `mkt`i''
+	eststo d`i'_`lhs'
+	
+	}
+	}
+	
+	esttab d1_c d1_r d2_c d2_r d3_c d3_r d4_c d4_r , nose not label b("%9.2f")	r2 ///
+	stats(mkt N r2 , label(Region Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
 	title("Combined Hedonic Regression of Log Consumption and Rent on Housing Features") ///
-	addnotes("Regressions are weighted by survey weights and dependent variables is log of spending measure.")
+	addnotes("Regressions are weighted by survey weights and dependent variables is log of spending measure. Regressions include district fixed effects.")
 
