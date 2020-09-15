@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Check Regressions of housing features on income 
-* Date: September 10, 2020
+* Date: September 15, 2020
 * Version 1.0
 * Last Editor: Nadeem 
 ****************************************************************************
@@ -57,8 +57,9 @@ label var in_flat "Flat (%)"
 gen in_size = b7_8 
 label var in_size "Dwelling Size (sq ft)"
 
-gen in_room = b7_2 + b7_3 
+egen in_room = rowtotal(b7_2  b7_3)
 label var in_room "Number of Rooms"
+replace in_room =1 if in_room == 0
 
 gen in_ppl_room = hh_size / in_room
 label var in_ppl_room "People per room"
@@ -104,6 +105,8 @@ gen log_r = log(b7_17)
 label var log_r "Rent"
 xtile c_quin = b4_9 [aw=hh_weight] if hh_urban == 1, nq(10)
 
+xtile c_quin_rural = b4_9 [aw=hh_weight] if hh_urban == 0, nq(10)
+
 xi i.c_quin , noomit pre(Q_)
 local i = 1
 foreach var of  var Q_* {
@@ -113,6 +116,7 @@ local i = `i' + 1
 * in_ppl_room 
 local var in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent h20_piped_in san_flush in_sep_kitch in_size in_room in_ppl_room in_ppl_area hh_size
 
+* URBAN 
 estimates clear
 foreach v of var `var' { 
 	qui sum `v'
@@ -123,4 +127,22 @@ foreach v of var `var' {
 }
 
 esttab, label b("%9.2f") nose not  ///
-mtitles (Wall Roof Floor WRF H20 San Kitchen Sq Rooms P/R P/A "HH Size") varwidth(3)
+mtitles (Wall Roof Floor WRF H20 San Kitchen Sq Rooms P/R P/A "HH Size") varwidth(3) ///
+title(How Housing Features Change as Income and Rent Increase)
+
+*RURAL 
+
+
+xi i.c_quin_rural , noomit pre(R_)
+estimates clear
+foreach v of var `var' { 
+	qui sum `v'
+	*if `r(max)' == 100 recode `v' (100=1)
+
+	qui reg `v' R_* [aw=hh_weight] if hh_urban == 0, nocons
+	eststo 
+}
+
+esttab, label b("%9.2f") nose not  ///
+mtitles (Wall Roof Floor WRF H20 San Kitchen Sq Rooms P/R P/A "HH Size") varwidth(3) ///
+title(How Housing Features Change as Income and Rent Increase - Rural)
