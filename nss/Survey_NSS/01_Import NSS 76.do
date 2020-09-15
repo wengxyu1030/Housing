@@ -202,8 +202,11 @@ use "${r_output}\NSS76_7",clear
 	*hq_dwell_indi: type of dwelling is independent house
 	gen hq_dwell_indi = (hq_dwell_type == 1)
 	
-	*hq_room: total number of rooms in the dwelling
-	gen infra_room = b7_2 + b7_3
+	*in_room: total number of rooms in the dwelling
+	egen in_room = rowtotal(b7_2  b7_3)
+	label var in_room "Number of Rooms"
+	replace in_room =1 if in_room == 0
+
 	
 	*hq_floor_a: total floor area of the dwelling: in square feet
 	gen infra_area = b7_8
