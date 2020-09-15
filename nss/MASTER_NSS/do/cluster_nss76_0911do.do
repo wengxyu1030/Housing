@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Generate clusters for housing condition using nss76
-* Date: September 9, 2020
-* Version 2.0
+* Date: September 11, 2020
+* Version 3.0
 * Last Editor: Aline
 ****************************************************************************
 
@@ -152,10 +152,10 @@ preserve
 	
 restore 
 
-*combine housing infra with area
+*combine housing infra with area, separate kitchen
 preserve 
 
-    keep in_roof_permanent in_floor_permanent in_wall_permanent in_size_big in_room_big
+    keep in_roof_permanent in_floor_permanent in_wall_permanent in_size_big in_room_big in_sep_kitch
 
     matrix dissimilarity houseD = , variables matching dissim(oneminus)
     matlist houseD
@@ -198,7 +198,7 @@ restore
 
 preserve 
 
-    keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20*
+    keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20* 
 
     matrix dissimilarity houseD = , variables matching dissim(oneminus)
     matlist houseD
@@ -209,11 +209,11 @@ preserve
 	
 restore 
 
-*combine housing infra, water, sanitation, and size
+*combine housing infra, water, sanitation, and size separate kitchen 
 
 preserve 
 
-    keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20* in_size_big in_room_big
+    keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20* in_size_big in_room_big in_sep_kitch
 
     matrix dissimilarity houseD = , variables matching dissim(oneminus)
     matlist houseD
@@ -229,7 +229,7 @@ restore
 ****************************************************************************
 
 *housing material grouping: 80% is whole pucca structure.  
-sort in_wall_permanent in_floor_permanent in_floor_permanent
+sort in_wall_permanent in_roof_permanent in_floor_permanent
 gen house_material = string(in_wall_permanent)+"-"+string(in_floor_permanent)+"-"+string(in_roof_permanent)
 tab house_material [aw = hh_weight]
 
@@ -244,7 +244,7 @@ replace hse_material_grp_p = 1 if house_material == "100-100-100"
 gen hq_slum = 1- hq_nslum
 
 tab hse_material_grp hq_slum [aw = hh_weight],col
-table hq_slum [aw = hh_weight],c(mean h20_piped_in mean san_flush mean in_size_big mean in_room_big) format(%9.2f)
+table hq_slum [aw = hh_weight],c(mean h20_piped_in mean san_flush mean in_size_big mean in_room_big mean in_sep_kitch) format(%9.2f)
 
 ****************************************************************************
 *Cluster of observations
@@ -252,7 +252,7 @@ table hq_slum [aw = hh_weight],c(mean h20_piped_in mean san_flush mean in_size_b
 
 *all the indicators add up
 sort hse_material_grp h20_piped_in san_flush in_size_big
-gen hse_quality = string(hse_material_grp)+"-"+string(h20_piped_in)+"-"+string(san_flush)+"-"+string(in_size_big)
+gen hse_quality = string(hse_material_grp)+"-"+string(h20_piped_in)+"-"+string(san_flush)+"-"+string(in_size_big)+"-"+string(in_sep_kitch)
 tab hse_quality [aw = hh_weight]
 
 *crosstab service and other indicator. 
@@ -269,6 +269,9 @@ tab hse_service hse_material_grp [aw = hh_weight],cell
 	
 	*with dwelling size
 	tab hse_service_grp in_size_big [aw = hh_weight],cell //half of them is overcrowded. 
+	
+	*with separate kitchen
+	tab hse_service_grp in_sep_kitch [aw = hh_weight],row //majority of them is with separate kitchen with good service. 
 
 gen hse_quality_grp = string(hse_material_grp_p)+"-"+string(hse_service_grp)+"-"+string(in_size_big)
 tab hse_quality_grp [aw = hh_weight]
@@ -281,14 +284,208 @@ tab hse_quality_grp hq_slum [aw = hh_weight],col
 tab hse_quality_grp legal_rent [aw = hh_weight],col
 
 **mean
-table hse_quality_grp [aw = hh_weight],c(mean hq_slum med hh_umce mean legal_rent med cost_rent mean in_ppl_area) format(%9.2f) center
+table hse_quality_grp [aw = hh_weight],c(mean hq_slum med hh_umce mean legal_rent med cost_rent mean in_ppl_area ) format(%9.2f) center
+table hse_quality_grp [aw = hh_weight],c(mean  in_sep_kitch) format(%9.2f) center
+
 **sd (binary no need to check sd.)
 
 
 ****************************************************************************
-*Hedonic pricing
+*Cluster using k-means (matching)
 ****************************************************************************
+use "${root}\Data Output Files\NSS76_All_clst_u.dta",replace
+
+********housing material:
+**no roof/all
+preserve 
+    cluster kmeans  in_floor_permanent in_roof_permanent in_wall_permanent, k(2) ///
+    name(gr2) start(firstk) measure(Jaccard)
+    tab gr2
+    table gr2,c(mean in_wall_permanent mean in_roof_permanent mean in_floor_permanent) format(%9.2f) center
+restore
+
+**only floor/floor+wall/all
+preserve 
+    cluster kmeans  in_floor_permanent in_roof_permanent in_wall_permanent, k(3) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_wall_permanent mean in_roof_permanent mean in_floor_permanent) format(%9.2f) center
+restore
+
+********water:
+**with/without pipied_in water
+preserve 
+    cluster kmeans  h20_piped_in h20_yard h20_pump_in h20_pump_out h20_other, k(2) ///
+    name(gr2) start(firstk) measure(Jaccard)
+    tab gr2
+    table gr2,c(mean h20_piped_in mean h20_yard mean h20_pump_in mean h20_pump_out mean h20_other) format(%9.2f) center
+restore
+
+**pipied_in/pump_in/all other
+preserve 
+    cluster kmeans  h20_piped_in h20_yard h20_pump_in h20_pump_out h20_other, k(3) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean h20_piped_in mean h20_yard mean h20_pump_in mean h20_pump_out mean h20_other) format(%9.2f) center
+restore
 
 
+********sanitation:
+**with/without flush
+preserve 
+    cluster kmeans  san_flush san_imp_pit san_single_twin_pit san_other, k(2) ///
+    name(gr2) start(firstk) measure(Jaccard)
+    tab gr2
+    table gr2,c(mean san_flush mean san_imp_pit mean san_single_twin_pit mean san_other) format(%9.2f) center
+restore
+
+**flush/imp_pit/other
+preserve 
+    cluster kmeans  san_flush san_imp_pit san_single_twin_pit san_other, k(3) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean san_flush mean san_imp_pit mean san_single_twin_pit mean san_other) format(%9.2f) center
+restore
+
+********water and sanitation:
+**with/out both
+preserve 
+    cluster kmeans  san_flush h20_piped_in, k(2) ///
+    name(gr2) start(firstk) measure(Jaccard)
+    tab gr2
+    table gr2,c(mean san_flush mean h20_piped_in) format(%9.2f) center
+restore
+
+**both/sanitation only/neither
+preserve 
+    cluster kmeans  san_flush h20_piped_in, k(3) ///
+    name(gr2) start(firstk) measure(Jaccard)
+    tab gr2
+    table gr2,c(mean san_flush mean h20_piped_in) format(%9.2f) center
+restore
+
+********infra, water and sanitation:
+
+preserve 
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in, k(3) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+restore
+
+preserve 
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in, k(4) ///
+    name(gr4) start(firstk) measure(Jaccard)
+    tab gr4
+    table gr4,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+restore
+
+********infra, water and sanitation, size:
+
+preserve 
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big, k(3) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+	table gr3,c(mean in_size_big) format(%9.2f) center
+restore
+
+preserve //best
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big, k(4) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+	table gr3,c(mean in_size_big) format(%9.2f) center
+restore
+
+preserve 
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big, k(5) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+	table gr3,c(mean in_size_big) format(%9.2f) center
+restore
+
+********infra, water and sanitation, size, separate kitchen:
+
+preserve 
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(4) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+	table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+restore
+
+preserve 
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(5) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+	table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+restore
+
+preserve //best
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(6) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+	table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+restore
+
+preserve
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(7) ///
+    name(gr3) start(firstk) measure(Jaccard)
+    tab gr3
+    table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+	table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+restore
+
+********infra, water and sanitation, size, separate kitchen with more than one indicators per feature:
+
+preserve //best
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush san_imp_pit h20_piped_in h20_pump_in in_size_big in_sep_kitch, k(6) ///
+    name(gr6) start(firstk) measure(Jaccard)
+    tab gr6
+    table gr6,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean san_imp_pit) format(%9.2f) center
+	table gr6,c(mean h20_piped_in mean h20_pump_in mean in_size_big mean in_sep_kitch) format(%9.2f) center
+restore
+
+preserve 
+    cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush san_imp_pit h20_piped_in h20_pump_in in_size_big in_sep_kitch, k(7) ///
+    name(gr7) start(firstk) measure(Jaccard)
+    tab gr7
+    table gr7,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean san_imp_pit) format(%9.2f) center
+	table gr7,c(mean h20_piped_in mean h20_pump_in mean in_size_big mean in_sep_kitch) format(%9.2f) center
+restore
 
 
+********cross validate with other indicator: slum, consumption, rent, overcrowding********
+
+cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush san_imp_pit h20_piped_in h20_pump_in in_size_big in_sep_kitch, k(6) ///
+    name(gr6) start(firstk) measure(Jaccard)
+    tab gr6
+    table gr6,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean san_imp_pit) format(%9.2f) center
+	table gr6,c(mean h20_piped_in mean h20_pump_in mean in_size_big mean in_sep_kitch) format(%9.2f) center
+
+**order the cluster
+recode gr6 (1 = 1)(2 = 5)(3 = 3)(4 = 6)(5 = 2)(6 = 4),gen(hq_cluster)
+	
+**distribution of slum and renter
+gen hq_slum = 1-hq_nslum
+tab hq_cluster hq_slum [aw = hh_weight],col
+tab hq_cluster legal_rent [aw = hh_weight],col
+
+**mean
+table hq_cluster [aw = hh_weight],c(mean hq_slum med hh_umce mean legal_rent med cost_rent med in_ppl_area) format(%9.2f) center
+
+**the mode for each group
+sort in_floor_permanent in_roof_permanent in_wall_permanent san_flush san_imp_pit h20_piped_in h20_pump_in in_size_big in_sep_kitch
+
+gen hq_cluster_name = string(in_wall_permanent)+"-"+string(in_floor_permanent)+"-"+string(in_roof_permanent) ///
++"-"+string(san_flush)+"-"+string(san_imp_pit) ///
++"-"+string(h20_piped_in)+"-"+string(h20_pump_in) ///
++"-"+string(in_size_big)+"-"+string(in_sep_kitch) 
+
+bysort hq_cluster: tab hq_cluster_name  [aw = hh_weight]
+
+**sd (binary no need to check sd.)

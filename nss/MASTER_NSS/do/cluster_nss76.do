@@ -212,10 +212,13 @@ tab gr5_2_2 hq_nslum [aw = hh_weight],col
 *Compare with sd using income 
 ****************************************************************************
 
-xtile de_hh_umce_ln = hh_umce_ln [aw = hh_weight],n(4)
+xtile de_hh_umce_ln = hh_umce_ln [aw = hh_weight],n(5)
 
-table gr5_3 [aw = hh_weight],c(median hh_umce sd conc_hse sd hq_san_in sd infra_water_in sd infra_crowd_a_dm ) format(%9.2f) center //sd hq_travel_m_dm sd hq_dwell_indi
+table gr5_2_1 [aw = hh_weight],c(median hh_umce sd conc_hse sd hq_san_in sd infra_water_in sd infra_crowd_a_dm) format(%9.2f) center //sd hq_travel_m_dm sd hq_dwell_indi
+table gr5_2_1 [aw = hh_weight],c(median hh_umce sd hq_travel_m_dm) format(%9.2f) center 
+
 table de_hh_umce_ln [aw = hh_weight],c(median hh_umce sd conc_hse sd hq_san_in sd infra_water_in sd infra_crowd_a_dm ) format(%9.2f) center
+table de_hh_umce_ln [aw = hh_weight],c(median hh_umce sd hq_travel_m_dm) format(%9.2f) center
 
 ****************************************************************************
 *Hedonic pricing
