@@ -55,13 +55,15 @@ label var in_size "Dwelling Size (sq ft)"
 sum in_size [aw = hh_weight] if hh_urban ==1 ,de
 gen in_size_big = 100*(in_size > `r(p50)') if hh_urban >=1 //420
 
-gen in_room = b7_2 + b7_3 
-label var in_room "Number of Rooms"
+//gen in_room = b7_2 + b7_3 
+
 sum in_room [aw = hh_weight] if hh_urban == 1,de
 gen in_room_big = 100*(in_room > `r(p50)') if hh_urban >=1
+label var in_room_big "More Rooms"
 
 gen in_ppl_room = hh_size / in_room
 label var in_ppl_room "People per room"
+gen crowd_room =  100*(in_ppl_room > 1)
 
 gen in_ppl_area = in_size / hh_size
 label var in_ppl_area "Area in sq ft per person"
