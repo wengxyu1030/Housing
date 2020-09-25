@@ -1,0 +1,286 @@
+---
+title: "nss76_k"
+author: "Aline"
+date: "August 19, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,fig.retina = 2, fig.width = 7, fig.height = 6, message=FALSE,warning=FALSE)
+
+library(readxl)
+library(openxlsx)
+library(tidyverse)
+library(readxl)
+library(plyr)
+library(tibble)
+library(kableExtra)
+library(knitr)
+library(readstata13)
+library(skimr)
+library(spatstat)
+library(DT)
+library(janitor)
+library(srvyr)
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering algorithms & visualization
+library(gridExtra)
+
+
+##This file is for NSS76 K means on housnig condition
+
+```
+
+```{r function}
+
+round_numeric <- function(x){
+  round(x,digits = 1)
+}
+round_numeric_2 <- function(x){
+  round(x,digits = 2)
+}
+round_pct <- function(x){
+   a <- as.numeric (x*100)
+    round(a,digits=1) 
+}
+
+outlier <- function(x){
+  abs(x - median(x)) > 2*sd(x)
+}
+```
+
+```{r data}
+raw <- "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/raw"
+nss76_raw<- read.dta13(paste0(raw,"/nss76.dta"))
+
+#move outlier  (hh_size, infra_from, infra_area)
+nss76 <- nss76_raw %>%
+  filter(!outlier(infra_area)|
+           !outlier(infra_room)|
+           !outlier(hh_size)) %>%
+  mutate(infra_crowd_r = hh_size/infra_room,
+         infra_crowd_a = infra_area/hh_size)
+```
+
+```{r summary}
+k_var <- c("infra_water_di","hq_san_in","infra_floor_type","infra_wall_type","infra_crowd_r","infra_crowd_a")
+
+var_n <- c("hh_size", "infra_crowd_r","infra_crowd_a","infra_water_di","infra_floor_type","infra_wall_type")
+
+var_lgc<- c("hq_san_in","legal_own")
+
+#summary
+nss76 %>% 
+  select(all_of(k_var)) %>%
+  skim()
+
+```
+
+```{r k_means}
+
+##data preparation----
+scale_ratio <- function(x){
+  x  / sum(x, na.rm=TRUE)
+}
+
+var_add <- function(x){
+  x = (x + 1)
+}
+
+nss76_k_1 <- nss76 %>%
+  filter(infra_has_dwell== 1) %>%
+  select(all_of(k_var),
+         hh_urban,hh_weight,id)%>%
+  #do not use weighted value here for k means. 
+  # mutate(hh_weight = scale_ratio(hh_weight)) %>%
+  # #adjust the weight. 
+  # mutate(across(all_of(k_var),var_add)) %>%
+  # mutate(across(all_of(k_var), ~.*hh_weight)) %>%
+  na.omit() 
+
+
+nss76_k_u <- nss76_k_1 %>% 
+  filter(hh_urban == 1) %>% 
+  select(-id,-hh_urban) %>%
+  scale()
+
+nss76_k_r <-nss76_k_1 %>% 
+  filter(hh_urban == 0) %>% 
+  select(-id,-hh_urban) %>%
+  scale()
+
+
+
+###Number of clusters----
+# function to compute total within-cluster sum of square 
+wss_u <- function(k) {
+  kmeans(nss76_k_u, k, nstart = 10 )$tot.withinss
+}
+wss_r <- function(k) {
+  kmeans(nss76_k_r, k, nstart = 10 )$tot.withinss
+}
+
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 1:15
+
+# extract wss for 2-15 clusters
+wss_values_u <- map_dbl(k.values, wss_u)
+wss_values_r <- map_dbl(k.values, wss_r)
+
+plot(k.values, wss_values_u,
+       type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares: Urban") # 3 is good. 
+
+plot(k.values, wss_values_r,
+       type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares: Rural") #4 is good. however only 2% in one gruop.so movt to 3
+
+
+```
+
+```{r cluster}
+###Clusters----
+k3_u <-kmeans(nss76_k_u, centers = 3, nstart = 25) 
+k3_r <-kmeans(nss76_k_r, centers = 3, nstart = 25)
+
+#the means (value dose not matter)
+k3_u$centers %>% as.data.frame() 
+k3_r$centers %>% as.data.frame() 
+
+#the distribution (consider weight)
+nss76_clst <- nss76_k_1 %>% 
+  filter(hh_urban == 1) %>% 
+  mutate(cluster = k3_u$cluster) %>%
+  rbind(
+    nss76_k_1 %>% 
+      filter(hh_urban == 0) %>% 
+      mutate(cluster = k3_r$cluster))%>%
+  select(id,cluster) %>%
+  left_join(nss76, by = "id") %>%
+  select(all_of(k_var),hh_weight,cluster,hh_urban,hq_nslum,legal_own,hh_size) %>%
+  mutate(hh_urban = as.character(hh_urban),
+         cluster = as.character(cluster)) 
+
+nss76_clst_tab <- nss76_clst %>%
+  mutate(hh_urban = as.character(hh_urban),
+         cluster = as.factor(cluster)) %>%
+  as_survey_design( weights = hh_weight) %>%
+  group_by(hh_urban,cluster) %>%
+  dplyr::summarise(proportion = survey_mean(,vartype = NULL)) %>%
+  left_join(
+    nss76_clst %>%
+      group_by(hh_urban,cluster)%>%
+      dplyr::summarise_at(vars(k_var,hq_nslum,legal_own,hh_size),funs(weighted.mean(.,w=hh_weight, na.rm = TRUE))),
+    by = c("hh_urban","cluster"))%>% 
+  arrange(hh_urban, legal_own) %>%
+  select(hh_urban, cluster, hq_nslum,legal_own, hh_size, everything()) %>%
+  mutate(hq_slum = 1-hq_nslum,
+         slum_pop = proportion*hq_slum,
+         slum_pop = slum_pop/sum(slum_pop))%>%
+  mutate(across(c(var_lgc,proportion,hq_slum,slum_pop),round_pct),across(var_n,round_numeric))%>% 
+  select(hh_urban,cluster,hq_slum,slum_pop,proportion,legal_own,hh_size,everything(),-hq_nslum) %>%
+  arrange(hh_urban) 
+
+
+nss76_clst_tab %>%
+  mutate(cluster_name = case_when(cluster == "3" & hh_urban == 0 ~ "Rural Home Owner (Low Housing quality)",
+                                  cluster == "2" & hh_urban == 0 ~ "Rural Home Owner (Medium Housing quality)",
+                                  cluster == "1" & hh_urban == 0 ~ "Rural Home Owner (High Housing quality)",
+                                  cluster == "3" & hh_urban == 1 ~ "Urban (Low Housing Quality)",
+                                  cluster == "1" & hh_urban == 1 ~ "Urban (Medium Housing Quality)",
+                                  cluster == "2" & hh_urban == 1 ~ "Urban (High Housing Quality)")) %>%
+  select(cluster_name, everything(),cluster) %>%
+  kable(col.names = c("Cluster Name",
+                      "Urban",
+                      "Cluster ID",
+                      "Slum Household (%)",
+                      "Slum Proportion",
+                      "Proportion",
+                      "Home Onwership (%)",
+                      "Household Size",
+                      "Distance to principal source drinking water",
+                      "Bathroom and Latrine in Premises (%)",
+                      "Floor Type",
+                      "Wall Type",
+                      "Person/Room", 
+                      "Sq.ft./Person"))%>%
+  kable_styling( full_width = F) %>% 
+  add_header_above(c(" " = 8, "Housing Condition" = 2, "Infrastructure" = 2, "Overcrowding" = 2))
+
+```
+
+```{r sd_mean_table}
+
+#means comparison
+nss76_k_mean <- nss76_clst %>%
+      group_by(hh_urban,cluster)%>%
+      dplyr::summarise_at(vars(k_var,hq_nslum,legal_own,hh_size),funs(weighted.mean(.,w=hh_weight, na.rm = TRUE)))%>%
+  mutate(hq_slum = 1-hq_nslum)%>%
+  mutate(across(c(var_lgc,hq_slum),round_pct),across(var_n,round_numeric))%>% 
+  select(k_var) 
+
+nss76_k_mean %>% 
+  kable(cpation = "Cluster Mean")%>%
+  kable_styling( full_width = F)
+                          
+nss76_mean <- nss76 %>%
+  group_by(hh_urban)%>%
+      dplyr::summarise_at(vars(k_var,hq_nslum,legal_own,hh_size),funs(weighted.mean(.,w=hh_weight, na.rm = TRUE))) %>%
+  mutate(hq_slum = 1-hq_nslum)%>%
+  mutate(across(c(var_lgc,hq_slum),round_pct),across(var_n,round_numeric))%>% 
+  select(k_var) 
+
+nss76_mean %>% 
+  kable(cpation = "Cluster Mean")%>%
+  kable_styling( full_width = F)
+
+
+#sd comparison
+
+nss76_sd <- nss76_clst %>%
+  mutate(hh_urban = as.character(hh_urban),
+         cluster = as.factor(cluster)) %>%
+  as_survey_design( weights = hh_weight) %>%
+  group_by(hh_urban)%>%
+  dplyr::summarise_at(vars(k_var),funs(survey_sd))%>%
+  mutate(across(is.numeric,round_numeric_2)) 
+
+nss76_sd %>% 
+  kable(cpation = "Cluster Mean")%>%
+  kable_styling( full_width = F)
+
+nss76_k_sd <- nss76_clst %>%
+  mutate(hh_urban = as.character(hh_urban),
+         cluster = as.factor(cluster)) %>%
+  as_survey_design( weights = hh_weight) %>%
+  group_by(hh_urban,cluster) %>%
+        dplyr::summarise_at(vars(k_var),funs(survey_sd)) %>%
+  mutate(across(is.numeric,round_numeric_2))
+
+nss76_k_sd %>% 
+  kable(cpation = "Cluster Mean")%>%
+  kable_styling( full_width = F)
+```
+
+
+
+```{r k_viz}
+#pair matrix
+my_cols <- c('#d73027','#fc8d59','#fee090') 
+
+nss76_clust_u <- nss76_clst %>%
+  filter(hh_urban == 1) %>%
+  mutate(cluster = as.numeric(cluster))%>%
+  select(k_var,cluster)
+
+nss76_clust_r <- nss76_clst %>%
+  filter(hh_urban == 0) %>%
+  select(k_var,cluster)
+
+pairs(nss76_clust_u, pch = 19,  cex = 0.5,
+      lower.panel=NULL)
+
+
+```

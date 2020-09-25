@@ -92,7 +92,7 @@ use "${r_output}\NSS76_3",clear
 	gen hh_land = b4_4
 	
 	*hh_umce: household monthly consumer expenditure
-	gen hh_umce = b4_9/hh_size
+	gen hh_umce = b4_9
 	gen hh_umce_ln = ln(hh_umce)
 	
 	*hq_tenure: the tenurial status
@@ -173,7 +173,11 @@ use "${r_output}\NSS76_6",clear
 	gen hq_resid = (b6_3 == 1)
 	
 	*hq_period: period since built
-	gen hq_period = b6_4
+	recode b6_4 (1/5 = 1) (6 = 2) (7 = 3) (8 = 4) (10/11 = 5),gen(hq_period)
+	replace hq_period = . if b6_4 == 12
+	label var hq_period "Period Since Built"
+	label define hq_periodl 1 "<= 5 yrs" 2 "5 to 10 yrs" 3 "10 to 20 yrs" 4 "20 to 40 yrs" 5 "> 40 yrs"
+	label values hq_period hq_periodl
 	
 	*hq_str_good: condition of structure good
 	gen hq_str_good = (b6_7 == 1)
@@ -200,7 +204,7 @@ use "${r_output}\NSS76_7",clear
 	gen hq_dwell_type = b7_1
 	
 	*hq_dwell_indi: type of dwelling is independent house
-	gen hq_dwell_indi = (hq_dwell_type == 1)
+	gen hq_dwell_indi = (inlist(hq_dwell_type,1,9))
 	
 	*in_room: total number of rooms in the dwelling
 	egen in_room = rowtotal(b7_2  b7_3)

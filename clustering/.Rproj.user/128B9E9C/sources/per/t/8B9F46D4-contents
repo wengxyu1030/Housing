@@ -1,0 +1,144 @@
+#This file is to generate cluster on NSS76 urban housing condition. 
+#using k-modes
+
+library(tidyverse)
+library(cluster)
+library(klaR)
+library(foreign)
+library(readstata13)
+
+#load data
+data_path <- "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/nss_data/NSS76/Data Output Files"
+nss76_raw <- read.dta13(paste0(data_path,"/NSS76_All_clst_u.dta"))
+nss76 <- nss76_raw %>%
+  rename(in_sep_kitch = b7_12) %>%
+  mutate(in_flat = recode(in_flat,
+                           `100` = "Flat",
+                           `0` = "Independent"),
+         in_sep_kitch = recode(in_sep_kitch,
+                          `100` = "Separate Kitchen",
+                          `0` = "No Separate Kitchen"))
+
+ind <- c("in_floor","in_wall","in_roof", #floo,rwall,roof
+         "in_sep_kitch","in_flat",          #kitchen_sep, flat,
+         "in_room",           #room category
+         "h20","san")          #warer, sanitation
+#cluster--------------
+#function
+cluster_ratio <- function(cluster){
+  cluster %>% 
+    t() %>% t() %>% 
+    as.data.frame()%>%
+    summarise(ratio = round(Freq/sum(Freq)*100,digits = 2))
+}
+
+#cluster on material (wall, roof, floor) 
+set.seed(41)
+mat_clst <- nss76 %>%
+  dplyr::select(in_floor,in_wall,in_roof)%>%
+  kmodes(.,3,iter.max = 10, weight = FALSE)
+
+mat_clst$size %>% 
+  cluster_ratio()%>%
+  cbind(mat_clst$modes)
+
+
+#cluster on material (wall, roof, floor), kitchen
+set.seed(40)
+mat_k_clst <- nss76 %>%
+  dplyr::select(in_floor,in_wall,in_roof,in_sep_kitch)%>%
+  kmodes(.,3,iter.max = 10, weight = FALSE)
+
+mat_k_clst$size %>% 
+  cluster_ratio()%>%
+  cbind(mat_k_clst$modes)
+
+set.seed(41)
+mat_k_clst <- nss76 %>%
+  dplyr::select(in_floor,in_wall,in_roof,in_sep_kitch)%>%
+  kmodes(.,4,iter.max = 10, weight = FALSE)
+
+mat_k_clst$size %>% 
+  cluster_ratio()%>%
+  cbind(mat_k_clst$modes)
+
+
+#cluster on material (wall, roof, floor), kitchen, room
+set.seed(42)
+mat_k_r_clst <- nss76 %>%
+  dplyr::select(in_floor,in_wall,in_roof,in_sep_kitch,in_room)%>%
+  kmodes(.,4,iter.max = 10, weight = FALSE)
+
+mat_k_r_clst$size %>% 
+  cluster_ratio()%>%
+  cbind(mat_k_r_clst$modes)
+
+#cluster on water and sanitation
+set.seed(40)
+w_s_clst <- nss76 %>%
+  dplyr::select(h20,san)%>%
+  na.omit()%>%
+  kmodes(.,3,iter.max = 10, weight = FALSE)
+
+w_s_clst$size %>% 
+  cluster_ratio()%>%
+  cbind(w_s_clst$modes)
+
+#cluster all indicators
+set.seed(40)
+all_clst <- nss76 %>%
+  dplyr::select(ind)%>%
+  na.omit()%>%
+  kmodes(.,4,iter.max = 10, weight = FALSE)
+
+all_clst$size %>% 
+  cluster_ratio()%>%
+  cbind(all_clst$modes)
+
+set.seed(43)
+all_clst <- nss76 %>%
+  dplyr::select(ind)%>%
+  na.omit()%>%
+  kmodes(.,5,iter.max = 10, weight = FALSE)
+
+clst_final <-all_clst$size %>% 
+  cluster_ratio() %>%
+  cbind(all_clst$modes) 
+
+clst_final
+
+#statistics by cluster-----
+nss76_clst <- nss76 %>%
+  dplyr::filter_at(vars(ind),all_vars(!is.na(.)))%>%
+  mutate(cluster = all_clst$cluster)
+
+result <- nss76_clst %>%
+  mutate(across(ind,as.factor)) %>%
+  dplyr::select(ind,cluster) %>%
+  rename("Floor Material" = in_floor,
+         "Wall Material" = in_wall,
+         "Roof Material" = in_roof,
+         "Separate Kitchen" = in_sep_kitch,
+         "Dwelling Type" = in_flat,
+         "Number of Rooms" = in_room,
+         "Water Access" = h20,
+         "Sanitation Access" = san) %>%
+  group_by(cluster) %>%
+  do(the_summary = summary(.))
+
+result$the_summary
+
+nss76_clst%>%
+  group_by(cluster) %>%
+  dplyr::summarise(across(c(hq_nslum,legal_own),~weighted.mean(.,w=hh_weight, na.rm = TRUE)),
+                   across(c(hh_umce,hh_size,in_ppl_room,cost_rent), ~median(.,na.rm = TRUE))) %>%
+  select(cluster,hq_nslum,cost_rent,hh_umce,everything()) %>%
+  mutate("Slum (%)" = round(100*(1-hq_nslum),digits = 2),
+         "Ownership (%)" = round(100*legal_own,digits = 2),
+         "P/R" = round(in_ppl_room,digits = 1)) %>%
+  rename("Cons (Rs.)" = hh_umce,
+         "Household Size" = hh_size,
+         "Rent (Rs.)" = cost_rent) %>%
+  select(-hq_nslum, -legal_own, -in_ppl_room)%>%
+  arrange(`Rent (Rs.)`)
+
