@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Generate a summary table of NSS 76 
-* Date: September 15, 2020
+* Date: October 2, 2020
 * Version 1.0
 * Last Editor: Nadeem 
 ****************************************************************************
@@ -68,6 +68,47 @@ gen in_ppl_area = in_size / hh_size
 label var in_ppl_area "Area in sq ft per person"
 
 **** WATER and SANITATION ****
+* Source: https://www.who.int/water_sanitation_health/monitoring/oms_brochure_core_questionsfinal24608.pdf
+/*
+***************************************
+“Improved” sources of drinking-water 
+***************************************
+• Piped water into dwelling, also called a household connection, is defi ned as a water service pipe connected with in-house plumbing to one or more taps (e.g. in the kitchen and bathroom). • Piped water to yard/plot, also called a yard connection, is defi ned as a piped water connection to a tap placed in the yard or plot outside the house. • Public tap or standpipe is a public water point from which people can collect water. A standpipe is also known as a public fountain or public tap. Public standpipes can have one or more taps and are typically made of brickwork, masonry or concrete.  
+• Tubewell or borehole is a deep hole that has been driven, bored or drilled, with the purpose of reaching groundwater supplies. Boreholes/tubewells are constructed with casing, or pipes, which prevent the small diameter hole from caving in and protects the water source from infi ltration by run-off water. Water is delivered from a tubewell or borehole through a pump, which may be powered by human, animal, wind, electric, diesel or solar means. Boreholes/tubewells are usually protected by a platform around the well, which leads spilled water away from the borehole and prevents infi ltration of run-off water at the well head.  
+• Protected dug well is a dug well that is protected from runoff water by a well lining or casing that is raised above ground level and a platform that diverts spilled water away from the well. A protected dug well is also covered, so that bird droppings and animals cannot fall into the well.  
+• Protected spring. The spring is typically protected from runoff, bird droppings and animals by a “spring box”, which is constructed of brick, masonry, or concrete and is built around the spring so that water fl ows directly out of the box into a pipe or cistern, without being exposed to outside pollution.  
+• Bottled water is considered an improved source of drinking-water only when there is a secondary source of improved water for other uses such as personal hygiene and cooking. Production of bottled water should be overseen by a competent national surveillance body.  
+• Rainwater refers to rain that is collected or harvested from surfaces (by roof or ground catchment) and stored in a container, tank or cistern until used. 
+
+*************************
+“Unimproved” sources of drinking-water  
+***************************
+• Unprotected spring. This is a spring that is subject to runoff, bird droppings, or the entry of animals. Unprotected springs typically do not have a “spring box”.  
+• Unprotected dug well. This is a dug well for which one of the following conditions is true: 1) the well is not protected from runoff water; or 2) the well is not protected from bird droppings and animals. If at least one of these conditions is true, the well is unprotected.  
+• Cart with small tank/drum. This refers to water sold by a provider who transports water into a community. The types of transportation used include donkey carts, motorized vehicles and other means.  
+• Tanker-truck. The water is trucked into a community and sold from the water truck.  
+• Surface water is water located above ground and includes rivers, dams, lakes, ponds, streams, canals, and irrigation channels.
+*/
+
+
+label define water 7 "Hand Pump" 2 "Piped Dwelling" 3 "Piped Yard" 5 "Public Tap" 6 "Tube Well" 1 "Bottled" 9 "Unprotected Well" 8 "Protected Well" 19 "Other"
+
+gen h20_temp = b5_1
+label values h20_temp water
+*From neighbor=piped dwelling, protected spring = protected well
+recode h20_temp (4 = 2) (12=8) (11 15 16 13 10 14 = 19)
+
+gen h20_exclusive = b5_4 == 1 
+
+*Gen Piped-Exclusive Piped-Shared Ground-Exclusive Ground-Shared Other
+gen h20b_pip_exl = inrange(h20_temp,2,5) * h20_exclusive
+gen h20b_pip_shr = inrange(h20_temp,2,5) * (h20_exclusive == 0)
+gen h20b_grd_exl = inrange(h20_temp,6,9) * h20_exclusive
+gen h20b_grd_shr = inrange(h20_temp,6,9) * (h20_exclusive == 0)
+gen h20b_other = h20b_pip_exl != 1 & h20b_pip_shr != 1 & h20b_grd_exl != 1 & h20b_grd_shr != 1
+
+tab h20_temp h20_exclusive
+
 gen h20_piped_in = 100* (b5_1 == 2 | b5_1 == 1 |b5_1 == 10 | b5_1 == 11)
 label var h20_piped_in "Water: Piped into Dwelling (%)"
 
@@ -133,7 +174,6 @@ local var_summary hh_size in_* h20* san*
 ****************************************************************************
 * Code to Produce the Table 
 ****************************************************************************
-
 
 eststo all: quietly estpost summarize `var_summary'  [aw=hh_weight]
 eststo urban: quietly estpost summarize `var_summary' if hh_urban == 1 [aw=hh_weight]
