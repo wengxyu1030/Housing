@@ -110,27 +110,29 @@ save "${r_output}\b13",replace
 use "${r_input}\b14",clear
 drop if b14_q1 == "99" //drop the total amount
 
-gen loan_purpose = b14_q11
-gen hous_loan = (b14_q11 == "11")
-
-gen credit_agency = b14_q6
-
-destring(b14_q6),replace
-gen credit_formal = (!inrange(b14_q6,12,17)& b14_q6!=9)
-
-*mortgage
-gen mortgage_type = b14_q13
-gen has_mortgage =  (b14_q13 != "4")
-
-*borrowed amount
-gen br_amount = b14_q5
-
 *debt
 gen debt = b14_q17
 gen b14 = debt
 
+*loan purpose
+gen loan_purpose = b14_q11
+gen hous_loan = (b14_q11 == "11")*debt
+
+*credit agency
+gen credit_agency = b14_q6
+
+destring(b14_q6),replace
+gen credit_formal = (!inrange(b14_q6,12,17)& b14_q6!=9)*debt
+
+*mortgage
+gen mortgage_type = b14_q13
+gen has_mortgage =  (b14_q13 != "4")*debt
+
+*borrowed amount
+gen br_amount = b14_q5
+
 *aggregate at household level. 
-collapse (mean) hous_loan (mean) credit_formal (mean) has_mortgage (sum) br_amount (sum) debt,by(HHID)
+collapse (sum) hous_loan (sum) credit_formal (sum) has_mortgage (sum) br_amount (sum) debt,by(HHID)
 
 save "${r_output}\b14",replace
 
