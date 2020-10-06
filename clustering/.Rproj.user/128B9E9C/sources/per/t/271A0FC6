@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1601664257716.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2730017975",
+    "id" : "271A0FC6",
+    "lastKnownWriteTime" : 1601665205,
+    "last_content_update" : 1601665205462,
+    "path" : "C:/Users/wb500886/OneDrive - WBG/7_Housing/survey_all/Housing_git/clustering/k_modes_urban.R",
+    "project_path" : "k_modes_urban.R",
+    "properties" : {
+        "cursorPosition" : "309,34",
+        "scrollLine" : "282",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
