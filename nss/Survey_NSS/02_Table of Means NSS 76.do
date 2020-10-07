@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Generate a summary table of NSS 76 
-* Date: October 2, 2020
+* Date: October 6, 2020
 * Version 1.0
 * Last Editor: Nadeem 
 ****************************************************************************
@@ -73,7 +73,7 @@ label var in_ppl_area "Area in sq ft per person"
 ***************************************
 “Improved” sources of drinking-water 
 ***************************************
-• Piped water into dwelling, also called a household connection, is defi ned as a water service pipe connected with in-house plumbing to one or more taps (e.g. in the kitchen and bathroom). • Piped water to yard/plot, also called a yard connection, is defi ned as a piped water connection to a tap placed in the yard or plot outside the house. • Public tap or standpipe is a public water point from which people can collect water. A standpipe is also known as a public fountain or public tap. Public standpipes can have one or more taps and are typically made of brickwork, masonry or concrete.  
+• Piped water into dwelling, also called a household connection, is defined as a water service pipe connected with in-house plumbing to one or more taps (e.g. in the kitchen and bathroom). • Piped water to yard/plot, also called a yard connection, is defi ned as a piped water connection to a tap placed in the yard or plot outside the house. • Public tap or standpipe is a public water point from which people can collect water. A standpipe is also known as a public fountain or public tap. Public standpipes can have one or more taps and are typically made of brickwork, masonry or concrete.  
 • Tubewell or borehole is a deep hole that has been driven, bored or drilled, with the purpose of reaching groundwater supplies. Boreholes/tubewells are constructed with casing, or pipes, which prevent the small diameter hole from caving in and protects the water source from infi ltration by run-off water. Water is delivered from a tubewell or borehole through a pump, which may be powered by human, animal, wind, electric, diesel or solar means. Boreholes/tubewells are usually protected by a platform around the well, which leads spilled water away from the borehole and prevents infi ltration of run-off water at the well head.  
 • Protected dug well is a dug well that is protected from runoff water by a well lining or casing that is raised above ground level and a platform that diverts spilled water away from the well. A protected dug well is also covered, so that bird droppings and animals cannot fall into the well.  
 • Protected spring. The spring is typically protected from runoff, bird droppings and animals by a “spring box”, which is constructed of brick, masonry, or concrete and is built around the spring so that water fl ows directly out of the box into a pipe or cistern, without being exposed to outside pollution.  
@@ -109,6 +109,38 @@ gen h20b_other = h20b_pip_exl != 1 & h20b_pip_shr != 1 & h20b_grd_exl != 1 & h20
 
 tab h20_temp h20_exclusive
 
+*Generate H20 Improved Water 
+*Codes: 
+* bottled water - 01												NOT IMPROVED bottled water (bottled water is considered improved only when the household use another improved source for cooking and personal hygiene)
+* piped water into dwelling - 02									IMPROVED 
+* piped water to yard/plot - 03										IMPROVED 
+* piped water from neighbour - 04									IMPROVED 
+* public tap/standpipe - 05											IMPROVED 
+* tube well - 06													IMRPOVED 
+* hand pump - 07,													IMPROVED 
+* well: protected - 08,												IMPROVED 
+* well: unprotected - 09;											NOT IMPROVED 
+* tanker-truck: public - 10											NOT IMPROVED 
+* tanker, private - 11; 											NOT IMPROVED 
+*spring: protected - 12												IMPROVED 
+* unprotected - 13;													NOT IMPROVED 
+*rainwater collection -14,											IMPROVED
+* surface water: tank/pond - 15, 									NOT IMRPROEVED 
+* other surface water (river, dam, stream,*canal, lake, etc.) - 16; NOT IMPROVED 
+*others (cart with small tank or drum, etc) - 19)					NOT IMPROVED 
+* 
+
+gen h20_improved = 100 * (b5_1 == 2 | b5_1 == 3 | b5_1 == 4 | b5_1 == 5 | b5_1 == 6 | b5_1 == 7 | b5_1 == 8 |  ///
+						   b5_1 == 12 |b5_1 == 14)
+*Check HH who use bottle water to drink, if the household uses an improved source for cooking / cleaning
+tab b5_17 if b5_1 == 1
+replace h20_improved = 100 if b5_1 == 1 & (b5_17 == 2 | b5_17 == 3 | b5_17 == 4 | b5_17 == 5 | b5_17 == 6 | b5_17 == 7 | b5_17 == 8 |  ///
+											b5_17 == 12 |b5_17 == 14)
+											
+table b5_17 h20_improved if b5_1 == 1
+label var h20_improved "Water: Improved Source (%)"
+						   
+						   
 gen h20_piped_in = 100* (b5_1 == 2 | b5_1 == 1 |b5_1 == 10 | b5_1 == 11)
 label var h20_piped_in "Water: Piped into Dwelling (%)"
 
@@ -123,6 +155,50 @@ label var h20_pump_out "Water: Pump/Tubewell Outside Premises (%)"
 
 gen h20_other = 100* (h20_piped_in!=100 & h20_pump_in!=100 & h20_pump_out!=100 & h20_yard!=100)
 label var h20_other "Water: Other (%)"
+
+
+************************ SANITATION **************************
+* Generate Sanitation Improved 
+*flush/pour-flush to: piped sewer system - 01, 					IMPROVED
+*septic tank - 02, 												IMPROVED
+*twin leach pit - 03, 											IMPROVED
+*single pit - 04,												IMPROVED
+* elsewhere (open drain, open pit, open field, etc) - 05; 		NOT IMPROVED
+*ventilated improved pit latrine - 06, 							IMPROVED
+* pit latrine with slab - 07, 									IMPROVED
+* pit latrine without slab/open pit - 08, 						NOT IMRPOVED
+*composting latrine - 10, 										IMPROVED
+* not used - 11 )												NOT IMRPOVED
+*others - 19; 													NOT IMRPOVED
+
+
+gen san_improved = 100 * inlist(b5_26,1,2,3,4,6,7,10) * inrange(b5_25,1,2)
+tab b5_26 san_improved 
+label var san_improved "Sanitation: Improved Source (%)"
+
+sum san_improved [aw=hh_weight]
+
+gen san_flush_private = 100 * inlist(b5_26,1,2) * inrange(b5_25,1,2)
+label var san_flush_private "Sanitation: Exclusive Flush (%)"
+
+gen san_flush_shared = 100 * inlist(b5_26,1,2) * inrange(b5_25,3,9)
+label var san_flush_shared "Sanitation: Shared Flush (%)"
+
+
+gen san_imp_lat_private = 100 * inlist(b5_26,3,4,6,7,10) * inrange(b5_25,1,2)
+label var san_imp_lat_private "Sanitation: Exclusive Imp Latrine (%)"
+*Include shared flush into improved private latrine 
+replace san_imp_lat_private = 100 if san_flush_shared == 100
+
+gen san_not_imp_lat_shared = 100 * inlist(b5_26,3,4,6,7,8,10) * inrange(b5_25,3,9)
+label var san_not_imp_lat_shared "Sanitation: Shared Latrine (%)"
+
+*include shared latrine into other 
+gen san_other = 100 * (san_flush_private == 0 & san_imp_lat_private == 0)
+label var san_other "Sanitation: Other (%)"
+
+sum san_flush_private  san_imp_lat_private  san_other [aw=hh_weight]
+
 
 gen san_flush = 100*inrange(b5_26,1,2)
 label var san_flush "Sanitation: Flush (%)"
