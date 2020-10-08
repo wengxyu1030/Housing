@@ -1,8 +1,8 @@
 ****************************************************************************
 * Description: Generate a summary table of NSS 76 
-* Date: October 6, 2020
+* Date: October 8, 2020
 * Version 1.0
-* Last Editor: Nadeem 
+* Last Editor: Aline 
 ****************************************************************************
 
 ****************************************************************************
@@ -16,7 +16,7 @@ clear matrix
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76\"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housin\survey_all\Housing_git\nss\"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
@@ -57,7 +57,7 @@ label var in_flat "Flat (%)"
 gen in_size = b7_8 
 label var in_size "Dwelling Size (sq ft)"
 
-egen in_room = rowtotal(b7_2  b7_3)
+//egen in_room = rowtotal(b7_2  b7_3)
 label var in_room "Number of Rooms"
 replace in_room =1 if in_room == 0
 
@@ -199,7 +199,8 @@ label var san_other "Sanitation: Other (%)"
 
 sum san_flush_private  san_imp_lat_private  san_other [aw=hh_weight]
 
-
+/*
+//previous codoing without considering distnace. 
 gen san_flush = 100*inrange(b5_26,1,2)
 label var san_flush "Sanitation: Flush (%)"
 
@@ -211,7 +212,7 @@ label var san_single_twin_pit "Sanitation: Single/Twin Pit (%)"
 
 gen san_other = 100*(san_flush!=100&san_imp_pit!= 100 & san_single_twin_pit!=100)
 label var san_other "Sanitation: Other (%)"
-
+*/
 
 
 ****** Check Weights for Large Cities ****** 
