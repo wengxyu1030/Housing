@@ -36,6 +36,17 @@ gen pwgt = MLT * hhsize
 keep HHID hhwgt pwgt hhsize sector Weight_SS Weight_SC
 save "${r_output}\b3",replace
 
+*household head age
+use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household members.dta",clear
+
+keep if b4q3 == "1"
+gen head_age = b4q5
+
+gen head_gender = b4q4
+
+keep HHID  head_age
+save "${r_output}\b4",replace
+
 *Asset non_fin： land from b5.1 & b5.2 (rural & urban) srl 99
 use "${r_input}\Visit 1_Block 5pt1_Details of land owned by the household as on 30.06.12.dta",clear
 keep if b5_1_1 == "99"
@@ -52,8 +63,12 @@ save "${r_output}\b5_2",replace
 
 *Asset non_fin: building and constructions b6 srl 11
 use "${r_input}\Visit 1_Block 6_Buildings and other constructions owned by the household as on 30.06.2012.dta",clear
-keep if b6_q3 == "11"
-keep HHID b6_q6
+
+gen building_all =  b6_q6*(b6_q3 == "11")
+gen building_resid =  b6_q6*(b6_q3 != "11")
+
+collapse (sum) building_all (sum) building_resid, by(HHID)
+keep HHID building_all building_resid 
 codebook,c
 save "${r_output}\b6",replace
 
@@ -107,7 +122,7 @@ codebook,c
 save "${r_output}\b13",replace
 
 *Debt: cash loands payable b14: Type of loan(8) Purpose of loan (11) Type of mortgage(13) , srl 99 (total)
-use "${r_input}\b14",clear
+use "${r_input}\Visit 1_Block 14.dta",clear
 drop if b14_q1 == "99" //drop the total amount
 
 *debt
@@ -140,29 +155,21 @@ save "${r_output}\b14",replace
 use "${r_input}\Visit 1_Block 15_kind loans payable by the household.dta",replace
 save "${r_output}\b15",replace //late housing info
 
-*gender from b4 (4)
-use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household members.dta",clear
-keep HHID b4q4 b4q3
-save "${r_output}\b4",replace //later gender info
 
 *******merge to master data******************************
 use "${r_output}\b3",clear
-local flist "b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2"
+local flist "b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2 b4"
 
 foreach f of local flist{
 merge 1:1 HHID using "${r_output}/`f'"
 drop _merge
 }
 
-foreach var in b5_1_6 b5_2_6 b6_q6 b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 b13_q4{
+foreach var in b5_1_6 b5_2_6 building_all b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 b13_q4{
 replace `var' = 0 if mi(`var')
 } 
 
-egen asset = rowtotal(b5_1_6 b5_2_6 b6_q6 b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 b13_q4) 
 
-gen wealth = asset - debt
-
-gen wealth_ln = ln(wealth)
  
 qui compress
 save "${r_output}\NSS70_All",replace
