@@ -52,8 +52,18 @@ save "${r_output}\b5_2",replace
 
 *Asset non_fin: building and constructions b6 srl 11
 use "${r_input}\Visit 1_Block 6_Buildings and other constructions owned by the household as on 30.06.2012.dta",clear
+<<<<<<< Updated upstream
 keep if b6_q3 == "11"
 keep HHID b6_q6
+=======
+
+gen building_all =  b6_q6*(b6_q3 == "11")
+gen building_resid =  b6_q6*(!inlist(b6_q3,"10","11"))
+
+collapse (sum) building_all (sum) building_resid, by(HHID)
+
+keep HHID building_all building_resid 
+>>>>>>> Stashed changes
 codebook,c
 save "${r_output}\b6",replace
 
