@@ -1,8 +1,8 @@
 ****************************************************************************
 * Description: Import NSS70 from Raw Files and save dta to Output Folder
-* Date: Oct 6, 2020
-* Version 1.0
-* Last Editor: Aline
+* Date: Oct 13, 2020
+* Version 1.1
+* Last Editor: Nadem
 ****************************************************************************
 
 ****************************************************************************
@@ -52,18 +52,31 @@ save "${r_output}\b5_2",replace
 
 *Asset non_fin: building and constructions b6 srl 11
 use "${r_input}\Visit 1_Block 6_Buildings and other constructions owned by the household as on 30.06.2012.dta",clear
-<<<<<<< Updated upstream
+
+/*
 keep if b6_q3 == "11"
 keep HHID b6_q6
-=======
+*/
 
-gen building_all =  b6_q6*(b6_q3 == "11")
-gen building_resid =  b6_q6*(!inlist(b6_q3,"10","11"))
+*gen building_all =  b6_q6*(b6_q3 == "11")
+*gen building_resid =  b6_q6*(inlist(b6_q3,"01","02","03"))
 
-collapse (sum) building_all (sum) building_resid, by(HHID)
+egen double building_all = sum(b6_q6*(b6_q3 == "11")), by(HHID)
+egen double building_all_man = sum(b6_q6*(b6_q3 != "11")),  by(HHID)
+egen double building_resid = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
 
-keep HHID building_all building_resid 
->>>>>>> Stashed changes
+duplicates drop HHID,  force
+
+keep HHID building_all* building_resid 
+
+*Check the manual (man) sum with row 11
+count if building_resid > building_all
+count if building_resid > building_all_man
+* drop the row 11 sum and rename man without "man" suffix
+drop building_all
+ren building_all_man building_all
+
+
 codebook,c
 save "${r_output}\b6",replace
 
@@ -104,8 +117,11 @@ save "${r_output}\b11",replace
 
 *Asset fin: other financial assets b12 srl 11 
 use "${r_input}\Visit 1_Block 12_Financial assets other than shares and debentures owned by the household as on 30.06.2012.dta",clear
-keep if b12_q1 == "11"
-keep HHID  b12_q3
+keep if b12_q1 == "11" | b12_q1 == "12" //12 is bullion (gold)
+keep HHID  b12_q3 b12_q1
+reshape wide b12_q3, i(HHID) j(b12_q1) string 
+ren b12_q311 b12_q3
+ren b12_q312 gold 
 codebook,c
 save "${r_output}\b12",replace
 
@@ -117,7 +133,7 @@ codebook,c
 save "${r_output}\b13",replace
 
 *Debt: cash loands payable b14: Type of loan(8) Purpose of loan (11) Type of mortgage(13) , srl 99 (total)
-use "${r_input}\b14",clear
+use "${r_input}\Visit 1_Block 14",clear
 drop if b14_q1 == "99" //drop the total amount
 
 *debt
@@ -152,29 +168,34 @@ save "${r_output}\b15",replace //late housing info
 
 *gender from b4 (4)
 use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household members.dta",clear
-keep HHID b4q4 b4q3
+*Keep head 
+keep if b4q1 == "01" // keep heads only 
+ren b4q5 head_age 
+ren  b4q4 head_gender 
+destring head_gender, replace
+label define gender 1 "Male" 2 "Female"
+label values head_gender gender 
+keep HHID head_age head_gender
 save "${r_output}\b4",replace //later gender info
 
 *******merge to master data******************************
 use "${r_output}\b3",clear
-local flist "b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2"
+local flist "b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2 b4"
 
 foreach f of local flist{
 merge 1:1 HHID using "${r_output}/`f'"
 drop _merge
 }
 
-foreach var in b5_1_6 b5_2_6 b6_q6 b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 b13_q4{
+foreach var in b5_1_6 b5_2_6 building_all b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 gold b13_q4{
 replace `var' = 0 if mi(`var')
 } 
 
-egen asset = rowtotal(b5_1_6 b5_2_6 b6_q6 b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 b13_q4) 
+egen double asset = rowtotal(b5_1_6 b5_2_6 building_all b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 gold b13_q4) 
 
-gen wealth = asset - debt
+gen double wealth = asset - debt
 
-gen wealth_ln = ln(wealth)
+gen double wealth_ln = ln(wealth)
  
 qui compress
 save "${r_output}\NSS70_All",replace
-
-
