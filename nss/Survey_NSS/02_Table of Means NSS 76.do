@@ -16,7 +16,7 @@ clear matrix
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76\"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housin\survey_all\Housing_git\nss\"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
@@ -57,9 +57,9 @@ label var in_flat "Flat (%)"
 gen in_size = b7_8 
 label var in_size "Dwelling Size (sq ft)"
 
-egen in_room = rowtotal(b7_2  b7_3)
+/* egen in_room = rowtotal(b7_2  b7_3)
 label var in_room "Number of Rooms"
-replace in_room =1 if in_room == 0
+replace in_room =1 if in_room == 0 */
 
 gen in_ppl_room = hh_size / in_room
 label var in_ppl_room "People per room"
@@ -200,7 +200,7 @@ label var san_other "Sanitation: Other (%)"
 sum san_flush_private  san_imp_lat_private  san_other [aw=hh_weight]
 
 
-gen san_flush = 100*inrange(b5_26,1,2)
+/* gen san_flush = 100*inrange(b5_26,1,2)
 label var san_flush "Sanitation: Flush (%)"
 
 gen san_imp_pit = 100*inrange(b5_26,6,7)
@@ -211,7 +211,7 @@ label var san_single_twin_pit "Sanitation: Single/Twin Pit (%)"
 
 gen san_other = 100*(san_flush!=100&san_imp_pit!= 100 & san_single_twin_pit!=100)
 label var san_other "Sanitation: Other (%)"
-
+ */
 
 
 ****** Check Weights for Large Cities ****** 
@@ -489,7 +489,7 @@ forvalues i=1(1)4 {
 
 
 
-local var_summary  in_wall* in_floor* in_roof* in_rm_* in_sep_kitch in_flat h20_piped_in h20_yard   san_flush san_imp_pit
+local var_summary  in_wall* in_floor* in_roof* in_rm_* in_sep_kitch in_flat h20_piped_in h20_yard   san_flush* san_imp_pit*
 local if1 "< 3"
 local if2 "==0"
 local if3 "==1 | location == 2"
