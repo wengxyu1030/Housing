@@ -38,28 +38,41 @@ save "${r_output}\b3",replace
 
 *Asset non_fin： land from b5.1 & b5.2 (rural & urban) srl 99
 use "${r_input}\Visit 1_Block 5pt1_Details of land owned by the household as on 30.06.12.dta",clear
-keep if b5_1_1 == "99"
-keep HHID State b5_1_6
+
 rename State state
-codebook,c
+
+egen double land_r = sum(b5_1_6*(b5_1_1 == "99")), by(HHID)
+egen double land_r_man = sum(b5_1_6*(b5_1_1 != "99")), by(HHID)
+duplicates drop HHID, force
+
+*Check the manual (man) sum with survey sum
+count if land_r > land_r_man
+count if land_r < land_r_man
+
+drop land_r
+rename land_r_man land_r
+
+keep HHID land_r
 save "${r_output}\b5_1",replace
 
 use "${r_input}\Visit 1_Block 5pt2_Details of land owned by the household as on 30.06.12.dta",clear
-keep if b5_2_1 == "99"
-keep HHID b5_2_6
-codebook,c
+
+egen double land_u = sum(b5_2_6*(b5_2_1 == "99")), by(HHID)
+egen double land_u_man = sum(b5_2_6*(b5_2_1 != "99")), by(HHID)
+duplicates drop HHID, force
+
+*Check the manual (man) sum with survey sum
+count if land_u > land_u_man
+count if land_u < land_u_man
+
+drop land_u
+rename land_u_man land_u
+
+keep HHID land_u
 save "${r_output}\b5_2",replace
 
 *Asset non_fin: building and constructions b6 srl 11
 use "${r_input}\Visit 1_Block 6_Buildings and other constructions owned by the household as on 30.06.2012.dta",clear
-
-/*
-keep if b6_q3 == "11"
-keep HHID b6_q6
-*/
-
-*gen building_all =  b6_q6*(b6_q3 == "11")
-*gen building_resid =  b6_q6*(inlist(b6_q3,"01","02","03"))
 
 egen double building_all = sum(b6_q6*(b6_q3 == "11")), by(HHID)
 egen double building_all_man = sum(b6_q6*(b6_q3 != "11")),  by(HHID)
@@ -69,50 +82,100 @@ duplicates drop HHID,  force
 
 keep HHID building_all* building_resid 
 
-*Check the manual (man) sum with row 11
+*Check the manual (man) sum with survey sum
 count if building_resid > building_all
 count if building_resid > building_all_man
-* drop the row 11 sum and rename man without "man" suffix
+
 drop building_all
 ren building_all_man building_all
 
-
-codebook,c
 save "${r_output}\b6",replace
 
 *Asset non_fin: livestock and poultry b7 srl 22 
 use "${r_input}\Visit 1_Block 7_Livestock and poultry owned by the household on 30.06.2012.dta",clear
-keep if b7_q2 == "22"
-keep HHID b7_q5
-codebook,c
+destring b7_q2,replace
+
+egen double livestock = sum(b7_q5*(b7_q2 == 22)), by(HHID)
+egen double livestock_man = sum(b7_q5*(inrange(b7_q2,17,21))), by(HHID)
+duplicates drop HHID, force
+
+*Check the manual (man) sum with survey sum
+count if livestock > livestock_man
+count if livestock < livestock_man
+
+drop livestock
+rename livestock_man livestock
+
+keep HHID livestock
 save "${r_output}\b7",replace
 
 *Asset non_fin: transport equipment b8: srl 8
 use "${r_input}\Visit 1_Block 8_Transport equipment owned by the household on 30.06.2012.dta",clear
-keep if b8_q2 == "08"
-keep HHID b8_q5
-codebook,c
+
+egen double trspt = sum(b8_q5*(b8_q2 == "08")), by(HHID)
+egen double trspt_man = sum(b8_q5*(b8_q2 != "08")), by(HHID)
+duplicates drop HHID, force
+
+*Check the manual (man) sum with survey sum
+count if trspt > trspt_man
+count if trspt < trspt_man
+
+drop trspt
+rename trspt_man trspt
+
+keep HHID trspt
 save "${r_output}\b8",replace
 
 *Asset non_fin: agricultural machinery and implements b9: srl 8 
 use "${r_input}\Visit 1_Block 9_Agricultural machinery and implements owned by the household on 30.06.2012.dta",clear
-keep if b9_q2 == "8"
-keep HHID b9_q4
-codebook,c
+//keep if b9_q2 == "8"
+//keep HHID b9_q4
+//codebook,c
+
+egen double agri = sum(b9_q4*(b9_q2 == "8")), by(HHID)
+egen double agri_man = sum(b9_q4*(b9_q2 != "8")), by(HHID)
+duplicates drop HHID, force
+
+*Check the manual (man) sum with survey sum
+count if agri > agri_man
+count if agri < agri_man
+
+drop agri
+rename agri_man agri
+
+keep HHID agri
 save "${r_output}\b9",replace
 
 *Asset non_fin: non-farm business equipment b10 srl 15
 use "${r_input}\Visit 1_Block 10_Non-farm business equipment owned by the household as on 30.06.2012.dta",clear
-keep if b10_q2== "15"
-keep HHID b10_q3
-codebook,c
+destring b10_q2,replace
+
+egen double non_farm = sum(b10_q3*(b10_q2 == 15)), by(HHID)
+egen double non_farm_man = sum(b10_q3*inrange(b10_q2,12,14)), by(HHID)
+duplicates drop HHID, force
+
+*Check the manual (man) sum with survey sum
+count if non_farm > non_farm_man
+count if non_farm < non_farm_man
+
+drop non_farm_man
+keep HHID non_farm
 save "${r_output}\b10",replace
 
-*Asset fin: shares & debentures b11 srl 5 
+*Asset fin: shares & debentures b11 srl 5 //? should filter out the non-negative colums. 
 use "${r_input}\Visit 1_Block 11_ Shares and debentures owned by the household in co-operative  societies & companies as on 30.06.2012 .dta",clear
 keep if b11_q1 == "5"
-keep HHID b11_q6
-codebook,c
+
+egen double shares = sum(b11_q6*(b11_q1 == "5")), by(HHID)
+egen double shares_man = sum(b11_q6*(b11_q1 != "5")), by(HHID)
+duplicates drop HHID, force
+
+*Check the manual (man) sum with survey sum
+count if shares > shares_man
+count if shares < shares_man
+
+drop non_farm_man
+keep HHID non_farm
 save "${r_output}\b11",replace
 
 *Asset fin: other financial assets b12 srl 11 
