@@ -1,8 +1,8 @@
 ****************************************************************************
 * Description: Generate a summary table of NSS 70 
-* Date: October 13, 2020
-* Version 1.1
-* Last Editor: Nadeem 
+* Date: October 16, 2020
+* Version 1.2
+* Last Editor: Aline 
 ****************************************************************************
 
 ****************************************************************************
@@ -29,21 +29,18 @@ global r_output "${root}\Data Output Files"
 ****************************************************************************
 use "${root}\Data Output Files\NSS70_All.dta",clear
 
+//replace b5_2_6 = . if b5_2_6<0 //? there's negative value for urban land owned?
+//replace b11_q6 = . if b11_q6<0 //? there's negative value for shares & debentures owned. 
 
-*shares & debentures owned by the household in co operative societies & companies as on 30.06.2012 (financial asset should be positive?)
-sum asset b5_1_6 b5_2_6 building_all b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 b13_q4 gold building_resid
-
-replace b5_2_6 = . if b5_2_6<0 //? there's negative value for urban land owned?
-replace b11_q6 = . if b11_q6<0 //? there's negative value for shares & debentures owned. 
-
-drop asset wealth*
-egen double asset = rowtotal(gold b5_1_6 b5_2_6 building_all b7_q5 b8_q5 b9_q4 b10_q3 b11_q6 b12_q3 b13_q4) 
-egen double durable_other = rowtotal(b7_q5 b8_q5 b9_q4 b10_q3)
-egen double real_estate = rowtotal(building_resid b5_1_6 b5_2_6)
+egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
+egen double durable_other = rowtotal(livestock trspt agri non_farm)
+egen double real_estate = rowtotal(building_resid land_r land_u)
 
 gen double wealth = asset - debt
 
 gen double wealth_ln = ln(wealth)
+
+sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec building_resid
 
 keep if head_age >= 24
 
