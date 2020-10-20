@@ -48,16 +48,34 @@ keep if head_age >= 24
 * Replicate Number
 ****************************************************************************
 
-**real estate: building, land
+**stats to compare with published paper
 gen re_share = real_estate/asset
 gen du_share = durable_other/asset
 gen gl_share = gold / asset
 
-*replace re_share = 0 if re_share == . 
-*replace du_share = 0 if du_share == . 
 
 sum re_share du_share gl_share
 sum re_share du_share gl_share [aw = pwgt]
 
+
+**residential building ownership
+codebook building_resid 
+
+gen legal_own = (building_resid > 0)
+replace legal_own = 0 if mi(building_resid) //treat missing as household do not own real estate assets.
+
+bysort urban: sum legal_own [aw = hhwgt] //69% households in urban own residential building, compare to nss 61.2% house ownership in 2011 consumption survey. 
+
+**housing mortgage
+gen hse_mortgage_dm = (mortgage_im_pr > 0) 
+replace hse_mortgage_dm = 0 if mi(hse_mortgage_dm) 
+tab hse_mortgage_dm legal_own //6,089 households do not own house but has mortgage?
+
+bysort urban: sum hse_loan_mortgage hous_loan mortgage_im_pr,de //majority do not have housing loan with mortgage. 
+gen hse_mortgage = hse_loan_mortgage/hous_loan
+sum hse_mortgage,de //32% amount housing loan with immovable property as mortgage. 
+
+gen hse_mortgage_share = hse_loan_mortgage/debt
+bysort urban: sum hse_mortgage_share [aw = hhwgt] //urban household 14% of debt is on housing mortgage. 
 
 

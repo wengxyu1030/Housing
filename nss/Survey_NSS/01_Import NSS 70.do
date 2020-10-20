@@ -32,8 +32,9 @@ rename (b3q1 Sector) (hhsize sector)
 gen hhwgt = MLT //or weight_sc for combined sub-sample?
 destring(hhsize),replace
 gen pwgt = MLT * hhsize
-
-keep HHID hhwgt pwgt hhsize sector Weight_SS Weight_SC
+destring(sector), replace
+gen urban = sector - 1
+keep HHID hhwgt pwgt hhsize sector urban Weight_SS Weight_SC
 save "${r_output}\b3",replace
 
 *Asset non_fin： land from b5.1 & b5.2 (rural & urban) srl 99
@@ -246,11 +247,23 @@ gen credit_formal = (!inrange(b14_q6,12,17)& b14_q6!=9)*debt
 gen mortgage_type = b14_q13
 gen has_mortgage =  (b14_q13 != "4")*debt
 
+*mortgage of immovable propoerty as secure type
+tab b14_q12
+gen secure_type = b14_q12
+gen mortgage_im_pr = (b14_q12 == "04")*debt
+
+*housing loan with immovable property as secure type
+gen hse_loan_mortgage =  (b14_q12 == "04" & b14_q11 == "11")*debt
+
 *borrowed amount
 gen br_amount = b14_q5
 
 *aggregate at household level. 
-collapse (sum) hous_loan (sum) credit_formal (sum) has_mortgage (sum) br_amount (sum) debt,by(HHID)
+collapse (sum) hous_loan (sum) credit_formal (sum) has_mortgage (sum) mortgage_im_pr (sum) hse_loan_mortgage (sum) br_amount (sum) debt,by(HHID)
+label var hous_loan "loan with purpose on housing"
+label var has_mortgage "loan with mortgage"
+label var mortgage_im_pr "mortgage with immovable propoerty as secure type"
+label var hse_loan_mortgage "housing loan with immovable property as secure"
 
 save "${r_output}\b14",replace
 
