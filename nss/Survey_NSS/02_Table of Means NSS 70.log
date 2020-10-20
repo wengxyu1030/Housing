@@ -1,0 +1,463 @@
+-------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housin
+> g_git\nss\Survey_NSS\02_Table of Means NSS 70.log
+  log type:  text
+ opened on:  20 Oct 2020, 09:37:54
+
+. 
+. ***********************************************************************
+> *****
+. * Load the data and replicate the assumption 
+. ***********************************************************************
+> *****
+. use "${root}\Data Output Files\NSS70_All.dta",clear
+
+. 
+. //replace b5_2_6 = . if b5_2_6<0 //? there's negative value for urban l
+> and owned?
+. //replace b11_q6 = . if b11_q6<0 //? there's negative value for shares 
+> & debentures owned. 
+. 
+. egen double asset = rowtotal(land_r land_u building_all livestock trspt
+>  agri non_farm shares fin_other gold fin_rec) 
+
+. egen double durable_other = rowtotal(livestock trspt agri non_farm)
+
+. egen double real_estate = rowtotal(building_resid land_r land_u)
+
+. 
+. gen double wealth = asset - debt
+(37,081 missing values generated)
+
+. 
+. gen double wealth_ln = ln(wealth)
+(39,807 missing values generated)
+
+. 
+. sum asset land_r land_u building_all livestock trspt agri non_farm shar
+> es fin_other gold fin_rec building_resid
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       asset |    110,800     1782862    1.13e+07          0   1.85e+09
+      land_r |     67,747     1041569     3905052          0   2.49e+08
+      land_u |     34,217     1380122     8276187          0   1.28e+09
+building_all |     95,488    614870.7    1.01e+07          0   1.85e+09
+   livestock |     44,407    32474.12    54060.96          0    2590000
+-------------+---------------------------------------------------------
+       trspt |     71,749    74586.56    279375.5          0   2.07e+07
+        agri |     48,270     8792.89    50198.23          0    7700000
+    non_farm |     24,552           0           0          0          0
+      shares |      3,836    46152.68      351695          0   1.21e+07
+   fin_other |    101,412    66760.63    267276.4          0   3.26e+07
+-------------+---------------------------------------------------------
+        gold |    101,412    63457.91    160273.4          0   1.29e+07
+     fin_rec |      6,775    65060.67    424340.3          0   2.00e+07
+building_r~d |     95,488    568308.2     9849675          0   1.85e+09
+
+. 
+. keep if head_age >= 24
+(2,266 observations deleted)
+
+. 
+. ***********************************************************************
+> *****
+. * Calculate stats for housing mortgage and loan (outstanding)
+. ***********************************************************************
+> *****
+. 
+. **stats to compare with published paper
+. gen re_share = real_estate/asset
+(672 missing values generated)
+
+. gen du_share = durable_other/asset
+(672 missing values generated)
+
+. gen gl_share = gold / asset
+(8,631 missing values generated)
+
+. 
+. 
+. sum re_share du_share gl_share
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    re_share |    107,862    .7552001     .290893          0          1
+    du_share |    107,862    .0629695    .1267183          0          1
+    gl_share |     99,903    .1089669    .1968698          0          1
+
+. sum re_share du_share gl_share [aw = pwgt]
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min     
+>    Max
+-------------+-----------------------------------------------------------
+> ------
+    re_share | 107,862  2.0722e+11    .7755733    .274023          0     
+>      1
+    du_share | 107,862  2.0722e+11    .0603331   .1165205          0     
+>      1
+    gl_share |  99,903  1.9011e+11    .1094104   .1952706          0     
+>      1
+
+. 
+. 
+. **residential building ownership
+. codebook building_resid 
+
+-------------------------------------------------------------------------
+building_resid                                                (unlabeled)
+-------------------------------------------------------------------------
+
+                  type:  numeric (long)
+
+                 range:  [0,1.850e+09]                units:  1
+         unique values:  4,435                    missing .:  13,971/108,
+> 534
+
+                  mean:    571998
+              std. dev:   9.9e+06
+
+           percentiles:        10%       25%       50%       75%       90
+> %
+                             36100     75000    180000    450000   1.0e+0
+> 6
+
+. 
+. gen legal_own = (building_resid > 0)
+
+. replace legal_own = 0 if mi(building_resid) //treat missing as househol
+> d do not own real estate assets.
+(13,971 real changes made)
+
+. 
+. bysort urban: sum legal_own [aw = hhwgt],de //69% households in urban o
+> wn residential building, compare to nss 61.2% house ownership in 2011 c
+> onsumption survey. 
+
+-------------------------------------------------------------------------
+-> urban = 0
+
+                          legal_own
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            1              0       Obs              61,217
+25%            1              0       Sum of Wgt.  3.0356e+10
+
+50%            1                      Mean           .9487511
+                        Largest       Std. Dev.      .2205068
+75%            1              1
+90%            1              1       Variance       .0486233
+95%            1              1       Skewness      -4.070211
+99%            1              1       Kurtosis       17.56662
+
+-------------------------------------------------------------------------
+-> urban = 1
+
+                          legal_own
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              47,317
+25%            0              0       Sum of Wgt.  1.5509e+10
+
+50%            1                      Mean           .6909342
+                        Largest       Std. Dev.      .4621132
+75%            1              1
+90%            1              1       Variance       .2135486
+95%            1              1       Skewness      -.8263613
+99%            1              1       Kurtosis       1.682873
+
+
+. 
+. **housing loan 
+. gen hous_loan_dm = (hous_loan>0)
+
+. replace hous_loan_dm = 0 if mi(hous_loan)
+(35,565 real changes made)
+
+. bysort urban: tab hous_loan_dm [aw = hhwgt] //8% urban households with 
+> housing loan outstanding. 
+
+-------------------------------------------------------------------------
+-> urban = 0
+
+hous_loan_d |
+          m |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 58,181.207       95.04       95.04
+          1 |3,035.79252        4.96      100.00
+------------+-----------------------------------
+      Total |     61,217      100.00
+
+-------------------------------------------------------------------------
+-> urban = 1
+
+hous_loan_d |
+          m |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 43,643.298       92.24       92.24
+          1 | 3,673.7019        7.76      100.00
+------------+-----------------------------------
+      Total |     47,317      100.00
+
+
+. 
+. **loan with secure as immovable property (ip)
+. gen mortgage_im_pr_dm = (mortgage_im_pr > 0) 
+
+. replace mortgage_im_pr_dm = 0 if mi(mortgage_im_pr_dm) 
+(0 real changes made)
+
+. bysort urban: tab mortgage_im_pr_dm [aw = hhwgt] //70% urban households
+>  with ip as security.
+
+-------------------------------------------------------------------------
+-> urban = 0
+
+mortgage_im |
+     _pr_dm |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 26,558.252       43.38       43.38
+          1 | 34,658.748       56.62      100.00
+------------+-----------------------------------
+      Total |     61,217      100.00
+
+-------------------------------------------------------------------------
+-> urban = 1
+
+mortgage_im |
+     _pr_dm |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 14,385.243       30.40       30.40
+          1 | 32,931.757       69.60      100.00
+------------+-----------------------------------
+      Total |     47,317      100.00
+
+
+. tab mortgage_im_pr_dm legal_own [aw = hhwgt] //6,089 households do not 
+> own house but has ip mortgage
+
+mortgage_i |       legal_own
+   m_pr_dm |         0          1 |     Total
+-----------+----------------------+----------
+         0 | 5,141.377  37,180.27 | 42,321.65 
+         1 | 9,883.022  56,329.33 | 66,212.35 
+-----------+----------------------+----------
+     Total |  15,024.4   93,509.6 |   108,534 
+
+. 
+. **summary: housing mortgage, housing loan, ip secure. 
+. bysort urban: sum hse_loan_mortgage hous_loan mortgage_im_pr [aw = hhwg
+> t],de //majority do not have housing loan with mortgage. 
+
+-------------------------------------------------------------------------
+-> urban = 0
+
+       housing loan with immovable property as secure
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              41,595
+25%            0              0       Sum of Wgt.  1.5122e+10
+
+50%            0                      Mean           4233.248
+                        Largest       Std. Dev.      51428.88
+75%            0        2376600
+90%            0        2524000       Variance       2.64e+09
+95%            0        2975000       Skewness       22.07211
+99%        96330        4020920       Kurtosis       731.1208
+
+                loan with purpose on housing
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              41,595
+25%            0              0       Sum of Wgt.  1.5122e+10
+
+50%            0                      Mean           13381.94
+                        Largest       Std. Dev.      78844.65
+75%            0        2524000
+90%            0        2975000       Variance       6.22e+09
+95%        61000        3256000       Skewness       13.44244
+99%       300000        4020920       Kurtosis       282.0363
+
+      mortgage with immovable propoerty as secure type
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              41,595
+25%            0              0       Sum of Wgt.  1.5122e+10
+
+50%            0                      Mean           18755.25
+                        Largest       Std. Dev.      143283.3
+75%            0        4400000
+90%        25292        9000000       Variance       2.05e+10
+95%        86000        9314845       Skewness        35.7811
+99%       390000       1.09e+07       Kurtosis       2059.531
+
+-------------------------------------------------------------------------
+-> urban = 1
+
+       housing loan with immovable property as secure
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              31,374
+25%            0              0       Sum of Wgt.  5.5540e+09
+
+50%            0                      Mean            81871.7
+                        Largest       Std. Dev.      430223.9
+75%            0       1.18e+07
+90%        18000       1.25e+07       Variance       1.85e+11
+95%       424500       1.28e+07       Skewness       10.39508
+99%      2152000       1.47e+07       Kurtosis       173.7504
+
+                loan with purpose on housing
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              31,374
+25%            0              0       Sum of Wgt.  5.5540e+09
+
+50%            0                      Mean           150025.6
+                        Largest       Std. Dev.      665759.8
+75%            0       1.64e+07
+90%       327590       1.64e+07       Variance       4.43e+11
+95%       821100       1.64e+07       Skewness       12.11622
+99%      2743664       1.90e+07       Kurtosis       234.3042
+
+      mortgage with immovable propoerty as secure type
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              31,374
+25%            0              0       Sum of Wgt.  5.5540e+09
+
+50%            0                      Mean             113211
+                        Largest       Std. Dev.      917830.1
+75%            0       1.50e+07
+90%       165000       1.50e+07       Variance       8.42e+11
+95%       570000       4.00e+07       Skewness       106.1053
+99%      2312000       1.83e+08       Kurtosis       19355.71
+
+
+. 
+. **housing mortgage to housing loan 
+. gen mortgage_share_1 = hse_loan_mortgage/hous_loan if hous_loan > 0 
+(98,846 missing values generated)
+
+. sum mortgage_share_1 [aw = hhwgt],de //average 32% amount housing loan 
+> with immovable property as mortgage, median is 0
+
+                      mortgage_share_1
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs               9,688
+25%            0              0       Sum of Wgt.  2.7095e+09
+
+50%            0                      Mean           .2925928
+                        Largest       Std. Dev.      .4469501
+75%            1              1
+90%            1              1       Variance       .1997644
+95%            1              1       Skewness       .9051812
+99%            1              1       Kurtosis        1.85526
+
+. 
+. **housing mortgage to debt. 
+. gen mortgage_share_2  = hse_loan_mortgage/debt if debt > 0 
+(63,241 missing values generated)
+
+. bysort urban: sum mortgage_share_2  [aw = hhwgt],de  //urban household 
+> 14% of debt is on housing mortgage. 
+
+-------------------------------------------------------------------------
+-> urban = 0
+
+                      mortgage_share_2
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              25,211
+25%            0              0       Sum of Wgt.  9.7247e+09
+
+50%            0                      Mean           .0223478
+                        Largest       Std. Dev.      .1398832
+75%            0              1
+90%            0              1       Variance       .0195673
+95%            0              1       Skewness       6.413018
+99%            1              1       Kurtosis       43.14912
+
+-------------------------------------------------------------------------
+-> urban = 1
+
+                      mortgage_share_2
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              20,082
+25%            0              0       Sum of Wgt.  3.6974e+09
+
+50%            0                      Mean           .1380045
+                        Largest       Std. Dev.      .3347381
+75%            0              1
+90%            1              1       Variance       .1120496
+95%            1              1       Skewness       2.076418
+99%            1              1       Kurtosis       5.405114
+
+
+. 
+. **households with housing mortgage. 
+. gen hse_mortgage_dm = (hse_loan_mortgage >0) if !mi(hse_loan_mortgage)
+(35,565 missing values generated)
+
+. replace hse_mortgage_dm = 0 if mi(hse_mortgage_dm)
+(35,565 real changes made)
+
+. 
+. bysort urban: tab hse_mortgage_dm  [aw = hhwgt] //3 percetn has housing
+>  mortgage. 
+
+-------------------------------------------------------------------------
+-> urban = 0
+
+hse_mortgag |
+       e_dm |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 60,668.742       99.10       99.10
+          1 | 548.257815        0.90      100.00
+------------+-----------------------------------
+      Total |     61,217      100.00
+
+-------------------------------------------------------------------------
+-> urban = 1
+
+hse_mortgag |
+       e_dm |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 45,601.676       96.37       96.37
+          1 | 1,715.3244        3.63      100.00
+------------+-----------------------------------
+      Total |     47,317      100.00
+
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housin
+> g_git\nss\Survey_NSS\02_Table of Means NSS 70.log
+  log type:  text
+ closed on:  20 Oct 2020, 09:37:56
+-------------------------------------------------------------------------

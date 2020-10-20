@@ -17,12 +17,14 @@ if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 70\"
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 
+log using "${script}\02_Table of Means NSS 70.log"
 
 ****************************************************************************
 * Load the data and replicate the assumption 
@@ -93,3 +95,4 @@ gen hse_mortgage_dm = (hse_loan_mortgage >0) if !mi(hse_loan_mortgage)
 replace hse_mortgage_dm = 0 if mi(hse_mortgage_dm)
 
 bysort urban: tab hse_mortgage_dm  [aw = hhwgt] //3 percetn has housing mortgage. 
+log close
