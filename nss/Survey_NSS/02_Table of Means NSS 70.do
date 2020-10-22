@@ -55,10 +55,8 @@ gen re_share = real_estate/asset
 gen du_share = durable_other/asset
 gen gl_share = gold / asset
 
-
 sum re_share du_share gl_share
 sum re_share du_share gl_share [aw = pwgt]
-
 
 **residential building ownership
 codebook building_resid 
@@ -69,6 +67,25 @@ replace legal_own = 0 if mi(building_resid) //treat missing as household do not 
 bysort urban: sum legal_own [aw = hhwgt],de //69% households in urban own residential building, compare to nss 61.2% house ownership in 2011 consumption survey. 
 
 **mortgage debt
-gen mortgage_debt = ()*debt
+use "${r_input}\Visit 1_Block 14",clear
+drop if b14_q1 == "99" //drop the total amount
+
+*debt
+gen debt = b14_q17
+codebook debt
+drop if debt == .
+
+gen mortgage_debt = (b14_q13 != "4"& b14_q13 != "")*debt
+collapse (sum) mortgage_debt,by(HHID)
+
+merge 1:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
+
+keep if head_age >= 24
+ 
+gen double mortgage_debt_share = mortgage_debt/debt
+replace mortgage_debt_share = 0 if mortgage_debt == .
+
+sum mortgage_debt_share //14%
+sum mortgage_debt_share [aw = pwgt] //10%
 
 log close
