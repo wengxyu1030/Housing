@@ -247,6 +247,10 @@ gen credit_formal = (!inrange(b14_q6,12,17)& b14_q6!=9)*debt
 gen mortgage_type = b14_q13
 gen has_mortgage =  (b14_q13 != "4")*debt
 
+*** LET'S try two housing mortgage definitions 
+* (A) Conservative (let's label 1):       B4_Q11 = 11 & (B4_Q12 == 3 | B4_Q12 == 4)
+* (B) Less conservative (let's label 2):  B4_Q11 = 11 & B4_13 != 4
+
 *mortgage of immovable propoerty as secure type
 tab b14_q12
 gen secure_type = b14_q12
@@ -258,7 +262,7 @@ gen hse_loan_mortgage =  (b14_q12 == "04" & b14_q11 == "11")*debt
 *borrowed amount
 gen br_amount = b14_q5
 
-*aggregate at household level. 
+*aggregate at household level. *** When you collapse, check if any HH has two housing loans - we don't want to combine them. In fact we should try and do all this in file 03_Mortgage so we can keep file 01 clean while we play around with this data
 collapse (sum) hous_loan (sum) credit_formal (sum) has_mortgage (sum) mortgage_im_pr (sum) hse_loan_mortgage (sum) br_amount (sum) debt,by(HHID)
 label var hous_loan "loan with purpose on housing"
 label var has_mortgage "loan with mortgage"
