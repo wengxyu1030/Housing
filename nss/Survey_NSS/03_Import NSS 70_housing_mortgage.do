@@ -42,7 +42,7 @@ drop if debt == .
 tab b14_q12
 gen secure_type = b14_q12
 
-gen hse_mortgage_1_dm = (b14_q11 == "11" & (b14_q12 == "04"|b14_q12 == "04"))
+gen hse_mortgage_1_dm = (b14_q11 == "11" & (b14_q12 == "04"|b14_q12 == "03"))
 gen hse_mortgage_1 = hse_mortgage_1_dm*debt
 
 *housing loan with mortgage

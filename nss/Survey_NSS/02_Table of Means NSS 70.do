@@ -68,31 +68,7 @@ replace legal_own = 0 if mi(building_resid) //treat missing as household do not 
 
 bysort urban: sum legal_own [aw = hhwgt],de //69% households in urban own residential building, compare to nss 61.2% house ownership in 2011 consumption survey. 
 
-**housing loan 
-gen hous_loan_dm = (hous_loan>0)
-replace hous_loan_dm = 0 if mi(hous_loan)
-bysort urban: tab hous_loan_dm [aw = hhwgt] //8% urban households with housing loan outstanding. 
+**mortgage debt
+gen mortgage_debt = ()*debt
 
-**loan with secure as immovable property (ip)
-gen mortgage_im_pr_dm = (mortgage_im_pr > 0) 
-replace mortgage_im_pr_dm = 0 if mi(mortgage_im_pr_dm) 
-bysort urban: tab mortgage_im_pr_dm [aw = hhwgt] //70% urban households with ip as security.
-tab mortgage_im_pr_dm legal_own [aw = hhwgt] //6,089 households do not own house but has ip mortgage
-
-**summary: housing mortgage, housing loan, ip secure. 
-bysort urban: sum hse_loan_mortgage hous_loan mortgage_im_pr [aw = hhwgt],de //majority do not have housing loan with mortgage. 
-
-**housing mortgage to housing loan 
-gen mortgage_share_1 = hse_loan_mortgage/hous_loan if hous_loan > 0 
-sum mortgage_share_1 [aw = hhwgt],de //average 32% amount housing loan with immovable property as mortgage, median is 0
-
-**housing mortgage to debt. 
-gen mortgage_share_2  = hse_loan_mortgage/debt if debt > 0 
-bysort urban: sum mortgage_share_2  [aw = hhwgt],de  //urban household 14% of debt is on housing mortgage. 
-
-**households with housing mortgage. 
-gen hse_mortgage_dm = (hse_loan_mortgage >0) if !mi(hse_loan_mortgage)
-replace hse_mortgage_dm = 0 if mi(hse_mortgage_dm)
-
-bysort urban: tab hse_mortgage_dm  [aw = hhwgt] //3 percetn has housing mortgage. 
 log close

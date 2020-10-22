@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_housing_mortgage.log
   log type:  text
- opened on:  22 Oct 2020, 09:33:27
+ opened on:  22 Oct 2020, 09:41:36
 
 . 
 . use "${r_input}\Visit 1_Block 14",clear
@@ -62,7 +62,7 @@ debt                                                                            
 . gen secure_type = b14_q12
 
 . 
-. gen hse_mortgage_1_dm = (b14_q11 == "11" & (b14_q12 == "04"|b14_q12 == "04"))
+. gen hse_mortgage_1_dm = (b14_q11 == "11" & (b14_q12 == "04"|b14_q12 == "03"))
 
 . gen hse_mortgage_1 = hse_mortgage_1_dm*debt
 
@@ -93,8 +93,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 . use "${r_output}\b14_hse_mortgage",clear
 
 . 
-. sum hse_mortgage_1 hse_mortgage_2[aw = MLT],de //hse_mortgage_2 is much higher than hse_mortgage_1 on both median and mean by single loan 
-> level.
+. sum hse_mortgage_1 hse_mortgage_2[aw = MLT],de //hse_mortgage_2 is higher than hse_mortgage_1 on mean by single loan level.
 
        housing loan with immovable property as secure
 -------------------------------------------------------------
@@ -104,12 +103,12 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 10%            0              0       Obs              62,772
 25%            0              0       Sum of Wgt.  1.9832e+10
 
-50%            0                      Mean           26165.74
-                        Largest       Std. Dev.      228498.2
+50%            0                      Mean           34494.38
+                        Largest       Std. Dev.      265193.7
 75%            0       1.08e+07
-90%            0       1.14e+07       Variance       5.22e+10
-95%            0       1.18e+07       Skewness       17.26326
-99%       756860       1.28e+07       Kurtosis       444.7624
+90%            0       1.14e+07       Variance       7.03e+10
+95%        41000       1.18e+07       Skewness       14.73062
+99%      1000000       1.28e+07       Kurtosis       319.8066
 
                  housing loan with mortgage
 -------------------------------------------------------------
@@ -142,32 +141,32 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
                     (sum) hse_mortgage_1
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%        10650           2000
- 5%        25193           2480
-10%        36295           2770       Obs               3,297
-25%        93000           3100       Sum of Wgt.   835124869
+ 1%        11014           2000
+ 5%        25193           2188
+10%        36225           2480       Obs               3,972
+25%        98000           2770       Sum of Wgt.  1.0839e+09
 
-50%       284650                      Mean             621354
-                        Largest       Std. Dev.        968498
-75%       700000       1.18e+07
-90%      1572650       1.25e+07       Variance       9.38e+11
-95%      2407508       1.28e+07       Skewness       4.270785
-99%      4510000       1.47e+07       Kurtosis       33.63106
+50%       260000                      Mean           631115.4
+                        Largest       Std. Dev.       1040494
+75%       666400       1.25e+07
+90%      1676000       1.28e+07       Variance       1.08e+12
+95%      2660000       1.47e+07       Skewness       4.884671
+99%      4360000       1.56e+07       Kurtosis       45.33693
 
                     hse_mortgage_1_share
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%     .1583013       .0063898
- 5%     .2876803       .0203252
-10%     .4594595       .0330668       Obs               3,297
-25%     .8432255       .0364751       Sum of Wgt.   835124869
+ 1%     .1509434       .0063898
+ 5%     .3037619       .0203252
+10%     .4883844       .0330668       Obs               3,972
+25%     .8629632       .0364751       Sum of Wgt.  1.0839e+09
 
-50%            1                      Mean           .8723783
-                        Largest       Std. Dev.      .2326442
+50%            1                      Mean           .8793158
+                        Largest       Std. Dev.      .2271645
 75%            1              1
-90%            1              1       Variance       .0541233
-95%            1              1       Skewness      -1.815187
-99%            1              1       Kurtosis       5.090117
+90%            1              1       Variance       .0516037
+95%            1              1       Skewness      -1.885246
+99%            1              1       Kurtosis        5.37567
 
 . sum hse_mortgage_2 hse_mortgage_2_share [aw = MLT] if hse_mortgage_2 >0 ,de
 
@@ -219,7 +218,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
   3. replace `var' = 1 if `var' > 0
   4. }
 (64,646 real changes made)
-(155 real changes made)
+(184 real changes made)
 (64,646 real changes made)
 (373 real changes made)
 
@@ -231,7 +230,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
-hse_mor~1_dm |  62,135  3.1213e+10    .0087446   .0931038          0          1
+hse_mor~1_dm |  62,135  3.1213e+10    .0124736   .1109875          0          1
 hse_mor~2_dm |  62,135  3.1213e+10    .0169663   .1291462          0          1
 
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -239,7 +238,7 @@ hse_mor~2_dm |  62,135  3.1213e+10    .0169663   .1291462          0          1
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
-hse_mor~1_dm |  48,665  1.6745e+10    .0336539   .1803385          0          1
+hse_mor~1_dm |  48,665  1.6745e+10    .0415828   .1996358          0          1
 hse_mor~2_dm |  48,665  1.6745e+10    .0480496   .2138733          0          1
 
 
@@ -248,5 +247,5 @@ hse_mor~2_dm |  48,665  1.6745e+10    .0480496   .2138733          0          1
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_housing_mortgage.log
   log type:  text
- closed on:  22 Oct 2020, 09:33:29
+ closed on:  22 Oct 2020, 09:41:38
 --------------------------------------------------------------------------------------------------------------------------------------------
