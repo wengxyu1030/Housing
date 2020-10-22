@@ -49,11 +49,9 @@ gen hse_mortgage_1 = hse_mortgage_1_dm*debt
 gen hse_mortgage_2_dm = (b14_q11 == "11" & (b14_q13 != "4"& b14_q13 != ""))
 gen hse_mortgage_2 =  hse_mortgage_2_dm*debt
 
-*aggregate at household level. *** When you collapse, check if any HH has two housing loans - we don't want to combine them. In fact we should try and do all this in file 03_Mortgage so we can keep file 01 clean while we play around with this data
+*aggregate at household level. 
 egen debt_total = sum(debt),by(HHID)
 drop debt
-
-keep if hse_mortgage_1_dm == 1 | hse_mortgage_2_dm == 1
 
 label var hse_mortgage_1 "housing loan with immovable property as secure"
 label var hse_mortgage_2 "housing loan with mortgage"
@@ -64,7 +62,7 @@ save "${r_output}\b14_hse_mortgage",replace
 ***stats
 use "${r_output}\b14_hse_mortgage",clear
 
-sum hse_mortgage_1 hse_mortgage_2[aw = MLT],de //hse_mortgage_2 is much higher than hse_mortgage_1 on both median and mean by single loan level.
+sum hse_mortgage_1 hse_mortgage_2[aw = MLT],de //hse_mortgage_2 is higher than hse_mortgage_1 on mean by single loan level.
 
 collapse (sum) hse_mortgage_1_dm (sum) hse_mortgage_2_dm (sum) hse_mortgage_1 (sum) hse_mortgage_2 (mean) debt_total (mean) MLT,by(HHID)
 

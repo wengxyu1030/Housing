@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_housing_mortgage.log
   log type:  text
- opened on:  22 Oct 2020, 09:27:10
+ opened on:  22 Oct 2020, 09:33:27
 
 . 
 . use "${r_input}\Visit 1_Block 14",clear
@@ -73,15 +73,10 @@ debt                                                                            
 . gen hse_mortgage_2 =  hse_mortgage_2_dm*debt
 
 . 
-. *aggregate at household level. *** When you collapse, check if any HH has two housing loans - we don't want to combine them. In fact we sh
-> ould try and do all this in file 03_Mortgage so we can keep file 01 clean while we play around with this data
+. *aggregate at household level. 
 . egen debt_total = sum(debt),by(HHID)
 
 . drop debt
-
-. 
-. keep if hse_mortgage_1_dm == 1 | hse_mortgage_2_dm == 1
-(57,423 observations deleted)
 
 . 
 . label var hse_mortgage_1 "housing loan with immovable property as secure"
@@ -106,40 +101,40 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
       Percentiles      Smallest
  1%            0              0
  5%            0              0
-10%            0              0       Obs               5,349
-25%            0              0       Sum of Wgt.  1.4972e+09
+10%            0              0       Obs              62,772
+25%            0              0       Sum of Wgt.  1.9832e+10
 
-50%        45000                      Mean           346578.5
-                        Largest       Std. Dev.      761981.8
-75%       353150       1.08e+07
-90%      1000000       1.14e+07       Variance       5.81e+11
-95%      1676000       1.18e+07       Skewness       4.832125
-99%      3404000       1.28e+07       Kurtosis       38.43306
+50%            0                      Mean           26165.74
+                        Largest       Std. Dev.      228498.2
+75%            0       1.08e+07
+90%            0       1.14e+07       Variance       5.22e+10
+95%            0       1.18e+07       Skewness       17.26326
+99%       756860       1.28e+07       Kurtosis       444.7624
 
                  housing loan with mortgage
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%         4000              0
- 5%        16048              0
-10%        25177              0       Obs               5,349
-25%        58000              0       Sum of Wgt.  1.4972e+09
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              62,772
+25%            0              0       Sum of Wgt.  1.9832e+10
 
-50%       177000                      Mean           507738.8
-                        Largest       Std. Dev.      905093.7
-75%       530000       1.14e+07
-90%      1384250       1.18e+07       Variance       8.19e+11
-95%      2308662       1.28e+07       Skewness       5.028496
-99%      4009157       1.65e+07       Kurtosis       49.75951
+50%            0                      Mean            38332.9
+                        Largest       Std. Dev.      282542.7
+75%            0       1.14e+07
+90%            0       1.18e+07       Variance       7.98e+10
+95%        96000       1.28e+07       Skewness       16.68091
+99%      1052280       1.65e+07       Kurtosis       491.7697
 
 . 
 . collapse (sum) hse_mortgage_1_dm (sum) hse_mortgage_2_dm (sum) hse_mortgage_1 (sum) hse_mortgage_2 (mean) debt_total (mean) MLT,by(HHID)
 
 . 
 . gen hse_mortgage_1_share =  hse_mortgage_1/debt_total
-(20 missing values generated)
+(476 missing values generated)
 
 . gen hse_mortgage_2_share =  hse_mortgage_2/debt_total
-(20 missing values generated)
+(476 missing values generated)
 
 . 
 . sum hse_mortgage_1 hse_mortgage_1_share [aw = MLT] if hse_mortgage_1 >0 ,de
@@ -211,11 +206,11 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 
     Result                           # of obs.
     -----------------------------------------
-    not matched                       105,922
+    not matched                        64,646
         from master                         0  (_merge==1)
-        from using                    105,922  (_merge==2)
+        from using                     64,646  (_merge==2)
 
-    matched                             4,878  (_merge==3)
+    matched                            46,154  (_merge==3)
     -----------------------------------------
 
 . 
@@ -223,9 +218,9 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
   2. replace `var' = 0 if mi(`var')
   3. replace `var' = 1 if `var' > 0
   4. }
-(105,922 real changes made)
+(64,646 real changes made)
 (155 real changes made)
-(105,922 real changes made)
+(64,646 real changes made)
 (373 real changes made)
 
 . 
@@ -253,5 +248,5 @@ hse_mor~2_dm |  48,665  1.6745e+10    .0480496   .2138733          0          1
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_housing_mortgage.log
   log type:  text
- closed on:  22 Oct 2020, 09:27:11
+ closed on:  22 Oct 2020, 09:33:29
 --------------------------------------------------------------------------------------------------------------------------------------------
