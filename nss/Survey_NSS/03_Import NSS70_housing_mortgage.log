@@ -1,0 +1,257 @@
+--------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_housing_mortgage.log
+  log type:  text
+ opened on:  22 Oct 2020, 09:27:10
+
+. 
+. use "${r_input}\Visit 1_Block 14",clear
+
+. drop if b14_q1 == "99" //drop the total amount
+(73,266 observations deleted)
+
+. 
+. *debt
+. gen debt = b14_q17
+(47,671 missing values generated)
+
+. codebook debt
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+debt                                                                                                                             (unlabeled)
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+                  type:  numeric (float)
+
+                 range:  [0,1.830e+08]                units:  1
+         unique values:  15,092                   missing .:  47,671/110,443
+
+                  mean:    147054
+              std. dev:    856792
+
+           percentiles:        10%       25%       50%       75%       90%
+                              7000     16000     41400    118000    320000
+
+. drop if debt == .
+(47,671 observations deleted)
+
+. 
+. *** LET'S try two housing mortgage definitions 
+. * (A) Conservative (let's label 1):       B14_Q11 == 11 & (B14_Q12 == 3 | B14_Q12 == 4)
+. * (B) Less conservative (let's label 2):  B14_Q11 == 11 & B14_13 != 4
+. 
+. *housing loan with immovable property as secure type
+. tab b14_q12
+
+    Type of |
+   security |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         01 |      4,258        6.78        6.78
+         02 |        889        1.42        8.20
+         03 |      2,895        4.61       12.81
+         04 |     10,932       17.42       30.23
+         05 |      3,875        6.17       36.40
+         06 |        689        1.10       37.50
+         07 |        197        0.31       37.81
+         08 |      1,336        2.13       39.94
+         09 |      2,425        3.86       43.80
+         10 |     35,276       56.20      100.00
+------------+-----------------------------------
+      Total |     62,772      100.00
+
+. gen secure_type = b14_q12
+
+. 
+. gen hse_mortgage_1_dm = (b14_q11 == "11" & (b14_q12 == "04"|b14_q12 == "04"))
+
+. gen hse_mortgage_1 = hse_mortgage_1_dm*debt
+
+. 
+. *housing loan with mortgage
+. gen hse_mortgage_2_dm = (b14_q11 == "11" & (b14_q13 != "4"& b14_q13 != ""))
+
+. gen hse_mortgage_2 =  hse_mortgage_2_dm*debt
+
+. 
+. *aggregate at household level. *** When you collapse, check if any HH has two housing loans - we don't want to combine them. In fact we sh
+> ould try and do all this in file 03_Mortgage so we can keep file 01 clean while we play around with this data
+. egen debt_total = sum(debt),by(HHID)
+
+. drop debt
+
+. 
+. keep if hse_mortgage_1_dm == 1 | hse_mortgage_2_dm == 1
+(57,423 observations deleted)
+
+. 
+. label var hse_mortgage_1 "housing loan with immovable property as secure"
+
+. label var hse_mortgage_2 "housing loan with mortgage"
+
+. 
+. save "${r_output}\b14_hse_mortgage",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b14_hse_mortgage.dta saved
+
+. 
+. 
+. ***stats
+. use "${r_output}\b14_hse_mortgage",clear
+
+. 
+. sum hse_mortgage_1 hse_mortgage_2[aw = MLT],de //hse_mortgage_2 is much higher than hse_mortgage_1 on both median and mean by single loan 
+> level.
+
+       housing loan with immovable property as secure
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs               5,349
+25%            0              0       Sum of Wgt.  1.4972e+09
+
+50%        45000                      Mean           346578.5
+                        Largest       Std. Dev.      761981.8
+75%       353150       1.08e+07
+90%      1000000       1.14e+07       Variance       5.81e+11
+95%      1676000       1.18e+07       Skewness       4.832125
+99%      3404000       1.28e+07       Kurtosis       38.43306
+
+                 housing loan with mortgage
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         4000              0
+ 5%        16048              0
+10%        25177              0       Obs               5,349
+25%        58000              0       Sum of Wgt.  1.4972e+09
+
+50%       177000                      Mean           507738.8
+                        Largest       Std. Dev.      905093.7
+75%       530000       1.14e+07
+90%      1384250       1.18e+07       Variance       8.19e+11
+95%      2308662       1.28e+07       Skewness       5.028496
+99%      4009157       1.65e+07       Kurtosis       49.75951
+
+. 
+. collapse (sum) hse_mortgage_1_dm (sum) hse_mortgage_2_dm (sum) hse_mortgage_1 (sum) hse_mortgage_2 (mean) debt_total (mean) MLT,by(HHID)
+
+. 
+. gen hse_mortgage_1_share =  hse_mortgage_1/debt_total
+(20 missing values generated)
+
+. gen hse_mortgage_2_share =  hse_mortgage_2/debt_total
+(20 missing values generated)
+
+. 
+. sum hse_mortgage_1 hse_mortgage_1_share [aw = MLT] if hse_mortgage_1 >0 ,de
+
+                    (sum) hse_mortgage_1
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        10650           2000
+ 5%        25193           2480
+10%        36295           2770       Obs               3,297
+25%        93000           3100       Sum of Wgt.   835124869
+
+50%       284650                      Mean             621354
+                        Largest       Std. Dev.        968498
+75%       700000       1.18e+07
+90%      1572650       1.25e+07       Variance       9.38e+11
+95%      2407508       1.28e+07       Skewness       4.270785
+99%      4510000       1.47e+07       Kurtosis       33.63106
+
+                    hse_mortgage_1_share
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .1583013       .0063898
+ 5%     .2876803       .0203252
+10%     .4594595       .0330668       Obs               3,297
+25%     .8432255       .0364751       Sum of Wgt.   835124869
+
+50%            1                      Mean           .8723783
+                        Largest       Std. Dev.      .2326442
+75%            1              1
+90%            1              1       Variance       .0541233
+95%            1              1       Skewness      -1.815187
+99%            1              1       Kurtosis       5.090117
+
+. sum hse_mortgage_2 hse_mortgage_2_share [aw = MLT] if hse_mortgage_2 >0 ,de
+
+                    (sum) hse_mortgage_2
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         7425           1000
+ 5%        21200           2000
+10%        30853           2188       Obs               4,855
+25%        78100           2480       Sum of Wgt.  1.3307e+09
+
+50%       220000                      Mean           571287.2
+                        Largest       Std. Dev.       1028972
+75%       601999       1.28e+07
+90%      1496000       1.47e+07       Variance       1.06e+12
+95%      2479155       1.56e+07       Skewness       6.079671
+99%      4140000       1.90e+07       Kurtosis       71.12191
+
+                    hse_mortgage_2_share
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .1053726       .0063898
+ 5%     .2812497       .0174625
+10%     .4594595       .0203252       Obs               4,855
+25%     .8355579         .02513       Sum of Wgt.  1.3307e+09
+
+50%            1                      Mean             .86936
+                        Largest       Std. Dev.      .2375301
+75%            1              1
+90%            1              1       Variance       .0564206
+95%            1              1       Skewness      -1.794203
+99%            1              1       Kurtosis       5.054112
+
+. 
+. merge 1:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       105,922
+        from master                         0  (_merge==1)
+        from using                    105,922  (_merge==2)
+
+    matched                             4,878  (_merge==3)
+    -----------------------------------------
+
+. 
+. foreach var in hse_mortgage_1_dm hse_mortgage_2_dm {
+  2. replace `var' = 0 if mi(`var')
+  3. replace `var' = 1 if `var' > 0
+  4. }
+(105,922 real changes made)
+(155 real changes made)
+(105,922 real changes made)
+(373 real changes made)
+
+. 
+. bysort urban: sum hse_mortgage_1_dm hse_mortgage_2_dm [aw = hhwgt]
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+-> urban = 0
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
+-------------+-----------------------------------------------------------------
+hse_mor~1_dm |  62,135  3.1213e+10    .0087446   .0931038          0          1
+hse_mor~2_dm |  62,135  3.1213e+10    .0169663   .1291462          0          1
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+-> urban = 1
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
+-------------+-----------------------------------------------------------------
+hse_mor~1_dm |  48,665  1.6745e+10    .0336539   .1803385          0          1
+hse_mor~2_dm |  48,665  1.6745e+10    .0480496   .2138733          0          1
+
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_housing_mortgage.log
+  log type:  text
+ closed on:  22 Oct 2020, 09:27:11
+--------------------------------------------------------------------------------------------------------------------------------------------

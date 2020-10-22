@@ -24,6 +24,7 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 ****************************************************************************
+log using "${script}\03_Import NSS70_housing_mortgage.log",replace
 
 use "${r_input}\Visit 1_Block 14",clear
 drop if b14_q1 == "99" //drop the total amount
@@ -80,4 +81,6 @@ replace `var' = 0 if mi(`var')
 replace `var' = 1 if `var' > 0
 }
 
-sum hse_mortgage_1_dm hse_mortgage_2_dm [aw = MLT]
+bysort urban: sum hse_mortgage_1_dm hse_mortgage_2_dm [aw = hhwgt]
+
+log close
