@@ -1,20 +1,20 @@
---------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NSS 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
+> Survey_NSS\02_Table of Means NSS 70.log
   log type:  text
- opened on:  22 Oct 2020, 09:53:16
+ opened on:  25 Oct 2020, 04:52:37
 
 . 
 . ****************************************************************************
-. * Load the data and replicate the assumption 
+. * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.
+> cfm?abstract_id=2797680
 . ****************************************************************************
 . use "${root}\Data Output Files\NSS70_All.dta",clear
 
 . 
-. //replace b5_2_6 = . if b5_2_6<0 //? there's negative value for urban land owned?
-. //replace b11_q6 = . if b11_q6<0 //? there's negative value for shares & debentures owned. 
-. 
-. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
+. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_
+> farm shares fin_other gold fin_rec) 
 
 . egen double durable_other = rowtotal(livestock trspt agri non_farm)
 
@@ -24,12 +24,12 @@
 . gen double wealth = asset - debt
 (37,081 missing values generated)
 
-. 
 . gen double wealth_ln = ln(wealth)
 (39,807 missing values generated)
 
 . 
-. sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec building_resid
+. sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_oth
+> er gold fin_rec building_resid 
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
@@ -50,15 +50,14 @@ building_all |     95,488    614870.7    1.01e+07          0   1.85e+09
 building_r~d |     95,488    568308.2     9849675          0   1.85e+09
 
 . 
+. ****************************************************************************
+. * Asset allocation on real_estate, durable good, gold
+. ****************************************************************************
 . keep if head_age >= 24
 (2,266 observations deleted)
 
 . 
-. ****************************************************************************
-. * Calculate stats for housing mortgage and loan (outstanding)
-. ****************************************************************************
-. 
-. **stats to compare with published paper
+. **share of real estate on 
 . gen re_share = real_estate/asset
 (672 missing values generated)
 
@@ -77,21 +76,22 @@ building_r~d |     95,488    568308.2     9849675          0   1.85e+09
     du_share |    107,862    .0629695    .1267183          0          1
     gl_share |     99,903    .1089669    .1968698          0          1
 
-. sum re_share du_share gl_share [aw = pwgt]
+. sum re_share du_share gl_share [aw = pwgt] //gold is 11% consistent with paper. 
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
-    re_share | 107,862  2.0722e+11    .7755733    .274023          0          1
-    du_share | 107,862  2.0722e+11    .0603331   .1165205          0          1
-    gl_share |  99,903  1.9011e+11    .1094104   .1952706          0          1
+    re_share | 107,862  2.0722e+09    .7755733    .274023          0          1
+    du_share | 107,862  2.0722e+09    .0603331   .1165205          0          1
+    gl_share |  99,903  1.9011e+09    .1094104   .1952706          0          1
 
+. 
 . 
 . **residential building ownership
 . codebook building_resid 
 
---------------------------------------------------------------------------------------------------------------------------------------------
-building_resid                                                                                                                   (unlabeled)
---------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+building_resid                                                          (unlabeled)
+-----------------------------------------------------------------------------------
 
                   type:  numeric (long)
 
@@ -107,14 +107,14 @@ building_resid                                                                  
 . 
 . gen legal_own = (building_resid > 0)
 
-. replace legal_own = 0 if mi(building_resid) //treat missing as household do not own real estate assets.
+. replace legal_own = 0 if mi(building_resid) //treat missing as household do not o
+> wn real estate assets.
 (13,971 real changes made)
 
 . 
-. bysort urban: sum legal_own [aw = hhwgt],de //69% households in urban own residential building, compare to nss 61.2% house ownership in 20
-> 11 consumption survey. 
+. bysort urban: sum legal_own [aw = hhwgt],de 
 
---------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 -> urban = 0
 
                           legal_own
@@ -123,7 +123,7 @@ building_resid                                                                  
  1%            0              0
  5%            0              0
 10%            1              0       Obs              61,217
-25%            1              0       Sum of Wgt.  3.0356e+10
+25%            1              0       Sum of Wgt.   303555500
 
 50%            1                      Mean           .9487511
                         Largest       Std. Dev.      .2205068
@@ -132,7 +132,7 @@ building_resid                                                                  
 95%            1              1       Skewness      -4.070211
 99%            1              1       Kurtosis       17.56662
 
---------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 -> urban = 1
 
                           legal_own
@@ -141,7 +141,7 @@ building_resid                                                                  
  1%            0              0
  5%            0              0
 10%            0              0       Obs              47,317
-25%            0              0       Sum of Wgt.  1.5509e+10
+25%            0              0       Sum of Wgt.   155093220
 
 50%            1                      Mean           .6909342
                         Largest       Std. Dev.      .4621132
@@ -152,82 +152,172 @@ building_resid                                                                  
 
 
 . 
-. **mortgage debt
+. ****************************************************************************
+. * Liabilitiy allocation on gold, unsecured loan, mortgage loan (4%, 55%, 23% with
+>  population weight)
+. ****************************************************************************
 . use "${r_input}\Visit 1_Block 14",clear
-
-. drop if b14_q1 == "99" //drop the total amount
-(73,266 observations deleted)
 
 . 
 . *debt
 . gen debt = b14_q17
-(47,671 missing values generated)
+(74,953 missing values generated)
 
-. codebook debt
+. sum debt,de
 
---------------------------------------------------------------------------------------------------------------------------------------------
-debt                                                                                                                             (unlabeled)
---------------------------------------------------------------------------------------------------------------------------------------------
+                            debt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%         4200              0
+10%         7420              0       Obs             108,756
+25%        17990              0       Sum of Wgt.     108,756
 
-                  type:  numeric (float)
-
-                 range:  [0,1.830e+08]                units:  1
-         unique values:  15,092                   missing .:  47,671/110,443
-
-                  mean:    147054
-              std. dev:    856792
-
-           percentiles:        10%       25%       50%       75%       90%
-                              7000     16000     41400    118000    320000
-
-. drop if debt == .
-(47,671 observations deleted)
+50%        48800                      Mean           169114.3
+                        Largest       Std. Dev.      931886.7
+75%       140000       4.00e+07
+90%       371695       4.00e+07       Variance       8.68e+11
+95%       638480       1.83e+08       Skewness       142.1036
+99%      1900207       1.83e+08       Kurtosis       27330.57
 
 . 
-. gen mortgage_debt = (b14_q13 != "4"& b14_q13 != "")*debt
+. *in paper: keep households with total liability >0 
+. gen temp_debt =  (b14_q1 == "99")*debt
+(74,953 missing values generated)
 
-. collapse (sum) mortgage_debt,by(HHID)
+. egen total_debt = sum(temp_debt), by(HHID)
+
+. drop temp_debt
 
 . 
+. gen temp_debt =  (b14_q1 != "99")*debt
+(74,953 missing values generated)
+
+. egen total_debt_m = sum(temp_debt),by(HHID)
+
+. drop temp_debt
+
+. 
+. count if total_debt > total_debt_m
+  0
+
+. count if total_debt < total_debt_m
+  542
+
+. 
+. tab b14_q1
+
+ Serial no. |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         01 |     73,719       40.13       40.13
+         02 |     21,945       11.95       52.07
+         03 |      8,024        4.37       56.44
+         04 |      3,600        1.96       58.40
+         05 |      1,514        0.82       59.23
+         06 |        705        0.38       59.61
+         07 |        380        0.21       59.82
+         08 |        212        0.12       59.93
+         09 |        117        0.06       59.99
+         10 |         73        0.04       60.03
+         11 |         45        0.02       60.06
+         12 |         33        0.02       60.08
+         13 |         19        0.01       60.09
+         14 |         13        0.01       60.09
+         15 |         11        0.01       60.10
+         16 |         10        0.01       60.11
+         17 |          8        0.00       60.11
+         18 |          4        0.00       60.11
+         19 |          3        0.00       60.11
+         20 |          3        0.00       60.12
+         21 |          1        0.00       60.12
+         22 |          1        0.00       60.12
+         23 |          1        0.00       60.12
+         24 |          1        0.00       60.12
+         25 |          1        0.00       60.12
+         99 |     73,266       39.88      100.00
+------------+-----------------------------------
+      Total |    183,709      100.00
+
+. sort HHID
+
+. br HHID b14* if total_debt == total_debt_m //there are hosueholds with no total l
+> iability coded.  
+
+. 
+. drop total_debt
+
+. rename total_debt_m total_debt 
+
+. 
+. *generate share of gold loan, unsecured debt
+. gen gold_loan = (b14_q12 == "05")*debt
+(74,953 missing values generated)
+
+. gen unsecure_loan = (b14_q12 == "10")*debt
+(74,953 missing values generated)
+
+. gen mrtg_loan = (inlist(b14_q12,"03","04"))*debt
+(74,953 missing values generated)
+
+. 
+. collapse (sum) gold_loan (sum) unsecure_loan (sum) mrtg_loan (mean) total_debt,by
+> (HHID)
+
+.  
+. *merge with households information
 . merge 1:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
 
     Result                           # of obs.
     -----------------------------------------
-    not matched                        64,646
+    not matched                        37,080
         from master                         0  (_merge==1)
-        from using                     64,646  (_merge==2)
+        from using                     37,080  (_merge==2)
 
-    matched                            46,154  (_merge==3)
+    matched                            73,720  (_merge==3)
     -----------------------------------------
 
 . 
+. *in paper: keep households with head older than 24.
 . keep if head_age >= 24
 (2,266 observations deleted)
 
-.  
-. gen double mortgage_debt_share = mortgage_debt/debt
-(63,241 missing values generated)
-
-. replace mortgage_debt_share = 0 if mortgage_debt == .
-(62,775 real changes made)
+. keep if total_debt > 0 
+(27,677 observations deleted)
 
 . 
-. sum mortgage_debt_share //14%
+. *generate share of gold loan on total liability
+. gen double gold_loan_share = gold_loan/total_debt
+(35,564 missing values generated)
 
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-mortgage_d~e |    108,068    .1464533    .3444353          0          1
+. gen double unsecure_share = unsecure_loan/total_debt
+(35,564 missing values generated)
 
-. sum mortgage_debt_share [aw = pwgt] //10%
+. gen mrtg_loan_share = mrtg_loan/total_debt
+(35,564 missing values generated)
+
+. 
+. sum gold_loan_share unsecure_share mrtg_loan_share [aw = pwgt] //gold 6.8%, unsec
+> ured loan 56%, mortgage loan 23%
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
-mortgage_d~e | 108,068  2.0783e+11    .1034419    .295398          0          1
+gold_loan_~e |  45,293   644200562    .0684351   .2361349          0          1
+unsecure_s~e |  45,293   644200562    .5615169   .4751382          0          1
+mrtg_loan_~e |  45,293   644200562    .2340994   .4056491          0          1
+
+. sum gold_loan_share unsecure_share mrtg_loan_share [aw = hhwgt]
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
+-------------+-----------------------------------------------------------------
+gold_loan_~e |  45,293   134221336    .0763965    .249137          0          1
+unsecure_s~e |  45,293   134221336    .5588775   .4756568          0          1
+mrtg_loan_~e |  45,293   134221336    .2274222   .4017401          0          1
 
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NSS 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
+> Survey_NSS\02_Table of Means NSS 70.log
   log type:  text
- closed on:  22 Oct 2020, 09:53:18
---------------------------------------------------------------------------------------------------------------------------------------------
+ closed on:  25 Oct 2020, 04:52:41
+-----------------------------------------------------------------------------------

@@ -29,9 +29,12 @@ global r_output "${root}\Data Output Files"
 use "${r_input}\Visit 1_Block 3_Household Characteristics.dta",clear
 
 rename (b3q1 Sector) (hhsize sector)
-gen hhwgt = MLT //or weight_sc for combined sub-sample?
+//gen hhwgt = MLT 
+gen hhwgt = Weight_SS 
+
 destring(hhsize),replace
-gen pwgt = MLT * hhsize
+gen pwgt = hhwgt * hhsize
+
 destring(sector), replace
 gen urban = sector - 1
 keep HHID hhwgt pwgt hhsize sector urban Weight_SS Weight_SC
