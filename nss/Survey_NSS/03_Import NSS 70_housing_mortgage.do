@@ -108,17 +108,16 @@ bys HHID: keep if _n == 1 // keep only one observation for each HH
 
 foreach var in total_mrtg_1_dm total_mrtg_2_dm total_mrtg_1_debt total_mrtg_2_debt total_mrtg_1_borrow total_mrtg_2_borrow total_mrtg_1_repay total_mrtg_2_repay { //only focusing on real estate owner. 
 replace `var' = 0 if mi(`var') & real_estate > 0  //only focus on real estate owner. 
-replace `var' = 1 if `var' > 0 & real_estate > 0 
 }
 
 *liability allocation to mortgage. 
 forvalues i = 1/2 {
-gen double mrtg_`i'_debt_share =  total_mrtg_`i'_debt /debt_total
+gen double mrtg_`i'_debt_share =  (total_mrtg_`i'_debt /debt_total)*100
 }
 
 *borrowed mortgage to real estate value. 
 forvalues i = 1/2 {
-gen double mrtg_`i'_re_share =  total_mrtg_`i'_borrow /real_estate
+gen double mrtg_`i'_re_share =  (total_mrtg_`i'_borrow /real_estate)*100
 }
 
 *stats
@@ -126,7 +125,12 @@ forvalues i=1/2 { //household with housing mortgage
 tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_repay  ///
 mrtg_`i'_re_share mrtg_`i'_debt_share if total_mrtg_`i'_dm >0 [aw = hhwgt], s(mean median sd) format(%10.0fc) 
 }
-//?
+
+foreach var in total_mrtg_1_dm total_mrtg_2_dm  { 
+replace `var' = 100 if `var'>0 & real_estate > 0  //only focus on real estate owner. 
+replace `var' = 0 if `var' == 0 & real_estate > 0
+}
+
 forvalues i=1/2 { //all real estate owner
 tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_repay  ///
 mrtg_`i'_re_share mrtg_`i'_debt_share total_mrtg_`i'_dm if real_estate >0 [aw = hhwgt], s(mean median sd) format(%10.0fc) 

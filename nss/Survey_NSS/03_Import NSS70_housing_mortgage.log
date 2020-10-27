@@ -3,7 +3,7 @@
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
 > Survey_NSS\03_Import NSS70_housing_mortgage.log
   log type:  text
- opened on:  27 Oct 2020, 06:06:52
+ opened on:  27 Oct 2020, 10:07:07
 
 . 
 . use "${r_input}\Visit 1_Block 14",clear
@@ -317,77 +317,6 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
   2. egen double total_`type' = sum(`type'), by(HHID)
   3. } 
 
-. keep HHID total* real_estate wealth debt_total
-
-. bys HHID: keep if _n == 1 // keep only one observation for each HH
-(36,724 observations deleted)
-
-. 
-. foreach var in total_mrtg_1_dm total_mrtg_2_dm total_mrtg_1_debt total_mrtg_2_deb
-> t total_mrtg_1_borrow total_mrtg_2_borrow total_mrtg_1_repay total_mrtg_2_repay {
->  //only focusing on real estate owner. 
-  2. replace `var' = 0 if mi(`var') & real_estate > 0  //only focus on real estate 
-> owner. 
-  3. replace `var' = 1 if `var' > 0 & real_estate > 0 
-  4. }
-(0 real changes made)
-(255 real changes made)
-(0 real changes made)
-(592 real changes made)
-(0 real changes made)
-(3,900 real changes made)
-(0 real changes made)
-(4,742 real changes made)
-(0 real changes made)
-(4,559 real changes made)
-(0 real changes made)
-(5,892 real changes made)
-(0 real changes made)
-(3,879 real changes made)
-(0 real changes made)
-(4,639 real changes made)
-
-. 
-. *liability allocation to mortgage. 
-. forvalues i = 1/2 {
-  2. gen double mrtg_`i'_debt_share =  total_mrtg_`i'_debt /debt_total
-  3. }
-(65,122 missing values generated)
-(65,122 missing values generated)
-
-. 
-. *borrowed mortgage to real estate value. 
-. forvalues i = 1/2 {
-  2. gen double mrtg_`i'_re_share =  total_mrtg_`i'_borrow /real_estate
-  3. }
-(12,500 missing values generated)
-(12,500 missing values generated)
-
-. 
-. *stats
-. forvalues i=1/2 { //household with housing mortgage
-  2. tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_r
-> epay  ///
-> mrtg_`i'_re_share mrtg_`i'_debt_share if total_mrtg_`i'_dm >0 [aw = hhwgt], s(mea
-> n median sd) format(%10.0fc) 
-  3. }
-hhwgt not found
-r(111);
-
-end of do-file
-
-r(111);
-
-. do "C:\Users\wb500886\AppData\Local\Temp\STD5530_000000.tmp"
-
-. use "${r_output}\b14_hse_mortgage",clear
-
-. 
-. foreach type in mrtg_1_dm mrtg_2_dm mrtg_1_debt mrtg_2_debt mrtg_1_borrow mrtg_2_
-> borrow mrtg_1_repay mrtg_2_repay{ 
-  2. egen double total_`type' = sum(`type'), by(HHID)
-  3. } 
-
 . keep HHID total* real_estate wealth debt_total hhwgt 
 
 . bys HHID: keep if _n == 1 // keep only one observation for each HH
@@ -399,29 +328,20 @@ r(111);
 >  //only focusing on real estate owner. 
   2. replace `var' = 0 if mi(`var') & real_estate > 0  //only focus on real estate 
 > owner. 
-  3. replace `var' = 1 if `var' > 0 & real_estate > 0 
-  4. }
+  3. }
 (0 real changes made)
-(255 real changes made)
 (0 real changes made)
-(592 real changes made)
 (0 real changes made)
-(3,900 real changes made)
 (0 real changes made)
-(4,742 real changes made)
 (0 real changes made)
-(4,559 real changes made)
 (0 real changes made)
-(5,892 real changes made)
 (0 real changes made)
-(3,879 real changes made)
 (0 real changes made)
-(4,639 real changes made)
 
 . 
 . *liability allocation to mortgage. 
 . forvalues i = 1/2 {
-  2. gen double mrtg_`i'_debt_share =  total_mrtg_`i'_debt /debt_total
+  2. gen double mrtg_`i'_debt_share =  (total_mrtg_`i'_debt /debt_total)*100
   3. }
 (65,122 missing values generated)
 (65,122 missing values generated)
@@ -429,7 +349,7 @@ r(111);
 . 
 . *borrowed mortgage to real estate value. 
 . forvalues i = 1/2 {
-  2. gen double mrtg_`i'_re_share =  total_mrtg_`i'_borrow /real_estate
+  2. gen double mrtg_`i'_re_share =  (total_mrtg_`i'_borrow /real_estate)*100
   3. }
 (12,500 missing values generated)
 (12,500 missing values generated)
@@ -445,17 +365,28 @@ r(111);
 
    stats |  real_e~e  total_..  t~1_debt  ~1_repay  mrtg_1..  mrtg_1..
 ---------+------------------------------------------------------------
-    mean | 3,301,553    13,719    11,100     1,055         0         0
-     p50 | 1,900,000         1         1         1         0         0
-      sd | 5,741,048   149,739   139,873    13,655         0         0
+    mean | 3,301,553   649,350   549,207    76,278        31        85
+     p50 | 1,900,000   300,000   199,500    30,000        17       100
+      sd | 5,741,048 1,028,951   993,518   140,896        50        27
 ----------------------------------------------------------------------
 
    stats |  real_e~e  total_..  t~2_debt  ~2_repay  mrtg_2..  mrtg_2..
 ---------+------------------------------------------------------------
-    mean | 2,849,822    11,796     9,246       944         0         0
-     p50 | 1,465,000         1         1         1         0         0
-      sd | 5,204,016   130,598   121,201    12,052         0         0
+    mean | 2,849,822   543,813   453,923    63,828        29        82
+     p50 | 1,465,000   201,000   135,000    20,790        16       100
+      sd | 5,204,016   973,683   945,790   133,593        48        31
 ----------------------------------------------------------------------
+
+. 
+. foreach var in total_mrtg_1_dm total_mrtg_2_dm  { 
+  2. replace `var' = 100 if `var'>0 & real_estate > 0  //only focus on real estate 
+> owner. 
+  3. replace `var' = 0 if `var' == 0 & real_estate > 0
+  4. }
+(4,559 real changes made)
+(0 real changes made)
+(5,892 real changes made)
+(0 real changes made)
 
 . 
 . forvalues i=1/2 { //all real estate owner
@@ -467,16 +398,16 @@ r(111);
 
    stats |  real_e~e  total_..  t~1_debt  ~1_repay  mrtg_1..  mrtg_1..  tot~1_dm
 ---------+----------------------------------------------------------------------
-    mean | 1,536,939         0         0         0         0         0         0
+    mean | 1,536,939    19,229    16,278     2,276         1         7         3
      p50 |   494,900         0         0         0         0         0         0
-      sd |13,246,061         0         0         0         0         0         0
+      sd |13,246,061   209,102   195,239    27,669        10        25        17
 --------------------------------------------------------------------------------
 
    stats |  real_e~e  total_..  t~2_debt  ~2_repay  mrtg_2..  mrtg_2..  tot~2_dm
 ---------+----------------------------------------------------------------------
-    mean | 1,536,939         0         0         0         0         0         0
+    mean | 1,536,939    21,639    18,087     2,558         1         9         4
      p50 |   494,900         0         0         0         0         0         0
-      sd |13,246,061         0         0         0         0         0         0
+      sd |13,246,061   222,299   209,359    29,648        11        27        19
 --------------------------------------------------------------------------------
 
 . 
@@ -485,5 +416,5 @@ r(111);
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
 > Survey_NSS\03_Import NSS70_housing_mortgage.log
   log type:  text
- closed on:  27 Oct 2020, 06:07:42
+ closed on:  27 Oct 2020, 10:07:21
 -----------------------------------------------------------------------------------
