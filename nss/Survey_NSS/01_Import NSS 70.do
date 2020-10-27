@@ -24,6 +24,17 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 ****************************************************************************
+*gen date of survey 
+use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
+gen month = real(substr(Survey_Date,3,2))
+gen year = 2013 //there's 2017 and 2019 should be mistake
+
+gen date_survey = ym(year,month)
+format date_survey %tmMCY
+
+keep HHID date_survey
+save "${r_output}\b2",replace
+
 
 *gen id, wgt (hhwgt, popwgt) b3
 use "${r_input}\Visit 1_Block 3_Household Characteristics.dta",clear
@@ -39,6 +50,18 @@ destring(sector), replace
 gen urban = sector - 1
 keep HHID hhwgt pwgt hhsize sector urban Weight_SS Weight_SC
 save "${r_output}\b3",replace
+
+*gender from b4 (4)
+use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household members.dta",clear
+*Keep head 
+keep if b4q1 == "01" // keep heads only 
+ren b4q5 head_age 
+ren  b4q4 head_gender 
+destring head_gender, replace
+label define gender 1 "Male" 2 "Female"
+label values head_gender gender 
+keep HHID head_age head_gender
+save "${r_output}\b4",replace //later gender info
 
 *Asset non_fin： land from b5.1 & b5.2 (rural & urban) srl 99
 use "${r_input}\Visit 1_Block 5pt1_Details of land owned by the household as on 30.06.12.dta",clear
@@ -76,6 +99,8 @@ rename land_u_man land_u
 
 keep HHID land_u
 save "${r_output}\b5_2",replace
+
+
 
 *Asset non_fin: building and constructions b6 srl 11
 use "${r_input}\Visit 1_Block 6_Buildings and other constructions owned by the household as on 30.06.2012.dta",clear
@@ -264,21 +289,11 @@ save "${r_output}\b14",replace
 use "${r_input}\Visit 1_Block 15_kind loans payable by the household.dta",replace
 save "${r_output}\b15",replace //late housing info
 
-*gender from b4 (4)
-use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household members.dta",clear
-*Keep head 
-keep if b4q1 == "01" // keep heads only 
-ren b4q5 head_age 
-ren  b4q4 head_gender 
-destring head_gender, replace
-label define gender 1 "Male" 2 "Female"
-label values head_gender gender 
-keep HHID head_age head_gender
-save "${r_output}\b4",replace //later gender info
+
 
 *******merge to master data******************************
-use "${r_output}\b3",clear
-local flist "b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2 b4"
+use "${r_output}\b2",clear
+local flist "b3 b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2 b4"
 
 foreach f of local flist{
 merge 1:1 HHID using "${r_output}/`f'"
