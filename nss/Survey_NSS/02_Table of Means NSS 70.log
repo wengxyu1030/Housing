@@ -1,20 +1,19 @@
------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
-> Survey_NSS\02_Table of Means NSS 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NSS 70.lo
+> g
   log type:  text
- opened on:  25 Oct 2020, 04:52:37
+ opened on:  28 Oct 2020, 06:40:49
 
 . 
 . ****************************************************************************
-. * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.
-> cfm?abstract_id=2797680
+. * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2797680
 . ****************************************************************************
 . use "${root}\Data Output Files\NSS70_All.dta",clear
 
 . 
-. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_
-> farm shares fin_other gold fin_rec) 
+. 
+. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
 
 . egen double durable_other = rowtotal(livestock trspt agri non_farm)
 
@@ -28,8 +27,7 @@
 (39,807 missing values generated)
 
 . 
-. sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_oth
-> er gold fin_rec building_resid 
+. sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec building_resid 
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
@@ -51,7 +49,8 @@ building_r~d |     95,488    568308.2     9849675          0   1.85e+09
 
 . 
 . ****************************************************************************
-. * Asset allocation on real_estate, durable good, gold
+. * Asset allocation on 
+. * real_estate (77%), durable good (7%), gold (11%)
 . ****************************************************************************
 . keep if head_age >= 24
 (2,266 observations deleted)
@@ -68,7 +67,7 @@ building_r~d |     95,488    568308.2     9849675          0   1.85e+09
 (8,631 missing values generated)
 
 . 
-. sum re_share du_share gl_share
+. sum re_share du_share gl_share //gold is 11% closest with paper. 
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
@@ -76,7 +75,15 @@ building_r~d |     95,488    568308.2     9849675          0   1.85e+09
     du_share |    107,862    .0629695    .1267183          0          1
     gl_share |     99,903    .1089669    .1968698          0          1
 
-. sum re_share du_share gl_share [aw = pwgt] //gold is 11% consistent with paper. 
+. sum re_share du_share gl_share [aw = hhwgt] 
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
+-------------+-----------------------------------------------------------------
+    re_share | 107,862   454835504    .7567272    .298137          0          1
+    du_share | 107,862   454835504    .0583045    .121603          0          1
+    gl_share |  99,903   415267015    .1233037   .2136998          0          1
+
+. sum re_share du_share gl_share [aw = pwgt] //gold is 11% closest with paper. 
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -85,13 +92,12 @@ building_r~d |     95,488    568308.2     9849675          0   1.85e+09
     gl_share |  99,903  1.9011e+09    .1094104   .1952706          0          1
 
 . 
-. 
 . **residential building ownership
 . codebook building_resid 
 
------------------------------------------------------------------------------------
-building_resid                                                          (unlabeled)
------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+building_resid                                                                                                (unlabeled)
+-------------------------------------------------------------------------------------------------------------------------
 
                   type:  numeric (long)
 
@@ -107,14 +113,13 @@ building_resid                                                          (unlabel
 . 
 . gen legal_own = (building_resid > 0)
 
-. replace legal_own = 0 if mi(building_resid) //treat missing as household do not o
-> wn real estate assets.
+. replace legal_own = 0 if mi(building_resid) //treat missing as household do not own real estate assets.
 (13,971 real changes made)
 
 . 
 . bysort urban: sum legal_own [aw = hhwgt],de 
 
------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
 -> urban = 0
 
                           legal_own
@@ -132,7 +137,7 @@ building_resid                                                          (unlabel
 95%            1              1       Skewness      -4.070211
 99%            1              1       Kurtosis       17.56662
 
------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
 -> urban = 1
 
                           legal_own
@@ -153,14 +158,15 @@ building_resid                                                          (unlabel
 
 . 
 . ****************************************************************************
-. * Liabilitiy allocation on gold, unsecured loan, mortgage loan (4%, 55%, 23% with
->  population weight)
+. * Liabilitiy allocation on 
+. * gold (4%), unsecured loan (55%), mortgage loan (23%)
 . ****************************************************************************
 . use "${r_input}\Visit 1_Block 14",clear
 
 . 
-. *debt
-. gen debt = b14_q17
+. *debt -- paper says liabilities on date of survey. pp16: "Panel A of Figure 2 reports the average allocation of liabili
+> ties across all households that carry a positive amount of debt at the date of the survey."
+. gen debt = b14_q17 // 17 is on 30.06.2012
 (74,953 missing values generated)
 
 . sum debt,de
@@ -185,7 +191,7 @@ building_resid                                                          (unlabel
 . gen temp_debt =  (b14_q1 == "99")*debt
 (74,953 missing values generated)
 
-. egen total_debt = sum(temp_debt), by(HHID)
+. egen double total_debt = sum(temp_debt), by(HHID)
 
 . drop temp_debt
 
@@ -193,15 +199,23 @@ building_resid                                                          (unlabel
 . gen temp_debt =  (b14_q1 != "99")*debt
 (74,953 missing values generated)
 
-. egen total_debt_m = sum(temp_debt),by(HHID)
+. egen double total_debt_m = sum(temp_debt),by(HHID)
 
 . drop temp_debt
+
+. 
+. gen temp_debt_todt = (b14_q1 == "99")*b14_q16 //to date of survey the total debt. 
+(2,415 missing values generated)
+
+. egen double total_debt_todt = sum(temp_debt_todt ), by(HHID)
+
+. drop temp_debt_todt
 
 . 
 . count if total_debt > total_debt_m
   0
 
-. count if total_debt < total_debt_m
+. count if total_debt < total_debt_m // manual has 568 observations where it is larger 
   542
 
 . 
@@ -240,14 +254,12 @@ building_resid                                                          (unlabel
 
 . sort HHID
 
-. br HHID b14* if total_debt == total_debt_m //there are hosueholds with no total l
-> iability coded.  
+. br HHID b14* if total_debt == total_debt_m //there are hosueholds with no total liability coded.  
 
 . 
-. drop total_debt
-
-. rename total_debt_m total_debt 
-
+. *need to use the 99 total and not the manual to match the paper 
+. *drop total_debt
+. *rename total_debt_m total_debt 
 . 
 . *generate share of gold loan, unsecured debt
 . gen gold_loan = (b14_q12 == "05")*debt
@@ -260,8 +272,16 @@ building_resid                                                          (unlabel
 (74,953 missing values generated)
 
 . 
-. collapse (sum) gold_loan (sum) unsecure_loan (sum) mrtg_loan (mean) total_debt,by
-> (HHID)
+. *collapse at household level. 
+. 
+. foreach type in gold_loan unsecure_loan mrtg_loan { 
+  2. egen double total_`type' = sum(`type'), by(HHID)
+  3. } 
+
+. keep HHID total*
+
+. bys HHID: keep if _n == 1 // keep only one observation for each HH
+(109,989 observations deleted)
 
 .  
 . *merge with households information
@@ -281,43 +301,185 @@ building_resid                                                          (unlabel
 . keep if head_age >= 24
 (2,266 observations deleted)
 
-. keep if total_debt > 0 
-(27,677 observations deleted)
+. keep if total_debt_todt > 0 & !mi(total_debt_todt) //the date of survey liability is positive. 
+(36,948 observations deleted)
 
 . 
 . *generate share of gold loan on total liability
-. gen double gold_loan_share = gold_loan/total_debt
-(35,564 missing values generated)
+. gen double gold_loan_share = total_gold_loan/total_debt
+(27,177 missing values generated)
 
-. gen double unsecure_share = unsecure_loan/total_debt
-(35,564 missing values generated)
+. gen double unsecure_share = total_unsecure_loan/total_debt
+(27,177 missing values generated)
 
-. gen mrtg_loan_share = mrtg_loan/total_debt
-(35,564 missing values generated)
+. gen mrtg_loan_share = total_mrtg_loan/total_debt
+(27,177 missing values generated)
 
 . 
-. sum gold_loan_share unsecure_share mrtg_loan_share [aw = pwgt] //gold 6.8%, unsec
-> ured loan 56%, mortgage loan 23%
+. *Need to match 4%, 55% and 23%
+. sum gold_loan_share unsecure_share mrtg_loan_share [aw = pwgt] 
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
-gold_loan_~e |  45,293   644200562    .0684351   .2361349          0          1
-unsecure_s~e |  45,293   644200562    .5615169   .4751382          0          1
-mrtg_loan_~e |  45,293   644200562    .2340994   .4056491          0          1
+gold_loan_~e |  44,409   626127839    .0693761   .2374889          0          1
+unsecure_s~e |  44,409   626127839    .5598109   .4748745          0          1
+mrtg_loan_~e |  44,409   626127839    .2351137   .4058646          0          1
 
 . sum gold_loan_share unsecure_share mrtg_loan_share [aw = hhwgt]
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
-gold_loan_~e |  45,293   134221336    .0763965    .249137          0          1
-unsecure_s~e |  45,293   134221336    .5588775   .4756568          0          1
-mrtg_loan_~e |  45,293   134221336    .2274222   .4017401          0          1
+gold_loan_~e |  44,409   130553605    .0777094   .2509872          0          1
+unsecure_s~e |  44,409   130553605    .5567404   .4754202          0          1
+mrtg_loan_~e |  44,409   130553605    .2280975   .4017766          0          1
+
+. sum gold_loan_share unsecure_share mrtg_loan_share 
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+gold_loan_~e |     44,409    .0516756    .2087063          0          1
+unsecure_s~e |     44,409    .5390283    .4808403          0          1
+mrtg_loan_~e |     44,409    .2461949    .4160992          0          1
+
+. 
+. 
+. ****************************************************************************
+. * Liabilitiy allocation (value weighted) on 
+. * unsecured and gold (35% written in paper), mortgage loan (46% extract using )
+. ****************************************************************************
+. 
+. use "${r_input}\Visit 1_Block 14",clear
+
+. 
+. *debt 
+. gen debt = b14_q17 // 17 is on 30.06.2012
+(74,953 missing values generated)
+
+. 
+. gen temp_debt_todt = (b14_q1 == "99")*b14_q16 //to date of survey the total debt. 
+(2,415 missing values generated)
+
+. egen double total_debt_todt = sum(temp_debt_todt), by(HHID)
+
+. drop temp_debt_todt
+
+. 
+. *merge with households information
+. merge m:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
+(note: variable debt was float, now double to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        37,080
+        from master                         0  (_merge==1)
+        from using                     37,080  (_merge==2)
+
+    matched                           183,709  (_merge==3)
+    -----------------------------------------
+
+. 
+. *in paper: keep households with head older than 24.
+. drop if b14_q1 == "99"
+(73,266 observations deleted)
+
+. keep if head_age >= 24
+(2,455 observations deleted)
+
+. keep if total_debt_todt > 0 & !mi(total_debt_todt) //the date of survey liability is positive. 
+(37,153 observations deleted)
+
+. 
+. *collapse at liability type.  
+. gen secure_type = b14_q12
+
+. egen double debt_type = sum(debt), by(secure_type)
+
+. 
+. egen double hhwgt_type = sum(hhwgt), by(secure_type)
+
+. egen double pwgt_type = sum(pwgt), by(secure_type)
+
+. 
+. keep secure_type debt_type* pwgt_type hhwgt_type
+
+. bys secure_type: keep if _n == 1 // keep only one observation for each type of loan
+(107,905 observations deleted)
+
+. 
+. egen double temp_hhwgt_total = sum(hhwgt_type)
+
+. replace hhwgt_type = hhwgt_type/temp_hhwgt_total
+(10 real changes made)
+
+. 
+. egen double temp_pwgt_total = sum(pwgt_type)
+
+. replace pwgt_type = pwgt_type/temp_pwgt_total
+(10 real changes made)
+
+. 
+. *stats
+. egen double debt_type_total = sum(debt)
+
+. gen double type_share = debt_type/debt_type_total*100 //not weighted. 
+
+. 
+. egen double debt_type_total_wgt = sum(debt_type*hhwgt_type)
+
+. gen double type_share_wgt = (debt_type*hhwgt_type)/debt_type_total_wgt*100 //weighted uisng household weight. 
+
+. 
+. total(type_share)
+
+Total estimation                  Number of obs   =         10
+
+--------------------------------------------------------------
+             |      Total   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+  type_share |        100   44.01226       .437351    199.5626
+--------------------------------------------------------------
+
+. total(type_share_wgt)
+
+Total estimation                  Number of obs   =         10
+
+----------------------------------------------------------------
+               |      Total   Std. Err.     [95% Conf. Interval]
+---------------+------------------------------------------------
+type_share_wgt |        100   73.83261     -67.02096     267.021
+----------------------------------------------------------------
+
+. 
+. *match the paper number (not weighted while the paper "Appropriately weighted p15.")
+. total(type_share) if inlist(secure_type,"10","05") //unsecured loan and gold 35%, same as paper stats. (not weighted)
+
+Total estimation                  Number of obs   =          2
+
+--------------------------------------------------------------
+             |      Total   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+  type_share |   35.19074   28.14241     -322.3924    392.7739
+--------------------------------------------------------------
+
+. total(type_share) if inlist(secure_type,"03","04") //mortgage loan 49% higher than paper stat at 46% (might be the WbPl
+> ot measure error?) (not weighted)
+
+Total estimation                  Number of obs   =          2
+
+--------------------------------------------------------------
+             |      Total   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+  type_share |   48.78053   30.61227     -340.1853    437.7463
+--------------------------------------------------------------
+
+. 
+. keep secure_type type_share type_share_wgt
 
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
-> Survey_NSS\02_Table of Means NSS 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NSS 70.lo
+> g
   log type:  text
- closed on:  25 Oct 2020, 04:52:41
------------------------------------------------------------------------------------
+ closed on:  28 Oct 2020, 06:40:58
+-------------------------------------------------------------------------------------------------------------------------
