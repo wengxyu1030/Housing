@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Import NSS70 Secton 14 on housing loan
-* Date: Oct 26, 2020
-* Version 2.0
+* Date: Oct 27, 2020
+* Version 3.0
 * Last Editor: Aline
 ****************************************************************************
 
@@ -25,7 +25,7 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 ****************************************************************************
-log using "${script}\03_Import NSS70_housing_mortgage.log",replace
+//log using "${script}\03_Import NSS70_housing_mortgage.log",replace
 
 use "${r_input}\Visit 1_Block 14",clear
 drop if b14_q1 == "99" //drop the total amount
@@ -66,7 +66,7 @@ tab b14_q3 [aw = Weight_SS]
 tab b14_q2 [aw = Weight_SS]
 
 *interest rate and type
-gen intst_rate = b14_q10
+gen intst_rate = b14_q10/100/12
 gen intst_type = b14_q9
 
 *loan borrowing date. 
@@ -80,6 +80,27 @@ merge m:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
 gen loan_age = date_survey - date_loan //laon from borrow to date of survey, in month.
 replace loan_age = . if loan_age < 0 
 
+*monthly payment. 
+gen date_temp = ym(2012,7)
+gen pay_mt = date_survey - date_temp
+drop date_temp
+tab pay_mt 
+
+gen repay_mt = pay_mt
+
+forvalues i=1/2  {
+gen double repay_mt_`i' = mrtg_`i'_repay/pay_mt
+}
+
+sum repay_mt*
+
+*year estimation 
+forvalues i = 1/2 {
+gen double loan_period_`i' = ln(repay_mt_`i'/(repay_mt_`i'-intst_rate*mrtg_`i'_borrow))/ln(1+intst_rate)
+}
+
+sum loan_period_*
+
 *asset and wealth feature (household level)
 egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
 egen double real_estate = rowtotal(building_resid land_r land_u)
@@ -90,14 +111,18 @@ egen total_debt = sum(temp_debt), by(HHID)
 
 save "${r_output}\b14_hse_mortgage",replace
 
+***********************************************
 ***stats: individual loans
+***********************************************
 use "${r_output}\b14_hse_mortgage",clear
 
 forvalues i=1/2 {
 tabstat real_estate mrtg_`i'_borrow mrtg_`i'_debt mrtg_`i'_repay loan_age intst_rate if mrtg_`i'_dm >0 [aw = Weight_SS], s(mean median sd) format(%10.0fc) 
 }
 
+***********************************************
 ***stats: household aggregate. (narrow the sample to residential house owners)
+***********************************************
 use "${r_output}\b14_hse_mortgage",clear
 
 foreach type in mrtg_1_dm mrtg_2_dm mrtg_1_debt mrtg_2_debt mrtg_1_borrow mrtg_2_borrow mrtg_1_repay mrtg_2_repay{ 
@@ -135,5 +160,9 @@ forvalues i=1/2 { //all real estate owner
 tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_repay  ///
 mrtg_`i'_re_share mrtg_`i'_debt_share total_mrtg_`i'_dm if real_estate >0 [aw = hhwgt], s(mean median sd) format(%10.0fc) 
 }
+
+***********************************************
+***stats: housing value (uint value) quntile and other indicators (scenario) 
+***********************************************
 
 log close
