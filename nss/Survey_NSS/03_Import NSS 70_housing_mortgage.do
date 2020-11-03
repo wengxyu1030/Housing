@@ -96,7 +96,7 @@ sum repay_mt*
 
 *year estimation 
 forvalues i = 1/2 {
-gen double loan_period_`i' = ln(repay_mt_`i'/(repay_mt_`i'-intst_rate*mrtg_`i'_borrow))/ln(1+intst_rate)
+gen double loan_period_`i'= - ln(1 - mrtg_`i'_borrow *intst_rate * (1/repay_mt_`i')) / ln(1+ intst_rate)
 }
 
 sum loan_period_*
@@ -164,5 +164,9 @@ mrtg_`i'_re_share mrtg_`i'_debt_share total_mrtg_`i'_dm if real_estate >0 [aw = 
 ***********************************************
 ***stats: housing value (uint value) quntile and other indicators (scenario) 
 ***********************************************
+use "${r_output}\b14_hse_mortgage",clear
+xtile qtl = real_estate [aw=hhwgt] if mrtg_1_borrow >0, n(5)
+
+table qtl, c(p50 real_estate p50 mrtg_1_borrow p50 loan_period_1 ) format("%9.0f") 
 
 log close

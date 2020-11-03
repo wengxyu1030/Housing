@@ -1,23 +1,2752 @@
--------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NSS 70.lo
-> g
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
+> Survey_NSS\02_Table of Means NSS 70.log
   log type:  text
- opened on:  28 Oct 2020, 06:40:49
+ opened on:   2 Nov 2020, 21:13:17
 
 . 
 . ****************************************************************************
-. * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2797680
+. * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.
+> cfm?abstract_id=2797680
 . ****************************************************************************
 . use "${root}\Data Output Files\NSS70_All.dta",clear
 
 . 
 . 
-. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
+. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_
+> farm shares fin_other gold fin_rec) 
 
 . egen double durable_other = rowtotal(livestock trspt agri non_farm)
 
 . egen double real_estate = rowtotal(building_resid land_r land_u)
+
+. 
+. gen double wealth = asset - debt
+(37,081 missing values generated)
+
+. gen double wealth_ln = ln(wealth)
+(39,807 missing values generated)
+
+. 
+. sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_oth
+> er gold fin_rec building_resid 
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       asset |    110,800     1782862    1.13e+07          0   1.85e+09
+      land_r |     67,747     1041569     3905052          0   2.49e+08
+      land_u |     34,217     1380122     8276187          0   1.28e+09
+building_all |     95,488    614870.7    1.01e+07          0   1.85e+09
+   livestock |     44,407    32474.12    54060.96          0    2590000
+-------------+---------------------------------------------------------
+       trspt |     71,749    74586.56    279375.5          0   2.07e+07
+        agri |     48,270     8792.89    50198.23          0    7700000
+    non_farm |     24,552           0           0          0          0
+      shares |      3,836    46152.68      351695          0   1.21e+07
+   fin_other |    101,412    66760.63    267276.4          0   3.26e+07
+-------------+---------------------------------------------------------
+        gold |    101,412    63457.91    160273.4          0   1.29e+07
+     fin_rec |      6,775    65060.67    424340.3          0   2.00e+07
+building_r~d |     95,488    568308.2     9849675          0   1.85e+09
+
+. 
+. ** USE TABLE 1 to try and match mean and median of assets. Paper has Mean of 1,58
+> 1,228 and Median of 501,880
+. 
+. *Unweighted 
+. keep if head_age >= 24
+(2,266 observations deleted)
+
+. 
+. tabstat asset, s(mean p50) format("%9.0fc") // Mean = 1,782,862   Median = 585,22
+> 5
+
+    variable |      mean       p50
+-------------+--------------------
+       asset | 1,813,187   602,800
+----------------------------------
+
+. tabstat asset [aw=hhwgt], s(mean p50) format("%9.0fc") // Mean = 1,501,012  Media
+> n =  459,959
+
+    variable |      mean       p50
+-------------+--------------------
+       asset | 1,561,322   490,570
+----------------------------------
+
+. tabstat asset [aw=pwgt], s(mean p50) format("%9.0fc") // Mean = 1,732,348   Media
+> n = 558,622
+
+    variable |      mean       p50
+-------------+--------------------
+       asset | 1,754,928   567,775
+----------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset [aw=hhwgt],de
+
+                            asset
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          700              0
+ 5%        25400              0
+10%        63000              0       Obs             108,534
+25%       177840              0       Sum of Wgt.   458648720
+
+50%       490570                      Mean            1561322
+                        Largest       Std. Dev.      1.27e+07
+75%      1310200       1.00e+09
+90%      3285000       1.45e+09       Variance       1.62e+14
+95%      5525200       1.75e+09       Skewness       107.3277
+99%     1.50e+07       1.85e+09       Kurtosis       13745.46
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. 
+. sum [aw=hhwgt],de
+
+      ‘Primary key - unique identifier for a household’
+-------------------------------------------------------------
+no observations
+
+                         date_survey
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          636            636
+ 5%          636            636
+10%          636            636       Obs             108,534
+25%          637            636       Sum of Wgt.   458648720
+
+50%          639                      Mean           638.9772
+                        Largest       Std. Dev.      1.942039
+75%          641            645
+90%          642            645       Variance       3.771514
+95%          642            645       Skewness       .0280764
+99%          642            645       Kurtosis       1.804742
+
+                           Sector
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            1              1       Obs             108,534
+25%            1              1       Sum of Wgt.   458648720
+
+50%            1                      Mean           1.338153
+                        Largest       Std. Dev.      .4730829
+75%            2              2
+90%            2              2       Variance       .2238075
+95%            2              2       Skewness       .6842277
+99%            2              2       Kurtosis       1.468168
+
+                       Household size
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            2              1       Obs             108,534
+25%            3              1       Sum of Wgt.   458648720
+
+50%            4                      Mean           4.540645
+                        Largest       Std. Dev.      2.255757
+75%            6             32
+90%            7             32       Variance        5.08844
+95%            8             36       Skewness       1.466183
+99%           12             38       Kurtosis       9.022077
+
+         Final weight for sub-sample wise estimates
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        424.5            1.5
+ 5%         1164            1.5
+10%         2034            1.5       Obs             108,534
+25%      4583.25            1.5       Sum of Wgt.   458648720
+
+50%     10578.25                      Mean           24977.14
+                        Largest       Std. Dev.       44567.9
+75%        25650         383400
+90%        57660         383400       Variance       1.99e+09
+95%        91203         385236       Skewness       4.609551
+99%     246891.7         385236       Kurtosis       29.63988
+
+       Final weight for sub-sample combined estimates
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        212.3            .75
+ 5%          582            .75
+10%       1017.5            .75       Obs             108,534
+25%     2291.625            .75       Sum of Wgt.   458648720
+
+50%     5289.125                      Mean           12489.66
+                        Largest       Std. Dev.      22283.74
+75%        12831         191700
+90%        28830         191700       Variance       4.97e+08
+95%      45601.5         192618       Skewness       4.609542
+99%     123445.8         192618       Kurtosis       29.64007
+
+                            hhwgt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        424.5            1.5
+ 5%         1164            1.5
+10%         2034            1.5       Obs             108,534
+25%      4583.25            1.5       Sum of Wgt.   458648720
+
+50%     10578.25                      Mean           24977.14
+                        Largest       Std. Dev.       44567.9
+75%        25650         383400
+90%        57660         383400       Variance       1.99e+09
+95%        91203         385236       Skewness       4.609551
+99%     246891.7         385236       Kurtosis       29.63988
+
+                            pwgt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%       1537.5              4
+ 5%       4237.5              4
+10%       7276.5            4.5       Obs             108,534
+25%      17092.5            4.5       Sum of Wgt.   458648720
+
+50%        42385                      Mean           112217.4
+                        Largest       Std. Dev.      229255.1
+75%       107408        2311416
+90%       257040        2392632       Variance       5.26e+10
+95%       453600        2466495       Skewness       5.753945
+99%      1155708        2735208       Kurtosis       46.69372
+
+                            urban
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             108,534
+25%            0              0       Sum of Wgt.   458648720
+
+50%            0                      Mean           .3381525
+                        Largest       Std. Dev.      .4730829
+75%            1              1
+90%            1              1       Variance       .2238075
+95%            1              1       Skewness       .6842277
+99%            1              1       Kurtosis       1.468168
+
+                loan with purpose on housing
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              72,969
+25%            0              0       Sum of Wgt.   206759068
+
+50%            0                      Mean           50087.35
+                        Largest       Std. Dev.      356756.8
+75%            0       1.64e+07
+90%        35000       1.64e+07       Variance       1.27e+11
+95%       190000       1.64e+07       Skewness       22.03741
+99%      1153008       1.90e+07       Kurtosis       787.8772
+
+                     (sum) credit_formal
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              72,969
+25%            0              0       Sum of Wgt.   206759068
+
+50%            0                      Mean           84896.45
+                        Largest       Std. Dev.      575491.5
+75%        29562       1.66e+07
+90%       154543       1.90e+07       Variance       3.31e+11
+95%       369560       4.00e+07       Skewness       120.5952
+99%      1520241       1.83e+08       Kurtosis       33776.03
+
+                     loan with mortgage
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              72,969
+25%            0              0       Sum of Wgt.   206759068
+
+50%            0                      Mean           69410.39
+                        Largest       Std. Dev.      538370.1
+75%            0       1.66e+07
+90%       110771       1.90e+07       Variance       2.90e+11
+95%       309820       4.00e+07       Skewness       144.3411
+99%      1360000       1.83e+08       Kurtosis       44036.32
+
+                       (sum) br_amount
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         1100              0
+ 5%         4000            200
+10%         6000            400       Obs              72,969
+25%        15000            400       Sum of Wgt.   206759068
+
+50%        41500                      Mean           150668.8
+                        Largest       Std. Dev.      618465.9
+75%       115000       1.85e+07
+90%       330000       2.60e+07       Variance       3.83e+11
+95%       575000       4.00e+07       Skewness       123.7155
+99%      1800000       2.00e+08       Kurtosis       35868.23
+
+                         (sum) debt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              72,969
+25%            0              0       Sum of Wgt.   206759068
+
+50%        18750                      Mean             116789
+                        Largest       Std. Dev.      597863.6
+75%        80000       1.82e+07
+90%       255000       1.90e+07       Variance       3.57e+11
+95%       462000       4.00e+07       Skewness       109.0874
+99%      1608000       1.83e+08       Kurtosis       29025.46
+
+                           fin_rec
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          210              0
+ 5%          500              0
+10%          850              0       Obs               6,678
+25%         2000              0       Sum of Wgt.  24928686.3
+
+50%         9000                      Mean           58778.03
+                        Largest       Std. Dev.      296258.4
+75%        30000        7002500
+90%       100000        8000000       Variance       8.78e+10
+95%       200000       1.73e+07       Skewness       23.61777
+99%       800000       2.00e+07       Kurtosis       1083.201
+
+                            gold
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%         1000              0       Obs              99,909
+25%         6700              0       Sum of Wgt.   415280561
+
+50%        25000                      Mean           63912.87
+                        Largest       Std. Dev.      169198.4
+75%        65000        8535000
+90%       150000        9000000       Variance       2.86e+10
+95%       250000       1.20e+07       Skewness       28.02136
+99%       578750       1.29e+07       Kurtosis       1563.431
+
+                          fin_other
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              99,909
+25%          500              0       Sum of Wgt.   415280561
+
+50%         3000                      Mean           52396.69
+                        Largest       Std. Dev.      251522.9
+75%        20560       1.10e+07
+90%       100000       2.00e+07       Variance       6.33e+10
+95%       250000       2.00e+07       Skewness       37.27661
+99%       845000       3.26e+07       Kurtosis       3502.981
+
+                           shares
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%           12              0
+10%           50              0       Obs               3,822
+25%          300              0       Sum of Wgt.    15165851
+
+50%         1650                      Mean           58570.92
+                        Largest       Std. Dev.      363040.3
+75%        10000        4950000
+90%        50000        6245904       Variance       1.32e+11
+95%       150000        9000000       Skewness        12.3041
+99%      1010000       1.21e+07       Kurtosis       210.3961
+
+                          non_farm
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              24,390
+25%            0              0       Sum of Wgt.  90337407.1
+
+50%            0                      Mean                  0
+                        Largest       Std. Dev.             0
+75%            0              0
+90%            0              0       Variance              0
+95%            0              0       Skewness              .
+99%            0              0       Kurtosis              .
+
+                            agri
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           70              0
+ 5%          150              0
+10%          200              0       Obs              47,838
+25%          435              0       Sum of Wgt.   205539758
+
+50%         1000                      Mean           7340.299
+                        Largest       Std. Dev.      33356.22
+75%         3525        1428800
+90%        16000        1460800       Variance       1.11e+09
+95%        31500        3576700       Skewness       71.09412
+99%       105500        7700000       Kurtosis       13250.03
+
+                            trspt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          400              0
+ 5%          600              0
+10%          750              0       Obs              71,087
+25%         1200              0       Sum of Wgt.   291944844
+
+50%         3000                      Mean           55133.37
+                        Largest       Std. Dev.      202208.4
+75%        32000       1.21e+07
+90%       101500       1.40e+07       Variance       4.09e+10
+95%       320000       1.40e+07       Skewness       18.74893
+99%       740000       2.07e+07       Kurtosis       787.3442
+
+                          livestock
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          240              0
+ 5%          700              0
+10%         1800              0       Obs              44,058
+25%         7000              0       Sum of Wgt.   179975314
+
+50%        20000                      Mean           30038.72
+                        Largest       Std. Dev.      42642.64
+75%        38250        1558000
+90%        66000        1657000       Variance       1.82e+09
+95%        92500        1700000       Skewness       9.150405
+99%       183000        2590000       Kurtosis       222.3876
+
+                        building_all
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        10000              0
+ 5%        24050              0
+10%        36000              0       Obs              94,563
+25%        75000              0       Sum of Wgt.   396421720
+
+50%       170000                      Mean           598472.3
+                        Largest       Std. Dev.      1.20e+07
+75%       400000       8.50e+08
+90%      1000000       1.00e+09       Variance       1.44e+14
+95%      1750000       1.75e+09       Skewness        124.194
+99%      5300000       1.85e+09       Kurtosis        17250.1
+
+                       building_resid
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         8000              0
+ 5%        20000              0
+10%        35000              0       Obs              94,563
+25%        70000              0       Sum of Wgt.   396421720
+
+50%       150000                      Mean           565889.4
+                        Largest       Std. Dev.      1.19e+07
+75%       386000       8.50e+08
+90%      1000000       1.00e+09       Variance       1.43e+14
+95%      1600000       1.75e+09       Skewness        126.164
+99%      5000000       1.85e+09       Kurtosis       17689.37
+
+                           land_r
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         4000              0
+ 5%        14000              0
+10%        25000              0       Obs              66,973
+25%        68000              0       Sum of Wgt.   313455670
+
+50%       220000                      Mean           840199.8
+                        Largest       Std. Dev.       2949935
+75%       650000       2.00e+08
+90%      1800000       2.03e+08       Variance       8.70e+12
+95%      3200000       2.41e+08       Skewness       24.29514
+99%     1.01e+07       2.49e+08       Kurtosis       1246.799
+
+                           land_u
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%        30000              0
+10%        65100              0       Obs              34,025
+25%       190000              0       Sum of Wgt.  98008441.4
+
+50%       495000                      Mean            1447018
+                        Largest       Std. Dev.       9988905
+75%      1225000       1.89e+08
+90%      3000000       1.91e+08       Variance       9.98e+13
+95%      5000000       3.01e+08       Skewness       106.3873
+99%     1.49e+07       1.28e+09       Kurtosis          13410
+
+                             Sex
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            1              1       Obs             108,534
+25%            1              1       Sum of Wgt.   458648720
+
+50%            1                      Mean           1.131844
+                        Largest       Std. Dev.      .3383228
+75%            1              2
+90%            2              2       Variance       .1144623
+95%            2              2       Skewness       2.176368
+99%            2              2       Kurtosis       5.736578
+
+                             Age
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           25             24
+ 5%           28             24
+10%           30             24       Obs             108,534
+25%           36             24       Sum of Wgt.   458648720
+
+50%           45                      Mean             47.272
+                        Largest       Std. Dev.      13.50692
+75%           57            101
+90%           65            102       Variance       182.4368
+95%           70            102       Skewness       .4462404
+99%           80            110       Kurtosis       2.590955
+
+                            asset
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          700              0
+ 5%        25400              0
+10%        63000              0       Obs             108,534
+25%       177840              0       Sum of Wgt.   458648720
+
+50%       490570                      Mean            1561322
+                        Largest       Std. Dev.      1.27e+07
+75%      1310200       1.00e+09
+90%      3285000       1.45e+09       Variance       1.62e+14
+95%      5525200       1.75e+09       Skewness       107.3277
+99%     1.50e+07       1.85e+09       Kurtosis       13745.46
+
+                        durable_other
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             108,534
+25%          700              0       Sum of Wgt.   458648720
+
+50%         9000                      Mean           50170.98
+                        Largest       Std. Dev.      173495.5
+75%        37900       1.21e+07
+90%        95700       1.40e+07       Variance       3.01e+10
+95%       235000       1.41e+07       Skewness       20.18847
+99%       680000       2.09e+07       Kurtosis       958.9553
+
+                         real_estate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             108,534
+25%       123152              0       Sum of Wgt.   458648720
+
+50%       396195                      Mean            1372546
+                        Largest       Std. Dev.      1.26e+07
+75%      1104000       1.00e+09
+90%      2850000       1.44e+09       Variance       1.58e+14
+95%      4935000       1.75e+09       Skewness       110.3903
+99%     1.37e+07       1.85e+09       Kurtosis       14349.42
+
+                           wealth
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      -133400      -8.15e+07
+ 5%         8500      -3.91e+07
+10%        54580       -9320388       Obs              72,969
+25%       184900       -7723959       Sum of Wgt.   206759068
+
+50%       515400                      Mean            1418309
+                        Largest       Std. Dev.       3989045
+75%      1322600       2.46e+08
+90%      3171721       2.51e+08       Variance       1.59e+13
+95%      5453700       2.56e+08       Skewness       20.65644
+99%     1.41e+07       3.25e+08       Kurtosis       893.8334
+
+                          wealth_ln
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     8.853665       3.433987
+ 5%     10.68739       4.248495
+10%     11.34982       4.382027       Obs              70,379
+25%     12.28303       4.624973       Sum of Wgt.   198762387
+
+50%     13.21933                      Mean           13.16849
+                        Largest       Std. Dev.      1.504559
+75%      14.1368       19.31936
+90%       15.007       19.33977       Variance       2.263697
+95%     15.53697       19.36045       Skewness      -.4147177
+99%     16.48211       19.59888       Kurtosis       4.145821
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=hhwgt],de
+
+                            asset
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          700              0
+ 5%        25400              0
+10%        63000              0       Obs             108,534
+25%       177840              0       Sum of Wgt.   458648720
+
+50%       490570                      Mean            1561322
+                        Largest       Std. Dev.      1.27e+07
+75%      1310200       1.00e+09
+90%      3285000       1.45e+09       Variance       1.62e+14
+95%      5525200       1.75e+09       Skewness       107.3277
+99%     1.50e+07       1.85e+09       Kurtosis       13745.46
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=hhwgt],de format("%9.0fc") 
+option format() incorrectly specified
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=hhwgt],de format "%9.0fc"
+option "%9.0fc not allowed
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=hhwgt] format "%9.0fc",de 
+invalid 'format' 
+r(198);
+
+end of do-file
+
+r(198);
+
+. help sum
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=hhwgt],de format "%9.0fc"
+option "%9.0fc not allowed
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=hhwgt],de f "%9.0fc"
+option "%9.0fc not allowed
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=hhwgt],de f 
+
+                            asset
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          700              0
+ 5%        25400              0
+10%        63000              0       Obs             108,534
+25%       177840              0       Sum of Wgt.   458648720
+
+50%       490570                      Mean            1561322
+                        Largest       Std. Dev.      1.27e+07
+75%      1310200       1.00e+09
+90%      3285000       1.45e+09       Variance       1.62e+14
+95%      5525200       1.75e+09       Skewness       107.3277
+99%     1.50e+07       1.85e+09       Kurtosis       13745.46
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset[aw=pwgt],de f //lower on each quantile compare to 
+> table 1. 
+
+                            asset
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         2500              0
+ 5%        38950              0
+10%        80000              0       Obs             108,534
+25%       217150              0       Sum of Wgt.  2.0826e+09
+
+50%       567775                      Mean            1754928
+                        Largest       Std. Dev.      1.59e+07
+75%      1457650       1.00e+09
+90%      3496800       1.45e+09       Variance       2.52e+14
+95%      5871000       1.75e+09       Skewness       88.59373
+99%     1.61e+07       1.85e+09       Kurtosis       8921.375
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. tabstat asset real_estate durable_other gold [aw=hhwgt], s(m
+> ean p50) format("%9.0fc") // 1,561,322   490,570
+
+   stats |     asset  real_e~e  durabl~r      gold
+---------+----------------------------------------
+    mean | 1,561,322 1,372,546    50,171    63,913
+     p50 |   490,570   396,195     9,000    25,000
+--------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. 
+. sum asset eal_estate durable_other gold[aw=hhwgt],de f //low
+> er on each quantile compare to table 1. 
+variable eal_estate not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. sum asset real_estate durable_other gold[aw=hhwgt],de f //lo
+> wer on each quantile compare to table 1. 
+
+                            asset
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          700              0
+ 5%        25400              0
+10%        63000              0       Obs             108,534
+25%       177840              0       Sum of Wgt.   458648720
+
+50%       490570                      Mean            1561322
+                        Largest       Std. Dev.      1.27e+07
+75%      1310200       1.00e+09
+90%      3285000       1.45e+09       Variance       1.62e+14
+95%      5525200       1.75e+09       Skewness       107.3277
+99%     1.50e+07       1.85e+09       Kurtosis       13745.46
+
+                         real_estate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             108,534
+25%       123152              0       Sum of Wgt.   458648720
+
+50%       396195                      Mean            1372546
+                        Largest       Std. Dev.      1.26e+07
+75%      1104000       1.00e+09
+90%      2850000       1.44e+09       Variance       1.58e+14
+95%      4935000       1.75e+09       Skewness       110.3903
+99%     1.37e+07       1.85e+09       Kurtosis       14349.42
+
+                        durable_other
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             108,534
+25%          700              0       Sum of Wgt.   458648720
+
+50%         9000                      Mean           50170.98
+                        Largest       Std. Dev.      173495.5
+75%        37900       1.21e+07
+90%        95700       1.40e+07       Variance       3.01e+10
+95%       235000       1.41e+07       Skewness       20.18847
+99%       680000       2.09e+07       Kurtosis       958.9553
+
+                            gold
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%         1000              0       Obs              99,909
+25%         6700              0       Sum of Wgt.   415280561
+
+50%        25000                      Mean           63912.87
+                        Largest       Std. Dev.      169198.4
+75%        65000        8535000
+90%       150000        9000000       Variance       2.86e+10
+95%       250000       1.20e+07       Skewness       28.02136
+99%       578750       1.29e+07       Kurtosis       1563.431
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. use "${r_input}\Visit 1_Block 12_Financial assets other than
+>  shares and debentures owned by the household as on 30.06.20
+> 12.dta",clear
+
+. 
+. destring b12_q1,replace
+b12_q1: all characters numeric; replaced as byte
+
+. count if b12_q3 < 0 
+  1
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. *Asset fin: other financial assets b12 srl 11 
+. use "${r_input}\Visit 1_Block 12_Financial assets other than
+>  shares and debentures owned by the household as on 30.06.20
+> 12.dta",clear
+
+. 
+. destring b12_q1,replace
+b12_q1: all characters numeric; replaced as byte
+
+. count if b12_q3 < 0 
+  1
+
+. replace b12_q3 = . if b12_q3 <0
+(1 real change made, 1 to missing)
+
+. 
+. egen double gold = sum(b12_q3*(b12_q1 == 12)), by(HHID)
+
+. egen double fin_other = sum(b12_q3*(b12_q1 == 11)), by(HHID)
+
+. egen double fin_other_man = sum(b12_q3*(inrange(b12_q1,1,7)|
+>  b12_q1 == 10)), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(265,456 observations deleted)
+
+.   
+.   *Check the manual (man) sum with survey sum
+.   count if fin_other > fin_other_man
+  0
+
+.   count if fin_other < fin_other_man
+  40
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. use "${root}\Data Output Files\NSS70_All.dta",clear
+
+. 
+. egen double asset = rowtotal(land_r land_u building_all live
+> stock trspt agri non_farm shares fin_other gold fin_rec) 
+
+. egen double durable_other = rowtotal(livestock trspt agri no
+> n_farm)
+
+. egen double real_estate = rowtotal(building_resid land_r lan
+> d_u)
+
+. egen double non_finan = rowtotal(real_estate gold durable_ot
+> her)
+
+. 
+. gen double wealth = asset - debt
+(37,081 missing values generated)
+
+. gen double wealth_ln = ln(wealth)
+(39,807 missing values generated)
+
+. 
+. sum asset land_r land_u building_all livestock trspt agri no
+> n_farm shares fin_other gold fin_rec building_resid 
+
+    Variable |        Obs        Mean    Std. Dev.       Min  
+>       Max
+-------------+------------------------------------------------
+> ---------
+       asset |    110,800     1782862    1.13e+07          0  
+>  1.85e+09
+      land_r |     67,747     1041569     3905052          0  
+>  2.49e+08
+      land_u |     34,217     1380122     8276187          0  
+>  1.28e+09
+building_all |     95,488    614870.7    1.01e+07          0  
+>  1.85e+09
+   livestock |     44,407    32474.12    54060.96          0  
+>   2590000
+-------------+------------------------------------------------
+> ---------
+       trspt |     71,749    74586.56    279375.5          0  
+>  2.07e+07
+        agri |     48,270     8792.89    50198.23          0  
+>   7700000
+    non_farm |     24,552           0           0          0  
+>         0
+      shares |      3,836    46152.68      351695          0  
+>  1.21e+07
+   fin_other |    101,412    66760.63    267276.4          0  
+>  3.26e+07
+-------------+------------------------------------------------
+> ---------
+        gold |    101,412    63457.91    160273.4          0  
+>  1.29e+07
+     fin_rec |      6,775    65060.67    424340.3          0  
+>  2.00e+07
+building_r~d |     95,488    568308.2     9849675          0  
+>  1.85e+09
+
+. 
+. ************************************************************
+> ****************
+. * Asset allocation
+. ************************************************************
+> ****************
+. keep if head_age >= 24
+(2,266 observations deleted)
+
+. 
+. **share of real estate on 
+. * real_estate (77%), durable good (7%), gold (11%)
+. gen re_share = real_estate/asset
+(672 missing values generated)
+
+. gen du_share = durable_other/asset
+(672 missing values generated)
+
+. gen gl_share = gold / asset
+(8,631 missing values generated)
+
+. 
+. sum re_share du_share gl_share //gold is 11% closest with pa
+> per. 
+
+    Variable |        Obs        Mean    Std. Dev.       Min  
+>       Max
+-------------+------------------------------------------------
+> ---------
+    re_share |    107,862    .7552001     .290893          0  
+>         1
+    du_share |    107,862    .0629695    .1267183          0  
+>         1
+    gl_share |     99,903    .1089669    .1968698          0  
+>         1
+
+. sum re_share du_share gl_share [aw = hhwgt] 
+
+    Variable |     Obs      Weight        Mean   Std. Dev.    
+>    Min        Max
+-------------+------------------------------------------------
+> -----------------
+    re_share | 107,862   454835504    .7567272    .298137     
+>      0          1
+    du_share | 107,862   454835504    .0583045    .121603     
+>      0          1
+    gl_share |  99,903   415267015    .1233037   .2136998     
+>      0          1
+
+. sum re_share du_share gl_share [aw = pwgt] //gold is 11% clo
+> sest with paper. 
+
+    Variable |     Obs      Weight        Mean   Std. Dev.    
+>    Min        Max
+-------------+------------------------------------------------
+> -----------------
+    re_share | 107,862  2.0722e+09    .7755733    .274023     
+>      0          1
+    du_share | 107,862  2.0722e+09    .0603331   .1165205     
+>      0          1
+    gl_share |  99,903  1.9011e+09    .1094104   .1952706     
+>      0          1
+
+. 
+. ** USE TABLE 1 to try and match mean and median of assets. P
+> aper has Mean of 1,581,228 and Median of 501,880
+. *Unweighted 
+. tabstat asset, s(mean p50) format("%9.0fc") // 1,813,187   6
+> 02,800
+
+    variable |      mean       p50
+-------------+--------------------
+       asset | 1,813,187   602,800
+----------------------------------
+
+. *Weighted
+. tabstat asset real_estate durable_other gold [aw=hhwgt], s(m
+> ean p50) format("%9.0fc") // 1,561,322   490,570
+
+   stats |     asset  real_e~e  durabl~r      gold
+---------+----------------------------------------
+    mean | 1,561,322 1,372,546    50,171    63,913
+     p50 |   490,570   396,195     9,000    25,000
+--------------------------------------------------
+
+. tabstat asset [aw=pwgt], s(mean p50) format("%9.0fc") // 1,7
+> 54,928   567,775
+
+    variable |      mean       p50
+-------------+--------------------
+       asset | 1,754,928   567,775
+----------------------------------
+
+. 
+end of do-file
+
+. di 63,913 - 58,292
+63 855 292
+
+. di 63913 - 58292
+5621
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. tabstat asset real_estate durable_other gold asset_fin [aw=h
+> hwgt], s(mean p50) format("%9.0fc") // 1,561,322   490,570
+variable asset_fin not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. use "${root}\Data Output Files\NSS70_All.dta",clear
+
+. 
+. egen double asset = rowtotal(land_r land_u building_all live
+> stock trspt agri non_farm shares fin_other gold fin_rec) 
+
+. egen double durable_other = rowtotal(livestock trspt agri no
+> n_farm)
+
+. egen double real_estate = rowtotal(building_resid land_r lan
+> d_u)
+
+. egen double asset_non_fin = rowtotal(real_estate gold durabl
+> e_other)
+
+. egen double asset_fin = rowtotal(shares fin_other fin_rec)
+
+. 
+. gen double wealth = asset - debt
+(37,081 missing values generated)
+
+. gen double wealth_ln = ln(wealth)
+(39,807 missing values generated)
+
+. 
+. sum asset land_r land_u building_all livestock trspt agri no
+> n_farm shares fin_other gold fin_rec building_resid 
+
+    Variable |        Obs        Mean    Std. Dev.       Min  
+>       Max
+-------------+------------------------------------------------
+> ---------
+       asset |    110,800     1782862    1.13e+07          0  
+>  1.85e+09
+      land_r |     67,747     1041569     3905052          0  
+>  2.49e+08
+      land_u |     34,217     1380122     8276187          0  
+>  1.28e+09
+building_all |     95,488    614870.7    1.01e+07          0  
+>  1.85e+09
+   livestock |     44,407    32474.12    54060.96          0  
+>   2590000
+-------------+------------------------------------------------
+> ---------
+       trspt |     71,749    74586.56    279375.5          0  
+>  2.07e+07
+        agri |     48,270     8792.89    50198.23          0  
+>   7700000
+    non_farm |     24,552           0           0          0  
+>         0
+      shares |      3,836    46152.68      351695          0  
+>  1.21e+07
+   fin_other |    101,412    66760.63    267276.4          0  
+>  3.26e+07
+-------------+------------------------------------------------
+> ---------
+        gold |    101,412    63457.91    160273.4          0  
+>  1.29e+07
+     fin_rec |      6,775    65060.67    424340.3          0  
+>  2.00e+07
+building_r~d |     95,488    568308.2     9849675          0  
+>  1.85e+09
+
+. 
+. ************************************************************
+> ****************
+. * Asset allocation
+. ************************************************************
+> ****************
+. keep if head_age >= 24
+(2,266 observations deleted)
+
+. 
+. **share of real estate on 
+. * real_estate (77%), durable good (7%), gold (11%)
+. gen re_share = real_estate/asset
+(672 missing values generated)
+
+. gen du_share = durable_other/asset
+(672 missing values generated)
+
+. gen gl_share = gold / asset
+(8,631 missing values generated)
+
+. 
+. sum re_share du_share gl_share //gold is 11% closest with pa
+> per. 
+
+    Variable |        Obs        Mean    Std. Dev.       Min  
+>       Max
+-------------+------------------------------------------------
+> ---------
+    re_share |    107,862    .7552001     .290893          0  
+>         1
+    du_share |    107,862    .0629695    .1267183          0  
+>         1
+    gl_share |     99,903    .1089669    .1968698          0  
+>         1
+
+. sum re_share du_share gl_share [aw = hhwgt] 
+
+    Variable |     Obs      Weight        Mean   Std. Dev.    
+>    Min        Max
+-------------+------------------------------------------------
+> -----------------
+    re_share | 107,862   454835504    .7567272    .298137     
+>      0          1
+    du_share | 107,862   454835504    .0583045    .121603     
+>      0          1
+    gl_share |  99,903   415267015    .1233037   .2136998     
+>      0          1
+
+. sum re_share du_share gl_share [aw = pwgt] //gold is 11% clo
+> sest with paper. 
+
+    Variable |     Obs      Weight        Mean   Std. Dev.    
+>    Min        Max
+-------------+------------------------------------------------
+> -----------------
+    re_share | 107,862  2.0722e+09    .7755733    .274023     
+>      0          1
+    du_share | 107,862  2.0722e+09    .0603331   .1165205     
+>      0          1
+    gl_share |  99,903  1.9011e+09    .1094104   .1952706     
+>      0          1
+
+. 
+. ** USE TABLE 1 to try and match mean and median of assets. P
+> aper has Mean of 1,581,228 and Median of 501,880
+. *Unweighted 
+. tabstat asset, s(mean p50) format("%9.0fc") // 1,813,187   6
+> 02,800
+
+    variable |      mean       p50
+-------------+--------------------
+       asset | 1,813,187   602,800
+----------------------------------
+
+. *Weighted
+. tabstat asset real_estate durable_other gold asset_fin [aw=h
+> hwgt], s(mean p50) format("%9.0fc") // 1,561,322   490,570
+
+   stats |     asset  real_e~e  durabl~r      gold  as~t_fin
+---------+--------------------------------------------------
+    mean | 1,561,322 1,372,546    50,171    63,913    52,574
+     p50 |   490,570   396,195     9,000    25,000     2,200
+------------------------------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. ************************************************************
+> ****************
+. * Description: Import NSS70 from Raw Files and save dta to O
+> utput Folder
+. * Date: Oct 16, 2020
+. * Version 1.2
+. * Last Editor: Aline
+. ************************************************************
+> ****************
+. 
+. ************************************************************
+> ****************
+. clear 
+
+. clear matrix
+
+. ************************************************************
+> ****************
+. 
+. ************************************************************
+> ****************
+. * Determine Whose Machine is running the code and set the gl
+> obal directory
+. ************************************************************
+> ****************
+. if "`c(username)'" == "wb308830" local pc = 0
+
+. if "`c(username)'" != "wb308830" local pc = 1
+
+. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\D
+> ocuments\TN\Data\NSS 70"
+
+. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7
+> _Housing\survey_all\nss_data\NSS70"
+
+. 
+. di "$root"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data
+> \NSS70
+
+. global r_input "${root}\Raw Data & Dictionaries"
+
+. di "${r_input}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data
+> \NSS70\Raw Data & Dictionaries
+
+. global r_output "${root}\Data Output Files"
+
+. 
+. ************************************************************
+> ****************
+. *gen date of survey 
+. use "${r_input}\Visit 1_Block 1&2_Identification of sample h
+> ousehold and particulars of field operations.dta",clear
+
+. gen month = real(substr(Survey_Date,3,2))
+
+. gen year = 2013 //there's 2017 and 2019 should be mistake
+
+. 
+. gen date_survey = ym(year,month)
+
+. format date_survey %tmMCY
+
+. 
+. keep HHID date_survey
+
+. save "${r_output}\b2",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss
+> _data\NSS70\Data Output Files\b2.dta saved
+
+. 
+. 
+. *gen id, wgt (hhwgt, popwgt) b3
+. use "${r_input}\Visit 1_Block 3_Household Characteristics.dt
+> a",clear
+
+. 
+. rename (b3q1 Sector) (hhsize sector)
+
+. //gen hhwgt = MLT 
+. gen hhwgt = Weight_SS 
+
+. 
+. destring(hhsize),replace
+hhsize: all characters numeric; replaced as byte
+
+. gen pwgt = hhwgt * hhsize
+
+. 
+. destring(sector), replace
+sector: all characters numeric; replaced as byte
+
+. gen urban = sector - 1
+
+. keep HHID hhwgt pwgt hhsize sector urban Weight_SS Weight_SC
+
+. save "${r_output}\b3",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss
+> _data\NSS70\Data Output Files\b3.dta saved
+
+. 
+. *gender from b4 (4)
+. use "${r_input}\Visit 1 _Block 4_Demographic and other parti
+> culars of household members.dta",clear
+
+. *Keep head 
+. keep if b4q1 == "01" // keep heads only 
+(408,795 observations deleted)
+
+. ren b4q5 head_age 
+
+. ren  b4q4 head_gender 
+
+. destring head_gender, replace
+head_gender: all characters numeric; replaced as byte
+
+. label define gender 1 "Male" 2 "Female"
+
+. label values head_gender gender 
+
+. keep HHID head_age head_gender
+
+. save "${r_output}\b4",replace //later gender info
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss
+> _data\NSS70\Data Output Files\b4.dta saved
+
+. 
+. *Asset non_finï¼š land from b5.1 & b5.2 (rural & urban) srl 9
+> 9
+. use "${r_input}\Visit 1_Block 5pt1_Details of land owned by 
+> the household as on 30.06.12.dta",clear
+
+. sum b5_1_6
+
+    Variable |        Obs        Mean    Std. Dev.       Min  
+>       Max
+-------------+------------------------------------------------
+> ---------
+      b5_1_6 |    223,958    630116.4     2835074          0  
+>  2.49e+08
+
+. rename State state
+
+. 
+. egen double land_r = sum(b5_1_6*(b5_1_1 == "99")), by(HHID)
+
+. egen double land_r_man = sum(b5_1_6*(b5_1_1 != "99")), by(HH
+> ID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(156,468 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if land_r > land_r_man
+  0
+
+. count if land_r < land_r_man
+  15
+
+. 
+. drop land_r
+
+. rename land_r_man land_r
+
+. 
+. keep HHID land_r
+
+. save "${r_output}\b5_1",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss
+> _data\NSS70\Data Output Files\b5_1.dta saved
+
+. 
+. use "${r_input}\Visit 1_Block 5pt2_Details of land owned by 
+> the household as on 30.06.12.dta",clear
+
+. count if b5_2_6 < 0
+  2
+
+. replace b5_2_6 = . if b5_2_6 < 0
+(2 real changes made, 2 to missing)
+
+. 
+. egen double land_u = sum(b5_2_6*(b5_2_1 == "99")), by(HHID)
+
+. egen double land_u_man = sum(b5_2_6*(b5_2_1 != "99")), by(HH
+> ID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(41,892 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if land_u > land_u_man
+  0
+
+. count if land_u < land_u_man
+  16
+
+. 
+. drop land_u
+
+. rename land_u_man land_u
+
+. 
+. keep HHID land_u
+
+. save "${r_output}\b5_2",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss
+> _data\NSS70\Data Output Files\b5_2.dta saved
+
+. 
+. 
+. 
+. *Asset non_fin: building and constructions b6 srl 11
+. use "${r_input}\Visit 1_Block 6_Buildings and other construc
+> tions owned by the household as on 30.06.2012.dta",clear
+
+. sum b6_q6
+
+    Variable |        Obs        Mean    Std. Dev.       Min  
+>       Max
+-------------+------------------------------------------------
+> ---------
+       b6_q6 |    244,737    479786.6     8839515          0  
+>  1.85e+09
+
+. 
+. egen double building_all = sum(b6_q6*(b6_q3 == "11")), by(HH
+> ID)
+
+. egen double building_all_man = sum(b6_q6*(b6_q3 != "11")),  by(HHID)
+
+. egen double building_resid = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
+
+. 
+. duplicates drop HHID,  force
+
+Duplicates in terms of HHID
+
+(149,298 observations deleted)
+
+. 
+. keep HHID building_all* building_resid 
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if building_resid > building_all
+  2
+
+. count if building_resid > building_all_man
+  0
+
+. 
+. drop building_all
+
+. ren building_all_man building_all
+
+. 
+. save "${r_output}\b6",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b6.dta saved
+
+. 
+. *Asset non_fin: livestock and poultry b7 srl 22 
+. use "${r_input}\Visit 1_Block 7_Livestock and poultry owned by the household on 30.06.2012.dta",clear
+
+. destring b7_q2,replace
+b7_q2: all characters numeric; replaced as byte
+
+. sum b7_q5
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       b7_q5 |    176,881    23115.77    42294.12          0    2590000
+
+. 
+. egen double livestock = sum(b7_q5*(b7_q2 == 22)), by(HHID)
+
+. egen double livestock_man = sum(b7_q5*(inrange(b7_q2,17,21))), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(132,557 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if livestock > livestock_man
+  0
+
+. count if livestock < livestock_man
+  14
+
+. 
+. drop livestock
+
+. rename livestock_man livestock
+
+. 
+. keep HHID livestock
+
+. save "${r_output}\b7",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b7.dta saved
+
+. 
+. *Asset non_fin: transport equipment b8: srl 8
+. use "${r_input}\Visit 1_Block 8_Transport equipment owned by the household on 30.06.2012.dta",clear
+
+. sum b8_q5
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       b8_q5 |    166,428    64309.42      250881          0   2.07e+07
+
+. 
+. egen double trspt = sum(b8_q5*(b8_q2 == "08")), by(HHID)
+
+. egen double trspt_man = sum(b8_q5*(b8_q2 != "08")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(94,706 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if trspt > trspt_man
+  0
+
+. count if trspt < trspt_man
+  9
+
+. 
+. drop trspt
+
+. rename trspt_man trspt
+
+. 
+. keep HHID trspt
+
+. save "${r_output}\b8",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b8.dta saved
+
+. 
+. *Asset non_fin: agricultural machinery and implements b9: srl 8 
+. use "${r_input}\Visit 1_Block 9_Agricultural machinery and implements owned by the household on 30.06.2012.dta",clear
+
+. sum b9_q4
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       b9_q4 |    120,458    7046.966    42346.08         10    7700000
+
+. 
+. egen double agri = sum(b9_q4*(b9_q2 == "8")), by(HHID)
+
+. egen double agri_man = sum(b9_q4*(b9_q2 != "8")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(72,196 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if agri > agri_man
+  0
+
+. count if agri < agri_man
+  2
+
+. 
+. drop agri
+
+. rename agri_man agri
+
+. 
+. keep HHID agri
+
+. save "${r_output}\b9",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b9.dta saved
+
+. 
+. *Asset non_fin: non-farm business equipment b10 srl 15
+. use "${r_input}\Visit 1_Block 10_Non-farm business equipment owned by the household as on 30.06.2012.dta",clear
+
+. destring b10_q2,replace
+b10_q2: all characters numeric; replaced as byte
+
+. sum b10_q3 //issue with raw-data.
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      b10_q3 |        119           0           0          0          0
+
+. 
+. egen double non_farm = sum(b10_q3*(b10_q2 == 15)), by(HHID)
+
+. egen double non_farm_man = sum(b10_q3*inrange(b10_q2,12,14)), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(60,778 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if non_farm > non_farm_man
+  0
+
+. count if non_farm < non_farm_man
+  0
+
+. 
+. drop non_farm_man
+
+. keep HHID non_farm
+
+. save "${r_output}\b10",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b10.dta saved
+
+. 
+. *Asset fin: shares & debentures b11 
+. use "${r_input}\Visit 1_Block 11_ Shares and debentures owned by the household in co-operative  societies & companies as on 30.06.2012 .
+> dta",clear
+
+. 
+.  *Check the manual (man) sum with survey sum
+.   preserve
+
+.   egen double shares = sum(b11_q6*(b11_q1 == "5")), by(HHID)
+
+.   egen double shares_man = sum(b11_q6*(b11_q1 != "5")), by(HHID)
+
+.   duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(3,949 observations deleted)
+
+.   count if shares > shares_man
+  0
+
+.   count if shares < shares_man
+  0
+
+.   restore 
+
+. 
+. sum b11_q6 if b11_q1 != "5" 
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      b11_q6 |      3,931    44989.44    324279.8     -50000   1.00e+07
+
+. replace b11_q6 = . if b11_q6<0 //filter out the non-negative colums. 
+(23 real changes made, 23 to missing)
+
+. egen double shares = sum(b11_q6*(b11_q1 == "5")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(3,949 observations deleted)
+
+. 
+. keep HHID shares
+
+. save "${r_output}\b11",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b11.dta saved
+
+. 
+. *Asset fin: other financial assets b12 srl 11 
+. use "${r_input}\Visit 1_Block 12_Financial assets other than shares and debentures owned by the household as on 30.06.2012.dta",clear
+
+. 
+. destring b12_q1,replace
+b12_q1: all characters numeric; replaced as byte
+
+. count if b12_q3 < 0 
+  1
+
+. replace b12_q3 = . if b12_q3 <0
+(1 real change made, 1 to missing)
+
+. 
+. egen double gold = sum(b12_q3*(b12_q1 == 12)), by(HHID)
+
+. egen double retire_acnt = sum(b12_q3*(b12_q1 == 6)), by(HHID) //retirement account
+
+. egen double fin_other = sum(b12_q3*(b12_q1 == 11)), by(HHID)
+
+. egen double fin_other_man = sum(b12_q3*(inrange(b12_q1,1,7)| b12_q1 == 10)), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(265,456 observations deleted)
+
+.   
+.   *Check the manual (man) sum with survey sum
+.   count if fin_other > fin_other_man
+  0
+
+.   count if fin_other < fin_other_man
+  40
+
+.  
+. drop fin_other
+
+. ren fin_other_man fin_other
+
+. keep HHID fin_other gold
+
+. save "${r_output}\b12",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b12.dta saved
+
+. 
+. *Asset fin: amount receivable b13 (mortgage srl 1, total srl 7)
+. use "${r_input}\Visit 1_Block 13_Amount receivable by the household against different heads as on 30.06.2012.dta",clear
+
+. sum b13_q4
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      b13_q4 |     13,807    63848.05    419515.8          0   2.00e+07
+
+. 
+. egen double fin_rec = sum(b13_q4*(b13_q2 == "7")), by(HHID)
+
+. egen double fin_rec_man = sum(b13_q4*(b13_q2 != "7")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(7,033 observations deleted)
+
+. 
+.   *Check the manual (man) sum with survey sum
+.   count if fin_rec > fin_rec_man
+  0
+
+.   count if fin_rec < fin_rec_man
+  2
+
+.  
+. drop fin_rec
+
+. ren fin_rec_man fin_rec
+
+. keep HHID fin_rec
+
+. save "${r_output}\b13",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b13.dta saved
+
+. 
+. *Debt: cash loands payable b14: Type of loan(8) Purpose of loan (11) Type of mortgage(13) , srl 99 (total)
+. use "${r_input}\Visit 1_Block 14",clear
+
+. drop if b14_q1 == "99" //drop the total amount
+(73,266 observations deleted)
+
+. 
+. *debt
+. gen debt = b14_q17
+(47,671 missing values generated)
+
+. gen b14 = debt
+(47,671 missing values generated)
+
+. 
+. *loan purpose
+. gen loan_purpose = b14_q11
+(4 missing values generated)
+
+. gen hous_loan = (b14_q11 == "11")*debt
+(47,671 missing values generated)
+
+. 
+. *credit agency
+. gen credit_agency = b14_q6
+(1 missing value generated)
+
+. 
+. destring(b14_q6),replace
+b14_q6: all characters numeric; replaced as byte
+(1 missing value generated)
+
+. gen credit_formal = (!inrange(b14_q6,12,17)& b14_q6!=9)*debt
+(47,671 missing values generated)
+
+. 
+. *mortgage
+. gen mortgage_type = b14_q13
+(7 missing values generated)
+
+. gen has_mortgage =  (b14_q13 != "4")*debt
+(47,671 missing values generated)
+
+. 
+. *borrowed amount
+. gen br_amount = b14_q5
+(1 missing value generated)
+
+. 
+. *aggregate at household level. *** When you collapse, check if any HH has two housing loans - we don't want to combine them. In fact we 
+> should try and do all this in file 03_Mortgage so we can keep file 01 clean while we play around with this data
+. collapse (sum) hous_loan (sum) credit_formal (sum) has_mortgage  (sum) br_amount (sum) debt,by(HHID)
+
+. label var hous_loan "loan with purpose on housing"
+
+. label var has_mortgage "loan with mortgage"
+
+. 
+. save "${r_output}\b14",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b14.dta saved
+
+. 
+. *Debt: kind of loan payable b15 col 11: housing 11
+. use "${r_input}\Visit 1_Block 15_kind loans payable by the household.dta",replace
+
+. save "${r_output}\b15",replace //late housing info
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b15.dta saved
+
+. 
+. 
+. 
+. *******merge to master data******************************
+. use "${r_output}\b2",clear
+
+. local flist "b3 b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2 b4"
+
+. 
+. foreach f of local flist{
+  2. merge 1:1 HHID using "${r_output}/`f'"
+  3. drop _merge
+  4. }
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           110,800  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        37,081
+        from master                    37,081  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            73,719  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       104,025
+        from master                   104,025  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             6,775  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         9,388
+        from master                     9,388  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                           101,412  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       106,964
+        from master                   106,964  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             3,836  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        86,248
+        from master                    86,248  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            24,552  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        62,530
+        from master                    62,530  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            48,270  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        39,051
+        from master                    39,051  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            71,749  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        66,393
+        from master                    66,393  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            44,407  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        15,312
+        from master                    15,312  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            95,488  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        43,053
+        from master                    43,053  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            67,747  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        76,583
+        from master                    76,583  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            34,217  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           110,800  (_merge==3)
+    -----------------------------------------
+
+. 
+. /*
+> foreach var in land_r land_u building_all livestock trspt agri non_farm shares fin_other fin_gold fin_rec {
+> replace `var' = 0 if mi(`var')
+> } 
+> */
+.  
+. qui compress
+
+. save "${r_output}\NSS70_All",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\NSS70_All.dta saved
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. ****************************************************************************
+. * Description: Import NSS70 from Raw Files and save dta to Output Folder
+. * Date: Oct 16, 2020
+. * Version 1.2
+. * Last Editor: Aline
+. ****************************************************************************
+. 
+. ****************************************************************************
+. clear 
+
+. clear matrix
+
+. ****************************************************************************
+. 
+. ****************************************************************************
+. * Determine Whose Machine is running the code and set the global directory
+. ****************************************************************************
+. if "`c(username)'" == "wb308830" local pc = 0
+
+. if "`c(username)'" != "wb308830" local pc = 1
+
+. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 70"
+
+. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70"
+
+. 
+. di "$root"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70
+
+. global r_input "${root}\Raw Data & Dictionaries"
+
+. di "${r_input}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries
+
+. global r_output "${root}\Data Output Files"
+
+. 
+. ****************************************************************************
+. *gen date of survey 
+. use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
+
+. gen month = real(substr(Survey_Date,3,2))
+
+. gen year = 2013 //there's 2017 and 2019 should be mistake
+
+. 
+. gen date_survey = ym(year,month)
+
+. format date_survey %tmMCY
+
+. 
+. keep HHID date_survey
+
+. save "${r_output}\b2",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b2.dta saved
+
+. 
+. 
+. *gen id, wgt (hhwgt, popwgt) b3
+. use "${r_input}\Visit 1_Block 3_Household Characteristics.dta",clear
+
+. 
+. rename (b3q1 Sector) (hhsize sector)
+
+. //gen hhwgt = MLT 
+. gen hhwgt = Weight_SS 
+
+. 
+. destring(hhsize),replace
+hhsize: all characters numeric; replaced as byte
+
+. gen pwgt = hhwgt * hhsize
+
+. 
+. destring(sector), replace
+sector: all characters numeric; replaced as byte
+
+. gen urban = sector - 1
+
+. keep HHID hhwgt pwgt hhsize sector urban Weight_SS Weight_SC
+
+. save "${r_output}\b3",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b3.dta saved
+
+. 
+. *gender from b4 (4)
+. use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household members.dta",clear
+
+. *Keep head 
+. keep if b4q1 == "01" // keep heads only 
+(408,795 observations deleted)
+
+. ren b4q5 head_age 
+
+. ren  b4q4 head_gender 
+
+. destring head_gender, replace
+head_gender: all characters numeric; replaced as byte
+
+. label define gender 1 "Male" 2 "Female"
+
+. label values head_gender gender 
+
+. keep HHID head_age head_gender
+
+. save "${r_output}\b4",replace //later gender info
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b4.dta saved
+
+. 
+. *Asset non_finï¼š land from b5.1 & b5.2 (rural & urban) srl 99
+. use "${r_input}\Visit 1_Block 5pt1_Details of land owned by the household as on 30.06.12.dta",clear
+
+. sum b5_1_6
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      b5_1_6 |    223,958    630116.4     2835074          0   2.49e+08
+
+. rename State state
+
+. 
+. egen double land_r = sum(b5_1_6*(b5_1_1 == "99")), by(HHID)
+
+. egen double land_r_man = sum(b5_1_6*(b5_1_1 != "99")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(156,468 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if land_r > land_r_man
+  0
+
+. count if land_r < land_r_man
+  15
+
+. 
+. drop land_r
+
+. rename land_r_man land_r
+
+. 
+. keep HHID land_r
+
+. save "${r_output}\b5_1",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b5_1.dta saved
+
+. 
+. use "${r_input}\Visit 1_Block 5pt2_Details of land owned by the household as on 30.06.12.dta",clear
+
+. count if b5_2_6 < 0
+  2
+
+. replace b5_2_6 = . if b5_2_6 < 0
+(2 real changes made, 2 to missing)
+
+. 
+. egen double land_u = sum(b5_2_6*(b5_2_1 == "99")), by(HHID)
+
+. egen double land_u_man = sum(b5_2_6*(b5_2_1 != "99")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(41,892 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if land_u > land_u_man
+  0
+
+. count if land_u < land_u_man
+  16
+
+. 
+. drop land_u
+
+. rename land_u_man land_u
+
+. 
+. keep HHID land_u
+
+. save "${r_output}\b5_2",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b5_2.dta saved
+
+. 
+. 
+. 
+. *Asset non_fin: building and constructions b6 srl 11
+. use "${r_input}\Visit 1_Block 6_Buildings and other constructions owned by the household as on 30.06.2012.dta",clear
+
+. sum b6_q6
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       b6_q6 |    244,737    479786.6     8839515          0   1.85e+09
+
+. 
+. egen double building_all = sum(b6_q6*(b6_q3 == "11")), by(HHID)
+
+. egen double building_all_man = sum(b6_q6*(b6_q3 != "11")),  by(HHID)
+
+. egen double building_resid = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
+
+. 
+. duplicates drop HHID,  force
+
+Duplicates in terms of HHID
+
+(149,298 observations deleted)
+
+. 
+. keep HHID building_all* building_resid 
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if building_resid > building_all
+  2
+
+. count if building_resid > building_all_man
+  0
+
+. 
+. drop building_all
+
+. ren building_all_man building_all
+
+. 
+. save "${r_output}\b6",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b6.dta saved
+
+. 
+. *Asset non_fin: livestock and poultry b7 srl 22 
+. use "${r_input}\Visit 1_Block 7_Livestock and poultry owned by the household on 30.06.2012.dta",clear
+
+. destring b7_q2,replace
+b7_q2: all characters numeric; replaced as byte
+
+. sum b7_q5
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       b7_q5 |    176,881    23115.77    42294.12          0    2590000
+
+. 
+. egen double livestock = sum(b7_q5*(b7_q2 == 22)), by(HHID)
+
+. egen double livestock_man = sum(b7_q5*(inrange(b7_q2,17,21))), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(132,557 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if livestock > livestock_man
+  0
+
+. count if livestock < livestock_man
+  14
+
+. 
+. drop livestock
+
+. rename livestock_man livestock
+
+. 
+. keep HHID livestock
+
+. save "${r_output}\b7",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b7.dta saved
+
+. 
+. *Asset non_fin: transport equipment b8: srl 8
+. use "${r_input}\Visit 1_Block 8_Transport equipment owned by the household on 30.06.2012.dta",clear
+
+. sum b8_q5
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       b8_q5 |    166,428    64309.42      250881          0   2.07e+07
+
+. 
+. egen double trspt = sum(b8_q5*(b8_q2 == "08")), by(HHID)
+
+. egen double trspt_man = sum(b8_q5*(b8_q2 != "08")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(94,706 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if trspt > trspt_man
+  0
+
+. count if trspt < trspt_man
+  9
+
+. 
+. drop trspt
+
+. rename trspt_man trspt
+
+. 
+. keep HHID trspt
+
+. save "${r_output}\b8",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b8.dta saved
+
+. 
+. *Asset non_fin: agricultural machinery and implements b9: srl 8 
+. use "${r_input}\Visit 1_Block 9_Agricultural machinery and implements owned by the household on 30.06.2012.dta",clear
+
+. sum b9_q4
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       b9_q4 |    120,458    7046.966    42346.08         10    7700000
+
+. 
+. egen double agri = sum(b9_q4*(b9_q2 == "8")), by(HHID)
+
+. egen double agri_man = sum(b9_q4*(b9_q2 != "8")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(72,196 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if agri > agri_man
+  0
+
+. count if agri < agri_man
+  2
+
+. 
+. drop agri
+
+. rename agri_man agri
+
+. 
+. keep HHID agri
+
+. save "${r_output}\b9",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b9.dta saved
+
+. 
+. *Asset non_fin: non-farm business equipment b10 srl 15
+. use "${r_input}\Visit 1_Block 10_Non-farm business equipment owned by the household as on 30.06.2012.dta",clear
+
+. destring b10_q2,replace
+b10_q2: all characters numeric; replaced as byte
+
+. sum b10_q3 //issue with raw-data.
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      b10_q3 |        119           0           0          0          0
+
+. 
+. egen double non_farm = sum(b10_q3*(b10_q2 == 15)), by(HHID)
+
+. egen double non_farm_man = sum(b10_q3*inrange(b10_q2,12,14)), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(60,778 observations deleted)
+
+. 
+. *Check the manual (man) sum with survey sum
+. count if non_farm > non_farm_man
+  0
+
+. count if non_farm < non_farm_man
+  0
+
+. 
+. drop non_farm_man
+
+. keep HHID non_farm
+
+. save "${r_output}\b10",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b10.dta saved
+
+. 
+. *Asset fin: shares & debentures b11 
+. use "${r_input}\Visit 1_Block 11_ Shares and debentures owned by the household in co-operative  societies & companies as on 30.06.2012 .
+> dta",clear
+
+. 
+.  *Check the manual (man) sum with survey sum
+.   preserve
+
+.   egen double shares = sum(b11_q6*(b11_q1 == "5")), by(HHID)
+
+.   egen double shares_man = sum(b11_q6*(b11_q1 != "5")), by(HHID)
+
+.   duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(3,949 observations deleted)
+
+.   count if shares > shares_man
+  0
+
+.   count if shares < shares_man
+  0
+
+.   restore 
+
+. 
+. sum b11_q6 if b11_q1 != "5" 
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      b11_q6 |      3,931    44989.44    324279.8     -50000   1.00e+07
+
+. replace b11_q6 = . if b11_q6<0 //filter out the non-negative colums. 
+(23 real changes made, 23 to missing)
+
+. egen double shares = sum(b11_q6*(b11_q1 == "5")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(3,949 observations deleted)
+
+. 
+. keep HHID shares
+
+. save "${r_output}\b11",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b11.dta saved
+
+. 
+. *Asset fin: other financial assets b12 srl 11 
+. use "${r_input}\Visit 1_Block 12_Financial assets other than shares and debentures owned by the household as on 30.06.2012.dta",clear
+
+. 
+. destring b12_q1,replace
+b12_q1: all characters numeric; replaced as byte
+
+. count if b12_q3 < 0 
+  1
+
+. replace b12_q3 = . if b12_q3 <0
+(1 real change made, 1 to missing)
+
+. 
+. egen double gold = sum(b12_q3*(b12_q1 == 12)), by(HHID)
+
+. egen double fin_retire = sum(b12_q3*(b12_q1 == 6)), by(HHID) //retirement account
+
+. egen double fin_other = sum(b12_q3*(b12_q1 == 11)), by(HHID)
+
+. egen double fin_other_man = sum(b12_q3*(inrange(b12_q1,1,7)| b12_q1 == 10)), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(265,456 observations deleted)
+
+.   
+.   *Check the manual (man) sum with survey sum
+.   count if fin_other > fin_other_man
+  0
+
+.   count if fin_other < fin_other_man
+  40
+
+.  
+. drop fin_other
+
+. ren fin_other_man fin_other
+
+. keep HHID fin_other gold fin_retire
+
+. save "${r_output}\b12",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b12.dta saved
+
+. 
+. *Asset fin: amount receivable b13 (mortgage srl 1, total srl 7)
+. use "${r_input}\Visit 1_Block 13_Amount receivable by the household against different heads as on 30.06.2012.dta",clear
+
+. sum b13_q4
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      b13_q4 |     13,807    63848.05    419515.8          0   2.00e+07
+
+. 
+. egen double fin_rec = sum(b13_q4*(b13_q2 == "7")), by(HHID)
+
+. egen double fin_rec_man = sum(b13_q4*(b13_q2 != "7")), by(HHID)
+
+. duplicates drop HHID, force
+
+Duplicates in terms of HHID
+
+(7,033 observations deleted)
+
+. 
+.   *Check the manual (man) sum with survey sum
+.   count if fin_rec > fin_rec_man
+  0
+
+.   count if fin_rec < fin_rec_man
+  2
+
+.  
+. drop fin_rec
+
+. ren fin_rec_man fin_rec
+
+. keep HHID fin_rec
+
+. save "${r_output}\b13",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b13.dta saved
+
+. 
+. *Debt: cash loands payable b14: Type of loan(8) Purpose of loan (11) Type of mortgage(13) , srl 99 (total)
+. use "${r_input}\Visit 1_Block 14",clear
+
+. drop if b14_q1 == "99" //drop the total amount
+(73,266 observations deleted)
+
+. 
+. *debt
+. gen debt = b14_q17
+(47,671 missing values generated)
+
+. gen b14 = debt
+(47,671 missing values generated)
+
+. 
+. *loan purpose
+. gen loan_purpose = b14_q11
+(4 missing values generated)
+
+. gen hous_loan = (b14_q11 == "11")*debt
+(47,671 missing values generated)
+
+. 
+. *credit agency
+. gen credit_agency = b14_q6
+(1 missing value generated)
+
+. 
+. destring(b14_q6),replace
+b14_q6: all characters numeric; replaced as byte
+(1 missing value generated)
+
+. gen credit_formal = (!inrange(b14_q6,12,17)& b14_q6!=9)*debt
+(47,671 missing values generated)
+
+. 
+. *mortgage
+. gen mortgage_type = b14_q13
+(7 missing values generated)
+
+. gen has_mortgage =  (b14_q13 != "4")*debt
+(47,671 missing values generated)
+
+. 
+. *borrowed amount
+. gen br_amount = b14_q5
+(1 missing value generated)
+
+. 
+. *aggregate at household level. *** When you collapse, check if any HH has two housing loans - we don't want to combine them. In fact we 
+> should try and do all this in file 03_Mortgage so we can keep file 01 clean while we play around with this data
+. collapse (sum) hous_loan (sum) credit_formal (sum) has_mortgage  (sum) br_amount (sum) debt,by(HHID)
+
+. label var hous_loan "loan with purpose on housing"
+
+. label var has_mortgage "loan with mortgage"
+
+. 
+. save "${r_output}\b14",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b14.dta saved
+
+. 
+. *Debt: kind of loan payable b15 col 11: housing 11
+. use "${r_input}\Visit 1_Block 15_kind loans payable by the household.dta",replace
+
+. save "${r_output}\b15",replace //late housing info
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b15.dta saved
+
+. 
+. 
+. 
+. *******merge to master data******************************
+. use "${r_output}\b2",clear
+
+. local flist "b3 b14 b13 b12 b11 b10 b9 b8 b7 b6 b5_1 b5_2 b4"
+
+. 
+. foreach f of local flist{
+  2. merge 1:1 HHID using "${r_output}/`f'"
+  3. drop _merge
+  4. }
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           110,800  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        37,081
+        from master                    37,081  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            73,719  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       104,025
+        from master                   104,025  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             6,775  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         9,388
+        from master                     9,388  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                           101,412  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       106,964
+        from master                   106,964  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             3,836  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        86,248
+        from master                    86,248  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            24,552  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        62,530
+        from master                    62,530  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            48,270  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        39,051
+        from master                    39,051  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            71,749  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        66,393
+        from master                    66,393  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            44,407  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        15,312
+        from master                    15,312  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            95,488  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        43,053
+        from master                    43,053  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            67,747  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        76,583
+        from master                    76,583  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            34,217  (_merge==3)
+    -----------------------------------------
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           110,800  (_merge==3)
+    -----------------------------------------
+
+. 
+. /*
+> foreach var in land_r land_u building_all livestock trspt agri non_farm shares fin_other fin_gold fin_rec {
+> replace `var' = 0 if mi(`var')
+> } 
+> */
+.  
+. qui compress
+
+. save "${r_output}\NSS70_All",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\NSS70_All.dta saved
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2a4c_000000.tmp"
+
+. use "${root}\Data Output Files\NSS70_All.dta",clear
+
+. 
+. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
+
+. 
+. egen double durable_other = rowtotal(livestock trspt agri non_farm)
+
+. 
+. egen double real_estate = rowtotal(building_resid land_r land_u)
+
+. 
+. egen double asset_non_fin = rowtotal(real_estate gold durable_other)
+
+. 
+. egen double asset_fin = rowtotal(shares fin_other fin_rec)
+
+. replace asset_fin = asset_fin - fin_retire
+(21,610 real changes made, 9,388 to missing)
 
 . 
 . gen double wealth = asset - debt
@@ -49,14 +2778,14 @@ building_r~d |     95,488    568308.2     9849675          0   1.85e+09
 
 . 
 . ****************************************************************************
-. * Asset allocation on 
-. * real_estate (77%), durable good (7%), gold (11%)
+. * Asset allocation
 . ****************************************************************************
 . keep if head_age >= 24
 (2,266 observations deleted)
 
 . 
 . **share of real estate on 
+. * real_estate (77%), durable good (7%), gold (11%)
 . gen re_share = real_estate/asset
 (672 missing values generated)
 
@@ -92,394 +2821,25 @@ building_r~d |     95,488    568308.2     9849675          0   1.85e+09
     gl_share |  99,903  1.9011e+09    .1094104   .1952706          0          1
 
 . 
-. **residential building ownership
-. codebook building_resid 
+. ** USE TABLE 1 to try and match mean and median of assets. Paper has Mean of 1,581,228 and Median of 501,880
+. *Unweighted 
+. tabstat asset, s(mean p50) format("%9.0fc") // 1,813,187   602,800
 
--------------------------------------------------------------------------------------------------------------------------
-building_resid                                                                                                (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
+    variable |      mean       p50
+-------------+--------------------
+       asset | 1,813,187   602,800
+----------------------------------
 
-                  type:  numeric (long)
+. *Weighted
+. tabstat asset real_estate durable_other gold fin_retire asset_fin [aw=hhwgt], s(mean p50) format("%9.0fc") // 1,561,322 
+>   490,570
 
-                 range:  [0,1.850e+09]                units:  1
-         unique values:  4,435                    missing .:  13,971/108,534
-
-                  mean:    571998
-              std. dev:   9.9e+06
-
-           percentiles:        10%       25%       50%       75%       90%
-                             36100     75000    180000    450000   1.0e+06
-
-. 
-. gen legal_own = (building_resid > 0)
-
-. replace legal_own = 0 if mi(building_resid) //treat missing as household do not own real estate assets.
-(13,971 real changes made)
+   stats |     asset  real_e~e  durabl~r      gold  fin_re~e  as~t_fin
+---------+------------------------------------------------------------
+    mean | 1,561,322 1,372,546    50,171    63,913    17,837    40,160
+     p50 |   490,570   396,195     9,000    25,000         0     3,000
+----------------------------------------------------------------------
 
 . 
-. bysort urban: sum legal_own [aw = hhwgt],de 
+end of do-file
 
--------------------------------------------------------------------------------------------------------------------------
--> urban = 0
-
-                          legal_own
--------------------------------------------------------------
-      Percentiles      Smallest
- 1%            0              0
- 5%            0              0
-10%            1              0       Obs              61,217
-25%            1              0       Sum of Wgt.   303555500
-
-50%            1                      Mean           .9487511
-                        Largest       Std. Dev.      .2205068
-75%            1              1
-90%            1              1       Variance       .0486233
-95%            1              1       Skewness      -4.070211
-99%            1              1       Kurtosis       17.56662
-
--------------------------------------------------------------------------------------------------------------------------
--> urban = 1
-
-                          legal_own
--------------------------------------------------------------
-      Percentiles      Smallest
- 1%            0              0
- 5%            0              0
-10%            0              0       Obs              47,317
-25%            0              0       Sum of Wgt.   155093220
-
-50%            1                      Mean           .6909342
-                        Largest       Std. Dev.      .4621132
-75%            1              1
-90%            1              1       Variance       .2135486
-95%            1              1       Skewness      -.8263613
-99%            1              1       Kurtosis       1.682873
-
-
-. 
-. ****************************************************************************
-. * Liabilitiy allocation on 
-. * gold (4%), unsecured loan (55%), mortgage loan (23%)
-. ****************************************************************************
-. use "${r_input}\Visit 1_Block 14",clear
-
-. 
-. *debt -- paper says liabilities on date of survey. pp16: "Panel A of Figure 2 reports the average allocation of liabili
-> ties across all households that carry a positive amount of debt at the date of the survey."
-. gen debt = b14_q17 // 17 is on 30.06.2012
-(74,953 missing values generated)
-
-. sum debt,de
-
-                            debt
--------------------------------------------------------------
-      Percentiles      Smallest
- 1%            0              0
- 5%         4200              0
-10%         7420              0       Obs             108,756
-25%        17990              0       Sum of Wgt.     108,756
-
-50%        48800                      Mean           169114.3
-                        Largest       Std. Dev.      931886.7
-75%       140000       4.00e+07
-90%       371695       4.00e+07       Variance       8.68e+11
-95%       638480       1.83e+08       Skewness       142.1036
-99%      1900207       1.83e+08       Kurtosis       27330.57
-
-. 
-. *in paper: keep households with total liability >0 
-. gen temp_debt =  (b14_q1 == "99")*debt
-(74,953 missing values generated)
-
-. egen double total_debt = sum(temp_debt), by(HHID)
-
-. drop temp_debt
-
-. 
-. gen temp_debt =  (b14_q1 != "99")*debt
-(74,953 missing values generated)
-
-. egen double total_debt_m = sum(temp_debt),by(HHID)
-
-. drop temp_debt
-
-. 
-. gen temp_debt_todt = (b14_q1 == "99")*b14_q16 //to date of survey the total debt. 
-(2,415 missing values generated)
-
-. egen double total_debt_todt = sum(temp_debt_todt ), by(HHID)
-
-. drop temp_debt_todt
-
-. 
-. count if total_debt > total_debt_m
-  0
-
-. count if total_debt < total_debt_m // manual has 568 observations where it is larger 
-  542
-
-. 
-. tab b14_q1
-
- Serial no. |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         01 |     73,719       40.13       40.13
-         02 |     21,945       11.95       52.07
-         03 |      8,024        4.37       56.44
-         04 |      3,600        1.96       58.40
-         05 |      1,514        0.82       59.23
-         06 |        705        0.38       59.61
-         07 |        380        0.21       59.82
-         08 |        212        0.12       59.93
-         09 |        117        0.06       59.99
-         10 |         73        0.04       60.03
-         11 |         45        0.02       60.06
-         12 |         33        0.02       60.08
-         13 |         19        0.01       60.09
-         14 |         13        0.01       60.09
-         15 |         11        0.01       60.10
-         16 |         10        0.01       60.11
-         17 |          8        0.00       60.11
-         18 |          4        0.00       60.11
-         19 |          3        0.00       60.11
-         20 |          3        0.00       60.12
-         21 |          1        0.00       60.12
-         22 |          1        0.00       60.12
-         23 |          1        0.00       60.12
-         24 |          1        0.00       60.12
-         25 |          1        0.00       60.12
-         99 |     73,266       39.88      100.00
-------------+-----------------------------------
-      Total |    183,709      100.00
-
-. sort HHID
-
-. br HHID b14* if total_debt == total_debt_m //there are hosueholds with no total liability coded.  
-
-. 
-. *need to use the 99 total and not the manual to match the paper 
-. *drop total_debt
-. *rename total_debt_m total_debt 
-. 
-. *generate share of gold loan, unsecured debt
-. gen gold_loan = (b14_q12 == "05")*debt
-(74,953 missing values generated)
-
-. gen unsecure_loan = (b14_q12 == "10")*debt
-(74,953 missing values generated)
-
-. gen mrtg_loan = (inlist(b14_q12,"03","04"))*debt
-(74,953 missing values generated)
-
-. 
-. *collapse at household level. 
-. 
-. foreach type in gold_loan unsecure_loan mrtg_loan { 
-  2. egen double total_`type' = sum(`type'), by(HHID)
-  3. } 
-
-. keep HHID total*
-
-. bys HHID: keep if _n == 1 // keep only one observation for each HH
-(109,989 observations deleted)
-
-.  
-. *merge with households information
-. merge 1:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
-
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        37,080
-        from master                         0  (_merge==1)
-        from using                     37,080  (_merge==2)
-
-    matched                            73,720  (_merge==3)
-    -----------------------------------------
-
-. 
-. *in paper: keep households with head older than 24.
-. keep if head_age >= 24
-(2,266 observations deleted)
-
-. keep if total_debt_todt > 0 & !mi(total_debt_todt) //the date of survey liability is positive. 
-(36,948 observations deleted)
-
-. 
-. *generate share of gold loan on total liability
-. gen double gold_loan_share = total_gold_loan/total_debt
-(27,177 missing values generated)
-
-. gen double unsecure_share = total_unsecure_loan/total_debt
-(27,177 missing values generated)
-
-. gen mrtg_loan_share = total_mrtg_loan/total_debt
-(27,177 missing values generated)
-
-. 
-. *Need to match 4%, 55% and 23%
-. sum gold_loan_share unsecure_share mrtg_loan_share [aw = pwgt] 
-
-    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
--------------+-----------------------------------------------------------------
-gold_loan_~e |  44,409   626127839    .0693761   .2374889          0          1
-unsecure_s~e |  44,409   626127839    .5598109   .4748745          0          1
-mrtg_loan_~e |  44,409   626127839    .2351137   .4058646          0          1
-
-. sum gold_loan_share unsecure_share mrtg_loan_share [aw = hhwgt]
-
-    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
--------------+-----------------------------------------------------------------
-gold_loan_~e |  44,409   130553605    .0777094   .2509872          0          1
-unsecure_s~e |  44,409   130553605    .5567404   .4754202          0          1
-mrtg_loan_~e |  44,409   130553605    .2280975   .4017766          0          1
-
-. sum gold_loan_share unsecure_share mrtg_loan_share 
-
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-gold_loan_~e |     44,409    .0516756    .2087063          0          1
-unsecure_s~e |     44,409    .5390283    .4808403          0          1
-mrtg_loan_~e |     44,409    .2461949    .4160992          0          1
-
-. 
-. 
-. ****************************************************************************
-. * Liabilitiy allocation (value weighted) on 
-. * unsecured and gold (35% written in paper), mortgage loan (46% extract using )
-. ****************************************************************************
-. 
-. use "${r_input}\Visit 1_Block 14",clear
-
-. 
-. *debt 
-. gen debt = b14_q17 // 17 is on 30.06.2012
-(74,953 missing values generated)
-
-. 
-. gen temp_debt_todt = (b14_q1 == "99")*b14_q16 //to date of survey the total debt. 
-(2,415 missing values generated)
-
-. egen double total_debt_todt = sum(temp_debt_todt), by(HHID)
-
-. drop temp_debt_todt
-
-. 
-. *merge with households information
-. merge m:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
-(note: variable debt was float, now double to accommodate using data's values)
-
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        37,080
-        from master                         0  (_merge==1)
-        from using                     37,080  (_merge==2)
-
-    matched                           183,709  (_merge==3)
-    -----------------------------------------
-
-. 
-. *in paper: keep households with head older than 24.
-. drop if b14_q1 == "99"
-(73,266 observations deleted)
-
-. keep if head_age >= 24
-(2,455 observations deleted)
-
-. keep if total_debt_todt > 0 & !mi(total_debt_todt) //the date of survey liability is positive. 
-(37,153 observations deleted)
-
-. 
-. *collapse at liability type.  
-. gen secure_type = b14_q12
-
-. egen double debt_type = sum(debt), by(secure_type)
-
-. 
-. egen double hhwgt_type = sum(hhwgt), by(secure_type)
-
-. egen double pwgt_type = sum(pwgt), by(secure_type)
-
-. 
-. keep secure_type debt_type* pwgt_type hhwgt_type
-
-. bys secure_type: keep if _n == 1 // keep only one observation for each type of loan
-(107,905 observations deleted)
-
-. 
-. egen double temp_hhwgt_total = sum(hhwgt_type)
-
-. replace hhwgt_type = hhwgt_type/temp_hhwgt_total
-(10 real changes made)
-
-. 
-. egen double temp_pwgt_total = sum(pwgt_type)
-
-. replace pwgt_type = pwgt_type/temp_pwgt_total
-(10 real changes made)
-
-. 
-. *stats
-. egen double debt_type_total = sum(debt)
-
-. gen double type_share = debt_type/debt_type_total*100 //not weighted. 
-
-. 
-. egen double debt_type_total_wgt = sum(debt_type*hhwgt_type)
-
-. gen double type_share_wgt = (debt_type*hhwgt_type)/debt_type_total_wgt*100 //weighted uisng household weight. 
-
-. 
-. total(type_share)
-
-Total estimation                  Number of obs   =         10
-
---------------------------------------------------------------
-             |      Total   Std. Err.     [95% Conf. Interval]
--------------+------------------------------------------------
-  type_share |        100   44.01226       .437351    199.5626
---------------------------------------------------------------
-
-. total(type_share_wgt)
-
-Total estimation                  Number of obs   =         10
-
-----------------------------------------------------------------
-               |      Total   Std. Err.     [95% Conf. Interval]
----------------+------------------------------------------------
-type_share_wgt |        100   73.83261     -67.02096     267.021
-----------------------------------------------------------------
-
-. 
-. *match the paper number (not weighted while the paper "Appropriately weighted p15.")
-. total(type_share) if inlist(secure_type,"10","05") //unsecured loan and gold 35%, same as paper stats. (not weighted)
-
-Total estimation                  Number of obs   =          2
-
---------------------------------------------------------------
-             |      Total   Std. Err.     [95% Conf. Interval]
--------------+------------------------------------------------
-  type_share |   35.19074   28.14241     -322.3924    392.7739
---------------------------------------------------------------
-
-. total(type_share) if inlist(secure_type,"03","04") //mortgage loan 49% higher than paper stat at 46% (might be the WbPl
-> ot measure error?) (not weighted)
-
-Total estimation                  Number of obs   =          2
-
---------------------------------------------------------------
-             |      Total   Std. Err.     [95% Conf. Interval]
--------------+------------------------------------------------
-  type_share |   48.78053   30.61227     -340.1853    437.7463
---------------------------------------------------------------
-
-. 
-. keep secure_type type_share type_share_wgt
-
-. 
-. log close
-      name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NSS 70.lo
-> g
-  log type:  text
- closed on:  28 Oct 2020, 06:40:58
--------------------------------------------------------------------------------------------------------------------------

@@ -223,6 +223,7 @@ count if b12_q3 < 0
 replace b12_q3 = . if b12_q3 <0
 
 egen double gold = sum(b12_q3*(b12_q1 == 12)), by(HHID)
+egen double fin_retire = sum(b12_q3*(b12_q1 == 6)), by(HHID) //retirement account
 egen double fin_other = sum(b12_q3*(b12_q1 == 11)), by(HHID)
 egen double fin_other_man = sum(b12_q3*(inrange(b12_q1,1,7)| b12_q1 == 10)), by(HHID)
 duplicates drop HHID, force
@@ -233,7 +234,7 @@ duplicates drop HHID, force
  
 drop fin_other
 ren fin_other_man fin_other
-keep HHID fin_other gold
+keep HHID fin_other gold fin_retire
 save "${r_output}\b12",replace
 
 *Asset fin: amount receivable b13 (mortgage srl 1, total srl 7)

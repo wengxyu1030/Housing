@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Generate a summary table of NSS 70 
-* Date: October 28, 2020
-* Version 1.3
+* Date: Nov 11, 2020
+* Version 1.4
 * Last Editor: Aline 
 ****************************************************************************
 
@@ -31,30 +31,29 @@ log using "${script}\02_Table of Means NSS 70.log",replace
 ****************************************************************************
 use "${root}\Data Output Files\NSS70_All.dta",clear
 
-
 egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
+
 egen double durable_other = rowtotal(livestock trspt agri non_farm)
+
 egen double real_estate = rowtotal(building_resid land_r land_u)
+
+egen double asset_non_fin = rowtotal(real_estate gold durable_other)
+
+egen double asset_fin = rowtotal(shares fin_other fin_rec)
+replace asset_fin = asset_fin - fin_retire
 
 gen double wealth = asset - debt
 gen double wealth_ln = ln(wealth)
 
 sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec building_resid 
 
-** USE TABLE 1 to try and match mean and median of assets. Paper has Mean of 1,581,228 and Median of 501,880
-
-*Unweighted 
-tabstat asset, s(mean p50) format("%9.0fc") // Mean = 1,782,862   Median = 585,225
-tabstat asset [aw=hhwgt], s(mean p50) format("%9.0fc") // Mean = 1,501,012  Median =  459,959
-tabstat asset [aw=pwgt], s(mean p50) format("%9.0fc") // Mean = 1,732,348   Median = 558,622
-
 ****************************************************************************
-* Asset allocation on 
-* real_estate (77%), durable good (7%), gold (11%)
+* Asset allocation
 ****************************************************************************
 keep if head_age >= 24
 
 **share of real estate on 
+* real_estate (77%), durable good (7%), gold (11%)
 gen re_share = real_estate/asset
 gen du_share = durable_other/asset
 gen gl_share = gold / asset
@@ -64,12 +63,14 @@ sum re_share du_share gl_share [aw = hhwgt]
 sum re_share du_share gl_share [aw = pwgt] //gold is 11% closest with paper. 
 
 ** USE TABLE 1 to try and match mean and median of assets. Paper has Mean of 1,581,228 and Median of 501,880
-
 *Unweighted 
 tabstat asset, s(mean p50) format("%9.0fc") // 1,813,187   602,800
 *Weighted
-tabstat asset [aw=hhwgt], s(mean p50) format("%9.0fc") // 1,561,322   490,570
+tabstat asset real_estate durable_other gold fin_retire asset_fin [aw=hhwgt], s(mean p50) format("%9.0fc") // 1,561,322   490,570
 tabstat asset [aw=pwgt], s(mean p50) format("%9.0fc") // 1,754,928   567,775
+
+sum asset real_estate durable_other gold asset_fin [aw=hhwgt],de f // asset, real_estate, durable_other: lower on each quantile compare to table 1. Gold: higher on each quantile. 
+sum asset[aw=pwgt],de f //higher on each quantile compare to table 1. 
 
 **residential building ownership
 codebook building_resid 
@@ -131,16 +132,7 @@ merge 1:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
 
 *in paper: keep households with head older than 24.
 keep if head_age >= 24
-keep if total_debt_todt > 0 & !mi(total_debt_todt) //the date of survey liability is positive. 
-
-** USE TABLE 1 to try and match mean and median of liabilities. Paper has Mean of 180,153 and Median of 51,614
-
-*Unweighted 
-tabstat total_debt_todt, s(mean p50) format("%9.0fc") // 152,686    39,586
-*Weighted
-tabstat total_debt_todt [aw=hhwgt], s(mean p50) format("%9.0fc") // 143,652    40,400
-tabstat total_debt_todt [aw=pwgt], s(mean p50) format("%9.0fc") // 143,273    43,600
-
+keep if total_debt_todt > 0 //the date of survey liability is positive. 
 
 *generate share of gold loan on total liability
 gen double gold_loan_share = total_gold_loan/total_debt
@@ -151,6 +143,14 @@ gen mrtg_loan_share = total_mrtg_loan/total_debt
 sum gold_loan_share unsecure_share mrtg_loan_share [aw = pwgt] 
 sum gold_loan_share unsecure_share mrtg_loan_share [aw = hhwgt]
 sum gold_loan_share unsecure_share mrtg_loan_share 
+
+** USE TABLE 1 to try and match mean and median of liability. Paper has Mean of 180,153 and Median of 51,614
+*Unweighted 
+tabstat total_debt_todt total_debt, s(mean p50) format("%9.0fc") // 152,686    39,586
+*Weighted
+tabstat total_debt_todt total_debt [aw=hhwgt], s(mean p50) format("%9.0fc") // 143,652    40,400
+tabstat total_debt_todt total_debt [aw=pwgt], s(mean p50) format("%9.0fc") // 143,273    43,600
+
 
 
 ****************************************************************************
@@ -193,38 +193,5 @@ egen double debt_total_wt = sum(debt*hhwgt)
 gen debt_share_panel_b_wt = 100 * debt_type_total_wt/ debt_total_wt
 table liability_type, c(mean debt_share_panel_b_wt sd debt_share_panel_b_wt ) format("%9.0f") // get 13, 48 (mortgage), 6, 33 => so gold+unsec = 39
 
-
-/*
-gen secure_type = b14_q12
-egen double debt_type = sum(debt), by(secure_type)
-
-egen double hhwgt_type = sum(hhwgt), by(secure_type)
-egen double pwgt_type = sum(pwgt), by(secure_type)
-
-keep secure_type debt_type* pwgt_type hhwgt_type
-bys secure_type: keep if _n == 1 // keep only one observation for each type of loan
-
-egen double temp_hhwgt_total = sum(hhwgt_type)
-replace hhwgt_type = hhwgt_type/temp_hhwgt_total
-
-egen double temp_pwgt_total = sum(pwgt_type)
-replace pwgt_type = pwgt_type/temp_pwgt_total
-
-*stats
-egen double debt_type_total = sum(debt)
-gen double type_share = debt_type/debt_type_total*100 //not weighted. 
-
-egen double debt_type_total_wgt = sum(debt_type*hhwgt_type)
-gen double type_share_wgt = (debt_type*hhwgt_type)/debt_type_total_wgt*100 //weighted uisng household weight. 
-
-total(type_share)
-total(type_share_wgt)
-
-*match the paper number (not weighted while the paper "Appropriately weighted p15.")
-total(type_share) if inlist(secure_type,"10","05") //unsecured loan and gold 35%, same as paper stats. (not weighted)
-total(type_share) if inlist(secure_type,"03","04") //mortgage loan 49% higher than paper stat at 46% (might be the WbPlot measure error?) (not weighted)
-
-keep secure_type type_share type_share_wgt
-*/
 
 log close
