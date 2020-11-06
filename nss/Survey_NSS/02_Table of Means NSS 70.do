@@ -24,7 +24,7 @@ global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 
-//log using "${script}\02_Table of Means NSS 70.log",replace
+log using "${script}\02_Table of Means NSS 70.log",replace
 
 ****************************************************************************
 * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2797680
@@ -73,6 +73,7 @@ tabstat $asset_table [aw=hhwgt], s(mean p50) format("%9.0fc") // total: 1,561,32
 tabstat $asset_table [aw=pwgt], s(mean p50) format("%9.0fc") // total: 1,754,928   567,775
 
 *write to the matrix
+preserve
 clear matrix
 eststo all: quietly estpost summarize $asset_table  [aw=hhwgt]
 
@@ -92,13 +93,12 @@ matrix rownames m = $asset_table
 matrix colnames m = mean p50
 matrix list m
 
-preserve
 svmat m,names(col)
 keep mean p50
 keep if !mi(mean) | !mi(p50)
 gen name = _n
 save "${r_output}\m_asset",replace
-restore
+
 
 *table 1 data to compare
 import excel "${r_input}\paper_tab_1.xlsx", sheet("Sheet1") firstrow clear
@@ -115,6 +115,9 @@ gen double delta_`v' = (`v' - `v'_tb)/`v'_tb * 100
 format delta_`v' %9.0fc
 }
 
+list
+
+restore
 **residential building ownership
 codebook building_resid 
 
