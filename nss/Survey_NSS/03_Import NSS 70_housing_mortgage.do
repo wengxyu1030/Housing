@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Import NSS70 Secton 14 on housing loan
-* Date: Oct 27, 2020
-* Version 3.0
+* Date: Nov 6, 2020
+* Version 3.1
 * Last Editor: Aline
 ****************************************************************************
 
@@ -68,6 +68,8 @@ tab b14_q2 [aw = Weight_SS]
 *interest rate and type
 gen intst_rate = b14_q10/100/12
 gen intst_type = b14_q9
+sum intst_rate [aw = Weight_SS],de
+replace intst_rate  = . if intst_rate > r(p95)
 
 *loan borrowing date. 
 gen month = real(b14_q2)
@@ -79,6 +81,9 @@ format date_loan %tmMCY
 merge m:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
 gen loan_age = date_survey - date_loan //laon from borrow to date of survey, in month.
 replace loan_age = . if loan_age < 0 
+
+sum loan_age [aw = Weight_SS],de
+replace loan_age  = . if loan_age > r(p99)
 
 *monthly payment. 
 gen date_temp = ym(2012,7)
@@ -97,13 +102,15 @@ sum repay_mt*
 *year estimation 
 forvalues i = 1/2 {
 gen double loan_period_`i'= - ln(1 - mrtg_`i'_borrow *intst_rate * (1/repay_mt_`i')) / ln(1+ intst_rate)
+sum loan_period_`i' [aw = Weight_SS],de
+replace loan_period_`i' = . if loan_period_`i' > r(p99)
 }
 
 sum loan_period_*
 
 *asset and wealth feature (household level)
 egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
-egen double real_estate = rowtotal(building_resid land_r land_u)
+egen double real_estate = rowtotal(building_resid land_r_resid land_u_resid)
 gen double wealth = asset - debt
 
 gen temp_debt =  (b14_q1 == "99")*debt
@@ -165,9 +172,9 @@ mrtg_`i'_re_share mrtg_`i'_debt_share total_mrtg_`i'_dm if real_estate >0 [aw = 
 ***stats: housing value (uint value) quntile and other indicators (scenario) 
 ***********************************************
 use "${r_output}\b14_hse_mortgage",clear
-xtile qtl = real_estate [aw=hhwgt] if mrtg_1_borrow >0, n(5)
+xtile qtl = asset [aw=hhwgt] if mrtg_1_borrow >0, n(5)
 
-table qtl, c(p50 real_estate p50 mrtg_1_borrow p50 loan_period_1 ) format("%9.0f") //by wealth 
-table qtl, c(p50 real_estate p50 mrtg_2_borrow p50 loan_period_2 ) format("%9.0f") 
+table qtl if real_estate > 0 , c(p50 real_estate mean real_estate p50 building_resid_area p50 mrtg_1_borrow p50 loan_period_1 ) format("%9.0fc") 
+table qtl if real_estate > 0 , c(p50 real_estate mean real_estate p50 building_resid_areap 50 mrtg_2_borrow p50 loan_period_2 ) format("%9.0fc") 
 
 log close

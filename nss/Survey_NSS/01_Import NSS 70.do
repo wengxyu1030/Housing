@@ -70,6 +70,7 @@ rename State state
 
 egen double land_r = sum(b5_1_6*(b5_1_1 == "99")), by(HHID)
 egen double land_r_man = sum(b5_1_6*(b5_1_1 != "99")), by(HHID)
+egen double land_r_resid = sum(b5_1_6*(b5_1_1 != "99")*( b5_1_3 == "10")), by(HHID)
 duplicates drop HHID, force
 
 *Check the manual (man) sum with survey sum
@@ -77,9 +78,9 @@ count if land_r > land_r_man
 count if land_r < land_r_man
 
 drop land_r
-rename land_r_man land_r
+rename land_r_man land_r 
 
-keep HHID land_r
+keep HHID land_r land_r_resid
 save "${r_output}\b5_1",replace
 
 use "${r_input}\Visit 1_Block 5pt2_Details of land owned by the household as on 30.06.12.dta",clear
@@ -88,6 +89,7 @@ replace b5_2_6 = . if b5_2_6 < 0
 
 egen double land_u = sum(b5_2_6*(b5_2_1 == "99")), by(HHID)
 egen double land_u_man = sum(b5_2_6*(b5_2_1 != "99")), by(HHID)
+egen double land_u_resid = sum(b5_2_6*(b5_2_1 != "99")*( b5_2_3 == "10")), by(HHID)
 duplicates drop HHID, force
 
 *Check the manual (man) sum with survey sum
@@ -97,7 +99,7 @@ count if land_u < land_u_man
 drop land_u
 rename land_u_man land_u
 
-keep HHID land_u
+keep HHID land_u land_u_resid
 save "${r_output}\b5_2",replace
 
 
@@ -109,17 +111,17 @@ sum b6_q6
 egen double building_all = sum(b6_q6*(b6_q3 == "11")), by(HHID)
 egen double building_all_man = sum(b6_q6*(b6_q3 != "11")),  by(HHID)
 egen double building_resid = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
-
+egen double building_resid_area = sum(b6_q5*(inlist(b6_q3,"01","02","03"))), by(HHID)
 duplicates drop HHID,  force
 
-keep HHID building_all* building_resid 
+keep HHID building_all* building_resid building_resid_area
 
 *Check the manual (man) sum with survey sum
 count if building_resid > building_all
 count if building_resid > building_all_man
 
 drop building_all
-ren building_all_man building_all
+ren building_all_man building_all 
 
 save "${r_output}\b6",replace
 

@@ -1,9 +1,9 @@
--------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_housing_mor
-> tgage.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_h
+> ousing_mortgage.log
   log type:  text
- opened on:  29 Oct 2020, 09:22:34
+ opened on:   6 Nov 2020, 07:57:31
 
 . 
 . use "${r_input}\Visit 1_Block 14",clear
@@ -25,9 +25,9 @@
 . 
 . codebook debt borrow repay
 
--------------------------------------------------------------------------------------------------------------------------
-debt                                                                                                          (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
+debt                                                                                                (unlabeled)
+---------------------------------------------------------------------------------------------------------------
 
                   type:  numeric (float)
 
@@ -40,9 +40,9 @@ debt                                                                            
            percentiles:        10%       25%       50%       75%       90%
                               7000     16000     41400    118000    320000
 
--------------------------------------------------------------------------------------------------------------------------
-borrow                                                                                                        (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
+borrow                                                                                              (unlabeled)
+---------------------------------------------------------------------------------------------------------------
 
                   type:  numeric (float)
 
@@ -55,9 +55,9 @@ borrow                                                                          
            percentiles:        10%       25%       50%       75%       90%
                               5000     10000     30000     87400    250000
 
--------------------------------------------------------------------------------------------------------------------------
-repay                                                                                                         (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
+repay                                                                                               (unlabeled)
+---------------------------------------------------------------------------------------------------------------
 
                   type:  numeric (float)
 
@@ -118,702 +118,8 @@ repay                                                                           
 (4 missing values generated)
 
 . 
-. * (A) Conservative (let's label 1)housing loan with immovable property as secure type: B14_Q11 == 11 & (B14_Q12 == 3 | 
-> B14_Q12 == 4)
-. gen mrtg_1_dm = (loan_purpose == "11" & (secure_type == "04"|secure_type == "03"))
-
-. 
-. * (B) Less conservative (let's label 2) housing loan with mortgage: B14_Q11 == 11 & B14_13 != 4
-. gen mrtg_2_dm = (loan_purpose == "11" & (b14_q13 != "4"& b14_q13 != ""))
-
-. 
-. *houseing mortgage amount
-. foreach var in debt borrow repay {
-  2. gen mrtg_1_`var' = mrtg_1_dm*`var'
-  3. gen mrtg_2_`var' = mrtg_2_dm*`var'
-  4. }
-(47,671 missing values generated)
-(47,671 missing values generated)
-(1 missing value generated)
-(1 missing value generated)
-(43,996 missing values generated)
-(43,996 missing values generated)
-
-. 
-. *aggregate at household level. 
-. egen double debt_total = sum(debt),by(HHID)
-
-. egen double borrow_total = sum(borrow),by(HHID)
-
-. drop debt borrow
-
-. 
-. *** Other laon features
-. tab b14_q3 [aw = Weight_SS]
-
-    Date of |
-borrowing - |
-       year |      Freq.     Percent        Cum.
-------------+-----------------------------------
-       1972 | .068661433        0.00        0.00
-       1973 | .166560667        0.00        0.00
-       1975 | .258793759        0.00        0.00
-       1978 | .172179566        0.00        0.00
-       1979 |  .37915914        0.00        0.00
-       1980 |  .42355915        0.00        0.00
-       1981 | .109710261        0.00        0.00
-       1982 | .206973275        0.00        0.00
-       1983 | .487978062        0.00        0.00
-       1984 | 5.39291459        0.00        0.01
-       1985 | 4.92282315        0.00        0.01
-       1986 | .921260049        0.00        0.01
-       1987 | 2.81837543        0.00        0.01
-       1988 | 4.37699311        0.00        0.02
-       1989 | 11.2401726        0.01        0.03
-       1990 | 12.1221539        0.01        0.04
-       1991 | 1.90042562        0.00        0.04
-       1992 | 24.9979048        0.02        0.06
-       1993 | 22.4553342        0.02        0.08
-       1994 | 22.8229468        0.02        0.11
-       1995 | 32.7070057        0.03        0.13
-       1996 | 35.8474002        0.03        0.17
-       1997 |32.74288922        0.03        0.20
-       1998 | 112.428431        0.10        0.30
-       1999 | 89.8188925        0.08        0.38
-       2000 | 217.964276        0.20        0.58
-       2001 |  193.72347        0.18        0.75
-       2002 | 270.489796        0.24        1.00
-       2003 | 326.364678        0.30        1.29
-       2004 |472.6414318        0.43        1.72
-       2005 | 777.277254        0.70        2.43
-       2006 | 1,064.5175        0.96        3.39
-       2007 | 1,608.6038        1.46        4.85
-       2008 | 2,797.3929        2.53        7.38
-       2009 | 4,171.3465        3.78       11.16
-       2010 | 8,215.2498        7.44       18.59
-       2011 |  15,592.81       14.12       32.71
-       2012 | 54,426.567       49.28       82.00
-       2013 | 19,884.262       18.00      100.00
-------------+-----------------------------------
-      Total |    110,439      100.00
-
-. tab b14_q2 [aw = Weight_SS]
-
-    Date of |
-borrowing - |
-      month |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         01 |  11,816.98       10.70       10.70
-         02 | 10,230.102        9.26       19.96
-         03 | 10,607.117        9.61       29.57
-         04 | 12,278.078       11.12       40.69
-         05 | 11,572.801       10.48       51.17
-         06 | 11,191.734       10.13       61.30
-         07 |8,320.24461        7.53       68.84
-         08 | 9,180.2643        8.31       77.15
-         09 | 5,802.3886        5.25       82.40
-         10 | 6,636.2567        6.01       88.41
-         11 | 6,369.0017        5.77       94.18
-         12 | 6,428.0317        5.82      100.00
-------------+-----------------------------------
-      Total |    110,433      100.00
-
-. 
-. *interest rate and type
-. gen intst_rate = b14_q10
-(539 missing values generated)
-
-. gen intst_type = b14_q9
-(34 missing values generated)
-
-. 
-. *loan borrowing date. 
-. gen month = real(b14_q2)
-(10 missing values generated)
-
-. gen year = b14_q3
-(4 missing values generated)
-
-. 
-. gen date_loan = ym(year,month)
-(10 missing values generated)
-
-. format date_loan %tmMCY
-
-. 
-. merge m:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
-
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        37,081
-        from master                         0  (_merge==1)
-        from using                     37,081  (_merge==2)
-
-    matched                           110,443  (_merge==3)
-    -----------------------------------------
-
-. gen loan_age = date_survey - date_loan //laon from borrow to date of survey, in month.
-(37,091 missing values generated)
-
-. replace loan_age = . if loan_age < 0 
-(198 real changes made, 198 to missing)
-
-. 
-. *monthly payment. 
-. gen date_temp = ym(2012,7)
-
-. gen pay_mt = date_survey - date_temp
-
-. tab pay_mt 
-
-     pay_mt |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          6 |     18,053       12.24       12.24
-          7 |     22,264       15.09       27.33
-          8 |     23,828       16.15       43.48
-          9 |     20,417       13.84       57.32
-         10 |     23,984       16.26       73.58
-         11 |     22,178       15.03       88.61
-         12 |     16,624       11.27       99.88
-         13 |        130        0.09       99.97
-         14 |         18        0.01       99.98
-         15 |         28        0.02      100.00
-------------+-----------------------------------
-      Total |    147,524      100.00
-
-. 
-end of do-file
-
-. do "C:\Users\wb500886\AppData\Local\Temp\STD5530_000000.tmp"
-
-. clear 
-
-. clear matrix
-
-. ****************************************************************************
-. 
-. ****************************************************************************
-. * Determine Whose Machine is running the code and set the global directory
-. ****************************************************************************
-. if "`c(username)'" == "wb308830" local pc = 0
-
-. if "`c(username)'" != "wb308830" local pc = 1
-
-. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 70"
-
-. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70"
-
-. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
-
-. 
-. di "$root"
-C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70
-
-. global r_input "${root}\Raw Data & Dictionaries"
-
-. di "${r_input}"
-C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries
-
-. global r_output "${root}\Data Output Files"
-
-. 
-. ****************************************************************************
-. log using "${script}\03_Import NSS70_housing_mortgage.log",replace
-log file already open
-r(604);
-
-end of do-file
-
-r(604);
-
-. do "C:\Users\wb500886\AppData\Local\Temp\STD5530_000000.tmp"
-
-. clear 
-
-. clear matrix
-
-. ****************************************************************************
-. 
-. ****************************************************************************
-. * Determine Whose Machine is running the code and set the global directory
-. ****************************************************************************
-. if "`c(username)'" == "wb308830" local pc = 0
-
-. if "`c(username)'" != "wb308830" local pc = 1
-
-. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 70"
-
-. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70"
-
-. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
-
-. 
-. di "$root"
-C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70
-
-. global r_input "${root}\Raw Data & Dictionaries"
-
-. di "${r_input}"
-C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries
-
-. global r_output "${root}\Data Output Files"
-
-. 
-. ****************************************************************************
-. //log using "${script}\03_Import NSS70_housing_mortgage.log",replace
-. 
-. use "${r_input}\Visit 1_Block 14",clear
-
-. drop if b14_q1 == "99" //drop the total amount
-(73,266 observations deleted)
-
-. 
-. *debt, borrowed amount, repay amount.
-. gen debt = b14_q17 //outstanding amout at end of June 2012
-(47,671 missing values generated)
-
-. gen borrow = b14_q5 //original borrowed amount
-(1 missing value generated)
-
-. gen repay = b14_q14 //amount (`) repaid (including interest) during 01.07.2012 to date of survey
-(43,996 missing values generated)
-
-. 
-. codebook debt borrow repay
-
--------------------------------------------------------------------------------------------------------------------------
-debt                                                                                                          (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [0,1.830e+08]                units:  1
-         unique values:  15,092                   missing .:  47,671/110,443
-
-                  mean:    147054
-              std. dev:    856792
-
-           percentiles:        10%       25%       50%       75%       90%
-                              7000     16000     41400    118000    320000
-
--------------------------------------------------------------------------------------------------------------------------
-borrow                                                                                                        (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [150,2.000e+08]              units:  1
-         unique values:  1,398                    missing .:  1/110,443
-
-                  mean:    109220
-              std. dev:    690401
-
-           percentiles:        10%       25%       50%       75%       90%
-                              5000     10000     30000     87400    250000
-
--------------------------------------------------------------------------------------------------------------------------
-repay                                                                                                         (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [0,13000000]                 units:  1
-         unique values:  7,182                    missing .:  43,996/110,443
-
-                  mean:   25914.4
-              std. dev:    100622
-
-           percentiles:        10%       25%       50%       75%       90%
-                                 0       825      6000     22000     60000
-
-. 
-. *** Two housing mortgage definitions 
-. tab b14_q12
-
-    Type of |
-   security |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         01 |      6,806        6.16        6.16
-         02 |      1,577        1.43        7.59
-         03 |      4,251        3.85       11.44
-         04 |     15,648       14.17       25.61
-         05 |      9,400        8.51       34.12
-         06 |      1,018        0.92       35.04
-         07 |        304        0.28       35.32
-         08 |      2,121        1.92       37.24
-         09 |      4,111        3.72       40.96
-         10 |     65,201       59.04      100.00
-------------+-----------------------------------
-      Total |    110,437      100.00
-
-. gen secure_type = b14_q12
-(6 missing values generated)
-
-. 
-. tab b14_q11
-
- Purpose of |
-       loan |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         01 |      6,886        6.24        6.24
-         02 |     13,660       12.37       18.60
-         03 |      6,167        5.58       24.19
-         04 |      4,227        3.83       28.02
-         05 |         66        0.06       28.08
-         06 |      1,876        1.70       29.77
-         07 |        200        0.18       29.95
-         08 |      3,707        3.36       33.31
-         09 |      7,998        7.24       40.55
-         10 |     10,068        9.12       49.67
-         11 |     17,313       15.68       65.35
-         12 |     38,271       34.65      100.00
-------------+-----------------------------------
-      Total |    110,439      100.00
-
-. gen loan_purpose = b14_q11
-(4 missing values generated)
-
-. 
-. * (A) Conservative (let's label 1)housing loan with immovable property as secure type: B14_Q11 == 11 & (B14_Q12 == 3 | 
-> B14_Q12 == 4)
-. gen mrtg_1_dm = (loan_purpose == "11" & (secure_type == "04"|secure_type == "03"))
-
-. 
-. * (B) Less conservative (let's label 2) housing loan with mortgage: B14_Q11 == 11 & B14_13 != 4
-. gen mrtg_2_dm = (loan_purpose == "11" & (b14_q13 != "4"& b14_q13 != ""))
-
-. 
-. *houseing mortgage amount
-. foreach var in debt borrow repay {
-  2. gen mrtg_1_`var' = mrtg_1_dm*`var'
-  3. gen mrtg_2_`var' = mrtg_2_dm*`var'
-  4. }
-(47,671 missing values generated)
-(47,671 missing values generated)
-(1 missing value generated)
-(1 missing value generated)
-(43,996 missing values generated)
-(43,996 missing values generated)
-
-. 
-. *aggregate at household level. 
-. egen double debt_total = sum(debt),by(HHID)
-
-. egen double borrow_total = sum(borrow),by(HHID)
-
-. drop debt borrow
-
-. 
-. *** Other laon features
-. tab b14_q3 [aw = Weight_SS]
-
-    Date of |
-borrowing - |
-       year |      Freq.     Percent        Cum.
-------------+-----------------------------------
-       1972 | .068661433        0.00        0.00
-       1973 | .166560667        0.00        0.00
-       1975 | .258793759        0.00        0.00
-       1978 | .172179566        0.00        0.00
-       1979 |  .37915914        0.00        0.00
-       1980 |  .42355915        0.00        0.00
-       1981 | .109710261        0.00        0.00
-       1982 | .206973275        0.00        0.00
-       1983 | .487978062        0.00        0.00
-       1984 | 5.39291459        0.00        0.01
-       1985 | 4.92282315        0.00        0.01
-       1986 | .921260049        0.00        0.01
-       1987 | 2.81837543        0.00        0.01
-       1988 | 4.37699311        0.00        0.02
-       1989 | 11.2401726        0.01        0.03
-       1990 | 12.1221539        0.01        0.04
-       1991 | 1.90042562        0.00        0.04
-       1992 | 24.9979048        0.02        0.06
-       1993 | 22.4553342        0.02        0.08
-       1994 | 22.8229468        0.02        0.11
-       1995 | 32.7070057        0.03        0.13
-       1996 | 35.8474002        0.03        0.17
-       1997 |32.74288922        0.03        0.20
-       1998 | 112.428431        0.10        0.30
-       1999 | 89.8188925        0.08        0.38
-       2000 | 217.964276        0.20        0.58
-       2001 |  193.72347        0.18        0.75
-       2002 | 270.489796        0.24        1.00
-       2003 | 326.364678        0.30        1.29
-       2004 |472.6414318        0.43        1.72
-       2005 | 777.277254        0.70        2.43
-       2006 | 1,064.5175        0.96        3.39
-       2007 | 1,608.6038        1.46        4.85
-       2008 | 2,797.3929        2.53        7.38
-       2009 | 4,171.3465        3.78       11.16
-       2010 | 8,215.2498        7.44       18.59
-       2011 |  15,592.81       14.12       32.71
-       2012 | 54,426.567       49.28       82.00
-       2013 | 19,884.262       18.00      100.00
-------------+-----------------------------------
-      Total |    110,439      100.00
-
-. tab b14_q2 [aw = Weight_SS]
-
-    Date of |
-borrowing - |
-      month |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         01 |  11,816.98       10.70       10.70
-         02 | 10,230.102        9.26       19.96
-         03 | 10,607.117        9.61       29.57
-         04 | 12,278.078       11.12       40.69
-         05 | 11,572.801       10.48       51.17
-         06 | 11,191.734       10.13       61.30
-         07 |8,320.24461        7.53       68.84
-         08 | 9,180.2643        8.31       77.15
-         09 | 5,802.3886        5.25       82.40
-         10 | 6,636.2567        6.01       88.41
-         11 | 6,369.0017        5.77       94.18
-         12 | 6,428.0317        5.82      100.00
-------------+-----------------------------------
-      Total |    110,433      100.00
-
-. 
-. *interest rate and type
-. gen intst_rate = b14_q10
-(539 missing values generated)
-
-. gen intst_type = b14_q9
-(34 missing values generated)
-
-. 
-. *loan borrowing date. 
-. gen month = real(b14_q2)
-(10 missing values generated)
-
-. gen year = b14_q3
-(4 missing values generated)
-
-. 
-. gen date_loan = ym(year,month)
-(10 missing values generated)
-
-. format date_loan %tmMCY
-
-. 
-. merge m:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
-
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        37,081
-        from master                         0  (_merge==1)
-        from using                     37,081  (_merge==2)
-
-    matched                           110,443  (_merge==3)
-    -----------------------------------------
-
-. gen loan_age = date_survey - date_loan //laon from borrow to date of survey, in month.
-(37,091 missing values generated)
-
-. replace loan_age = . if loan_age < 0 
-(198 real changes made, 198 to missing)
-
-. 
-. *monthly payment. 
-. gen date_temp = ym(2012,7)
-
-. gen pay_mt = date_survey - date_temp
-
-. drop date_temp
-
-. tab pay_mt 
-
-     pay_mt |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          6 |     18,053       12.24       12.24
-          7 |     22,264       15.09       27.33
-          8 |     23,828       16.15       43.48
-          9 |     20,417       13.84       57.32
-         10 |     23,984       16.26       73.58
-         11 |     22,178       15.03       88.61
-         12 |     16,624       11.27       99.88
-         13 |        130        0.09       99.97
-         14 |         18        0.01       99.98
-         15 |         28        0.02      100.00
-------------+-----------------------------------
-      Total |    147,524      100.00
-
-. 
-. gen repay_mt = pay_mt
-
-. 
-. forvalues i=1/2  {
-  2. gen double epay_mt_`i' = mrtg_`i'_repay/pay_mt
-  3. }
-(81,077 missing values generated)
-(81,077 missing values generated)
-
-. 
-. sum epay_mt*
-
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-   epay_mt_1 |     66,447    621.9818    4556.211          0   249639.2
-   epay_mt_2 |     66,447    708.7756    4940.214          0   249639.2
-
-. 
-end of do-file
-
-. help log
-
-. help ln
-
-. do "C:\Users\wb500886\AppData\Local\Temp\STD5530_000000.tmp"
-
-. clear 
-
-. clear matrix
-
-. ****************************************************************************
-. 
-. ****************************************************************************
-. * Determine Whose Machine is running the code and set the global directory
-. ****************************************************************************
-. if "`c(username)'" == "wb308830" local pc = 0
-
-. if "`c(username)'" != "wb308830" local pc = 1
-
-. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 70"
-
-. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70"
-
-. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
-
-. 
-. di "$root"
-C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70
-
-. global r_input "${root}\Raw Data & Dictionaries"
-
-. di "${r_input}"
-C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries
-
-. global r_output "${root}\Data Output Files"
-
-. 
-. ****************************************************************************
-. //log using "${script}\03_Import NSS70_housing_mortgage.log",replace
-. 
-. use "${r_input}\Visit 1_Block 14",clear
-
-. drop if b14_q1 == "99" //drop the total amount
-(73,266 observations deleted)
-
-. 
-. *debt, borrowed amount, repay amount.
-. gen debt = b14_q17 //outstanding amout at end of June 2012
-(47,671 missing values generated)
-
-. gen borrow = b14_q5 //original borrowed amount
-(1 missing value generated)
-
-. gen repay = b14_q14 //amount (`) repaid (including interest) during 01.07.2012 to date of survey
-(43,996 missing values generated)
-
-. 
-. codebook debt borrow repay
-
--------------------------------------------------------------------------------------------------------------------------
-debt                                                                                                          (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [0,1.830e+08]                units:  1
-         unique values:  15,092                   missing .:  47,671/110,443
-
-                  mean:    147054
-              std. dev:    856792
-
-           percentiles:        10%       25%       50%       75%       90%
-                              7000     16000     41400    118000    320000
-
--------------------------------------------------------------------------------------------------------------------------
-borrow                                                                                                        (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [150,2.000e+08]              units:  1
-         unique values:  1,398                    missing .:  1/110,443
-
-                  mean:    109220
-              std. dev:    690401
-
-           percentiles:        10%       25%       50%       75%       90%
-                              5000     10000     30000     87400    250000
-
--------------------------------------------------------------------------------------------------------------------------
-repay                                                                                                         (unlabeled)
--------------------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [0,13000000]                 units:  1
-         unique values:  7,182                    missing .:  43,996/110,443
-
-                  mean:   25914.4
-              std. dev:    100622
-
-           percentiles:        10%       25%       50%       75%       90%
-                                 0       825      6000     22000     60000
-
-. 
-. *** Two housing mortgage definitions 
-. tab b14_q12
-
-    Type of |
-   security |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         01 |      6,806        6.16        6.16
-         02 |      1,577        1.43        7.59
-         03 |      4,251        3.85       11.44
-         04 |     15,648       14.17       25.61
-         05 |      9,400        8.51       34.12
-         06 |      1,018        0.92       35.04
-         07 |        304        0.28       35.32
-         08 |      2,121        1.92       37.24
-         09 |      4,111        3.72       40.96
-         10 |     65,201       59.04      100.00
-------------+-----------------------------------
-      Total |    110,437      100.00
-
-. gen secure_type = b14_q12
-(6 missing values generated)
-
-. 
-. tab b14_q11
-
- Purpose of |
-       loan |      Freq.     Percent        Cum.
-------------+-----------------------------------
-         01 |      6,886        6.24        6.24
-         02 |     13,660       12.37       18.60
-         03 |      6,167        5.58       24.19
-         04 |      4,227        3.83       28.02
-         05 |         66        0.06       28.08
-         06 |      1,876        1.70       29.77
-         07 |        200        0.18       29.95
-         08 |      3,707        3.36       33.31
-         09 |      7,998        7.24       40.55
-         10 |     10,068        9.12       49.67
-         11 |     17,313       15.68       65.35
-         12 |     38,271       34.65      100.00
-------------+-----------------------------------
-      Total |    110,439      100.00
-
-. gen loan_purpose = b14_q11
-(4 missing values generated)
-
-. 
-. * (A) Conservative (let's label 1)housing loan with immovable property as secure type: B14_Q11 == 11 & (B14_Q12 == 3 | 
-> B14_Q12 == 4)
+. * (A) Conservative (let's label 1)housing loan with immovable property as secure type: B14_Q11 == 11 & (B14_Q
+> 12 == 3 | B14_Q12 == 4)
 . gen mrtg_1_dm = (loan_purpose == "11" & (secure_type == "04"|secure_type == "03"))
 
 . 
@@ -920,6 +226,26 @@ borrowing - |
 . gen intst_type = b14_q9
 (34 missing values generated)
 
+. sum intst_rate [aw = Weight_SS],de
+
+                         intst_rate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             109,904
+25%         .005              0       Sum of Wgt.   349416471
+
+50%          .01                      Mean           .0152051
+                        Largest       Std. Dev.      .0195639
+75%          .02             .2
+90%          .03             .2       Variance       .0003827
+95%          .05              1       Skewness       71.32512
+99%           .1            4.5       Kurtosis       16004.17
+
+. replace intst_rate  = . if intst_rate > r(p95)
+(1,481 real changes made, 1,481 to missing)
+
 . 
 . *loan borrowing date. 
 . gen month = real(b14_q2)
@@ -951,6 +277,27 @@ borrowing - |
 
 . replace loan_age = . if loan_age < 0 
 (198 real changes made, 198 to missing)
+
+. 
+. sum loan_age [aw = Weight_SS],de
+
+                          loan_age
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            1              0
+10%            2              0       Obs             110,235
+25%            5              0       Sum of Wgt.   350170108
+
+50%           11                      Mean           18.56219
+                        Largest       Std. Dev.      24.56695
+75%           23            421
+90%           44            457       Variance       603.5353
+95%           63            476       Skewness        3.76297
+99%          123            491       Kurtosis       25.40451
+
+. replace loan_age  = . if loan_age > r(p99)
+(1,477 real changes made, 1,477 to missing)
 
 . 
 . *monthly payment. 
@@ -999,38 +346,244 @@ borrowing - |
 . 
 . *year estimation 
 . forvalues i = 1/2 {
-  2. egen loan_period_`i' = ln(repay_mt_`i'/(repay_mt_`i'-intst_rate*mrtg_`i'_borrow))/ln(1+intst_rate)
-  3. }
-unknown egen function ln()
-r(133);
+  2. gen double loan_period_`i'= - ln(1 - mrtg_`i'_borrow *intst_rate * (1/repay_mt_`i')) / ln(1+ intst_rate)
+  3. sum loan_period_`i' [aw = Weight_SS],de
+  4. replace loan_period_`i' = . if loan_period_`i' > r(p99)
+  5. }
+(144,269 missing values generated)
 
-end of do-file
+                        loan_period_1
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      7.53366       2.339866
+ 5%     15.58093       2.729418
+10%     26.20565       3.229259       Obs               3,255
+25%     53.33976        3.26585       Sum of Wgt.   8,081,192
 
-r(133);
+50%     102.8545                      Mean           163.7759
+                        Largest       Std. Dev.      272.9406
+75%     179.0596       2307.234
+90%     264.3022       3532.073       Variance       74496.56
+95%      371.063       3532.073       Skewness        5.84224
+99%      1770.43       3813.385       Kurtosis       46.18742
+(11 real changes made, 11 to missing)
+(143,571 missing values generated)
 
-. do "C:\Users\wb500886\AppData\Local\Temp\STD5530_000000.tmp"
+                        loan_period_2
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      6.69942       2.339866
+ 5%     11.78581       2.729418
+10%     22.08141       3.050778       Obs               3,953
+25%     48.85596       3.229259       Sum of Wgt.   9,947,052
 
-. *year estimation 
-. forvalues i = 1/2 {
-  2. gen double loan_period_`i' = ln(repay_mt_`i'/(repay_mt_`i'-intst_rate*mrtg_`i'_borrow))/ln(1+intst_rate)
-  3. }
-(144,268 missing values generated)
-(143,569 missing values generated)
+50%     97.10983                      Mean           170.1287
+                        Largest       Std. Dev.      296.2969
+75%     174.4078       2357.645
+90%     272.3213       3532.073       Variance       87791.83
+95%     450.2782       3532.073       Skewness       5.077065
+99%      1770.43       3813.385       Kurtosis       34.51334
+(17 real changes made, 17 to missing)
 
 . 
 . sum loan_period_*
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
-loan_perio~1 |      3,256    153.0257    237.7043   2.339866   3813.385
-loan_perio~2 |      3,955    154.3707    256.6794   2.339866   3813.385
+loan_perio~1 |      3,244    145.3515    193.6086   2.339866    1770.43
+loan_perio~2 |      3,936    145.2648    212.1959   2.339866    1770.43
 
 . 
-end of do-file
+. *asset and wealth feature (household level)
+. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold f
+> in_rec) 
 
-. di 3813/12
-317.75
+. egen double real_estate = rowtotal(building_resid land_r_resid land_u_resid)
 
-. di 153/12
-12.75
+. gen double wealth = asset - debt
+(37,081 missing values generated)
 
+. 
+. gen temp_debt =  (b14_q1 == "99")*debt
+(37,081 missing values generated)
+
+. egen total_debt = sum(temp_debt), by(HHID)
+
+. 
+. save "${r_output}\b14_hse_mortgage",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b14_hse_mortgage.dt
+> a saved
+
+. 
+. ***********************************************
+. ***stats: individual loans
+. ***********************************************
+. use "${r_output}\b14_hse_mortgage",clear
+
+. 
+. forvalues i=1/2 {
+  2. tabstat real_estate mrtg_`i'_borrow mrtg_`i'_debt mrtg_`i'_repay loan_age intst_rate if mrtg_`i'_dm >0 [aw
+>  = Weight_SS], s(mean median sd) format(%10.0fc) 
+  3. }
+
+   stats |  real_e~e  mrtg_1~w  mrtg_1~t  mrtg_1~y  loan_age  intst~te
+---------+------------------------------------------------------------
+    mean |   939,168   600,779   591,088    87,494        38         0
+     p50 |   180,000   300,000   244,800    42,840        28         0
+      sd |15,432,568   898,606   936,116   141,055        32         0
+----------------------------------------------------------------------
+
+   stats |  real_e~e  mrtg_2~w  mrtg_2~t  mrtg_2~y  loan_age  intst~te
+---------+------------------------------------------------------------
+    mean |   946,036   457,180   507,739    75,238        31         0
+     p50 |   182,400   150,000   177,000    30,780        20         0
+      sd |15,264,291   815,714   905,094   134,232        30         0
+----------------------------------------------------------------------
+
+. 
+. ***********************************************
+. ***stats: household aggregate. (narrow the sample to residential house owners)
+. ***********************************************
+. use "${r_output}\b14_hse_mortgage",clear
+
+. 
+. foreach type in mrtg_1_dm mrtg_2_dm mrtg_1_debt mrtg_2_debt mrtg_1_borrow mrtg_2_borrow mrtg_1_repay mrtg_2_r
+> epay{ 
+  2. egen double total_`type' = sum(`type'), by(HHID)
+  3. } 
+
+. keep HHID total* real_estate wealth debt_total hhwgt 
+
+. bys HHID: keep if _n == 1 // keep only one observation for each HH
+(36,724 observations deleted)
+
+. 
+. foreach var in total_mrtg_1_dm total_mrtg_2_dm total_mrtg_1_debt total_mrtg_2_debt total_mrtg_1_borrow total_
+> mrtg_2_borrow total_mrtg_1_repay total_mrtg_2_repay { //only focusing on real estate owner. 
+  2. replace `var' = 0 if mi(`var') & real_estate > 0  //only focus on real estate owner. 
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. *liability allocation to mortgage. 
+. forvalues i = 1/2 {
+  2. gen double mrtg_`i'_debt_share =  (total_mrtg_`i'_debt /debt_total)*100
+  3. }
+(65,122 missing values generated)
+(65,122 missing values generated)
+
+. 
+. *borrowed mortgage to real estate value. 
+. forvalues i = 1/2 {
+  2. gen double mrtg_`i'_re_share =  (total_mrtg_`i'_borrow /real_estate)*100
+  3. }
+(14,955 missing values generated)
+(14,955 missing values generated)
+
+. 
+. *stats
+. forvalues i=1/2 { //household with housing mortgage
+  2. tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_repay  ///
+> mrtg_`i'_re_share mrtg_`i'_debt_share if total_mrtg_`i'_dm >0 [aw = hhwgt], s(mean median sd) format(%10.0fc)
+>  
+  3. }
+
+   stats |  real_e~e  total_..  t~1_debt  ~1_repay  mrtg_1..  mrtg_1..
+---------+------------------------------------------------------------
+    mean | 2,369,777   649,350   549,207    76,278        47        85
+     p50 | 1,300,000   300,000   199,500    30,000        23       100
+      sd | 4,250,801 1,028,951   993,518   140,896       250        27
+----------------------------------------------------------------------
+
+   stats |  real_e~e  total_..  t~2_debt  ~2_repay  mrtg_2..  mrtg_2..
+---------+------------------------------------------------------------
+    mean | 2,036,627   543,813   453,923    63,828        43        82
+     p50 |   976,000   201,000   135,000    20,790        21       100
+      sd | 3,859,689   973,683   945,790   133,593       219        31
+----------------------------------------------------------------------
+
+. 
+. foreach var in total_mrtg_1_dm total_mrtg_2_dm  { 
+  2. replace `var' = 100 if `var'>0 & real_estate > 0  //only focus on real estate owner. 
+  3. replace `var' = 0 if `var' == 0 & real_estate > 0
+  4. }
+(4,456 real changes made)
+(0 real changes made)
+(5,749 real changes made)
+(0 real changes made)
+
+. 
+. forvalues i=1/2 { //all real estate owner
+  2. tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_repay  ///
+> mrtg_`i'_re_share mrtg_`i'_debt_share total_mrtg_`i'_dm if real_estate >0 [aw = hhwgt], s(mean median sd) for
+> mat(%10.0fc) 
+  3. }
+
+   stats |  real_e~e  total_..  t~1_debt  ~1_repay  mrtg_1..  mrtg_1..  tot~1_dm
+---------+----------------------------------------------------------------------
+    mean |   898,799    19,245    16,422     2,285         1         7         3
+     p50 |   250,000         0         0         0         0         0         0
+      sd |12,967,994   209,556   196,480    27,786        44        25        17
+--------------------------------------------------------------------------------
+
+   stats |  real_e~e  total_..  t~2_debt  ~2_repay  mrtg_2..  mrtg_2..  tot~2_dm
+---------+----------------------------------------------------------------------
+    mean |   898,799    21,649    18,235     2,563         2         9         4
+     p50 |   250,000         0         0         0         0         0         0
+      sd |12,967,994   222,877   210,714    29,699        44        27        19
+--------------------------------------------------------------------------------
+
+. 
+. ***********************************************
+. ***stats: housing value (uint value) quntile and other indicators (scenario) 
+. ***********************************************
+. use "${r_output}\b14_hse_mortgage",clear
+
+. xtile qtl = asset [aw=hhwgt] if mrtg_1_borrow >0, n(5)
+
+. 
+. table qtl if real_estate > 0 , c(p50 real_estate mean real_estate p50 building_resid_area p50 mrtg_1_borrow p
+> 50 loan_period_1 ) format("%9.0fc") 
+
+--------------------------------------------------------------------------------
+5         |
+quantiles |
+of asset  | med(real_~e)  mean(real~e)  med(build~a)  med(mrtg_~w)  med(loan_~1)
+----------+---------------------------------------------------------------------
+        1 |       40,000        40,820            23        17,500            30
+        2 |      103,680       112,171            35        30,000            49
+        3 |      237,000       251,458            46        60,000            52
+        4 |      560,000       599,946            60       200,000            88
+        5 |    1,950,000     4,002,939            90       500,000           124
+--------------------------------------------------------------------------------
+
+. table qtl if real_estate > 0 , c(p50 real_estate mean real_estate p50 building_resid_area p50 mrtg_2_borrow p
+> 50 loan_period_2 ) format("%9.0fc") 
+
+--------------------------------------------------------------------------------
+5         |
+quantiles |
+of asset  | med(real_~e)  mean(real~e)  med(build~a)  med(mrtg_~w)  med(loan_~2)
+----------+---------------------------------------------------------------------
+        1 |       40,000        40,820            23        17,500            30
+        2 |      103,680       112,171            35        30,000            49
+        3 |      237,000       251,458            46        60,000            52
+        4 |      560,000       599,946            60       200,000            88
+        5 |    1,950,000     4,002,939            90       500,000           124
+--------------------------------------------------------------------------------
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_h
+> ousing_mortgage.log
+  log type:  text
+ closed on:   6 Nov 2020, 07:57:45
+---------------------------------------------------------------------------------------------------------------
