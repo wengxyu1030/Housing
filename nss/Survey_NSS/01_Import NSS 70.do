@@ -223,7 +223,7 @@ count if b12_q3 < 0
 replace b12_q3 = . if b12_q3 <0
 
 egen double gold = sum(b12_q3*(b12_q1 == 12)), by(HHID)
-egen double fin_retire = sum(b12_q3*(b12_q1 == 6)), by(HHID) //retirement account
+egen double fin_retire = sum(b12_q3*(inlist(b12_q1,5,6))), by(HHID) //retirement account
 egen double fin_other = sum(b12_q3*(b12_q1 == 11)), by(HHID)
 egen double fin_other_man = sum(b12_q3*(inrange(b12_q1,1,7)| b12_q1 == 10)), by(HHID)
 duplicates drop HHID, force

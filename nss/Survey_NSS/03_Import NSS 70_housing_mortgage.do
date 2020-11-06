@@ -25,7 +25,7 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 ****************************************************************************
-//log using "${script}\03_Import NSS70_housing_mortgage.log",replace
+log using "${script}\03_Import NSS70_housing_mortgage.log",replace
 
 use "${r_input}\Visit 1_Block 14",clear
 drop if b14_q1 == "99" //drop the total amount
@@ -167,6 +167,7 @@ mrtg_`i'_re_share mrtg_`i'_debt_share total_mrtg_`i'_dm if real_estate >0 [aw = 
 use "${r_output}\b14_hse_mortgage",clear
 xtile qtl = real_estate [aw=hhwgt] if mrtg_1_borrow >0, n(5)
 
-table qtl, c(p50 real_estate p50 mrtg_1_borrow p50 loan_period_1 ) format("%9.0f") 
+table qtl, c(p50 real_estate p50 mrtg_1_borrow p50 loan_period_1 ) format("%9.0f") //by wealth 
+table qtl, c(p50 real_estate p50 mrtg_2_borrow p50 loan_period_2 ) format("%9.0f") 
 
 log close
