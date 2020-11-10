@@ -1,5 +1,5 @@
 ****************************************************************************
-* Description: Generate a summary table of NSS 70 
+* Description: Generate a summary table of NSS 70, compare to published stats
 * Date: Nov 6, 2020
 * Version 1.5
 * Last Editor: Aline 
@@ -24,7 +24,7 @@ global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\02_Table of Means NSS 70.log",replace
+//log using "${script}\02_Table of Means NSS 70.log",replace
 
 ****************************************************************************
 * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2797680
@@ -115,6 +115,8 @@ gen double delta_`v' = (`v' - `v'_tb)/`v'_tb * 100
 format delta_`v' %9.0fc
 }
 
+drop name type
+
 list
 
 restore
@@ -132,7 +134,8 @@ bysort urban: sum legal_own [aw = hhwgt],de
 use "${r_input}\Visit 1_Block 14",clear
 
 *debt -- paper says liabilities on date of survey. pp16: "Panel A of Figure 2 reports the average allocation of liabilities across all households that carry a positive amount of debt at the date of the survey."
-gen debt = b14_q17 // 17 is on 30.06.2012
+gen debt = b14_q17 // 17 is the outstanding amount on 30.06.2012
+gen debt_todt = b14_q16 //outstanding amount at the date of survey. 
 sum debt,de
 
 *in paper: keep households with total liability >0 
@@ -140,14 +143,19 @@ gen temp_debt =  (b14_q1 == "99")*debt
 egen double total_debt = sum(temp_debt), by(HHID)
 drop temp_debt
 
-gen temp_debt =  (b14_q1 != "99")*debt
+gen temp_debt =  (b14_q1 != "99")*debt_todt
 egen double total_debt_m = sum(temp_debt),by(HHID)
 drop temp_debt
 
-gen temp_debt_todt = (b14_q1 == "99")*b14_q16 //to date of survey the total debt. 
-egen double total_debt_todt = sum(temp_debt_todt ), by(HHID)
+gen temp_debt_todt =  (b14_q1 == "99")*debt_todt
+egen double total_debt_todt = sum(temp_debt_todt), by(HHID)
 drop temp_debt_todt
 
+gen temp_debt_todt = (b14_q1 == "99")*debt_todt //to date of survey the total debt. 
+egen double total_debt_todt_m = sum(temp_debt_todt), by(HHID)
+drop temp_debt_todt
+
+*check the manual total and the survey total
 count if total_debt > total_debt_m
 count if total_debt < total_debt_m // manual has 568 observations where it is larger 
 
@@ -159,13 +167,17 @@ br HHID b14* if total_debt == total_debt_m //there are hosueholds with no total 
 
 *generate share of gold loan, unsecured debt
 gen gold_loan = (b14_q12 == "05")*debt
-gen unsecure_loan = (b14_q12 == "10")*debt
+gen oth_secure_loan = (inlist(b14_q12,"01","02","06","07","08","09"))*debt
 gen mrtg_loan = (inlist(b14_q12,"03","04"))*debt
 
+gen unsecure_loan = (b14_q12 == "10")*debt
+egen double secure_loan = rowtotal(mrtg_loan gold_loan oth_secure_loan) 
+
 *collapse at household level. 
-foreach type in gold_loan unsecure_loan mrtg_loan { 
+foreach type in secure_loan mrtg_loan gold_loan oth_secure_loan unsecure_loan { 
 egen double total_`type' = sum(`type'), by(HHID)
 } 
+
 keep HHID total*
 bys HHID: keep if _n == 1 // keep only one observation for each HH
  
@@ -174,6 +186,7 @@ merge 1:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
 
 *in paper: keep households with head older than 24.
 keep if head_age >= 24
+keep if total_debt > 0
 
 ** Liability allocation gold (4%), unsecured loan (55%), mortgage loan (23%)
 
@@ -188,12 +201,61 @@ sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecur
 sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan if total_debt_todt > 0
 
 ** USE TABLE 1 to try and match mean and median of liability. Paper has Mean of 180,153 and Median of 51,614
+global lbt_table "total_secure_loan total_mrtg_loan total_gold_loan total_oth_secure_loan total_unsecure_loan total_debt"
+
 *Unweighted 
 tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan , s(mean p50) format("%9.0fc") // 152,686    39,586
 *Weighted
-tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=hhwgt] if total_debt_todt > 0, s(mean p50) format("%9.0fc") // 143,652    40,400
-tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=pwgt] if total_debt_todt > 0, s(mean p50) format("%9.0fc") // 143,273    43,600
+tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=hhwgt], s(mean p50) format("%9.0fc") // 143,652    40,400
+tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=pwgt], s(mean p50) format("%9.0fc") // 143,273    43,600
 
+*write to the matrix
+preserve
+clear matrix
+eststo all: quietly estpost summarize $lbt_table  [aw=hhwgt]
+
+unab vars : $lbt_table 
+local num : word count `vars'
+matrix m = J(`num',2,0)
+local i = 1
+
+foreach var in $lbt_table {
+qui sum `var' [aw=hhwgt],de
+matrix m[`i',1] = `r(mean)'
+matrix m[`i',2] = `r(p50)'
+local i = `i' + 1
+}
+
+matrix rownames m = $lbt_table
+matrix colnames m = mean p50
+matrix list m
+
+svmat m,names(col)
+keep mean p50
+keep if !mi(mean) | !mi(p50)
+gen name = _n
+save "${r_output}\m_asset",replace
+
+*table 1 data to compare
+import excel "${r_input}\paper_tab_1.xlsx", sheet("Sheet1") firstrow clear
+save "${r_input}\tab_1.dta",replace
+
+keep if type == "liability"
+ren (mean p50)(mean_tb p50_tb)
+
+merge 1:1 name using "${r_output}\m_asset"
+drop _merge
+
+foreach v in mean p50 {
+gen double delta_`v' = (`v' - `v'_tb)/`v'_tb * 100
+format delta_`v' %9.0fc
+}
+
+drop name type
+
+list
+
+restore
 ****************************************************************************
 * Liabilitiy allocation (value weighted) on 
 * unsecured and gold (35% written in paper), mortgage loan (46% extract using )
