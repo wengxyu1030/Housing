@@ -1,9 +1,9 @@
----------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_h
-> ousing_mortgage.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS7
+> 0_housing_mortgage.log
   log type:  text
- opened on:   6 Nov 2020, 07:57:31
+ opened on:  10 Nov 2020, 09:10:50
 
 . 
 . use "${r_input}\Visit 1_Block 14",clear
@@ -16,6 +16,9 @@
 . gen debt = b14_q17 //outstanding amout at end of June 2012
 (47,671 missing values generated)
 
+. gen debt_todt = b14_q16 //outstanding amout at the date of survey
+(1,688 missing values generated)
+
 . gen borrow = b14_q5 //original borrowed amount
 (1 missing value generated)
 
@@ -23,53 +26,6 @@
 (43,996 missing values generated)
 
 . 
-. codebook debt borrow repay
-
----------------------------------------------------------------------------------------------------------------
-debt                                                                                                (unlabeled)
----------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [0,1.830e+08]                units:  1
-         unique values:  15,092                   missing .:  47,671/110,443
-
-                  mean:    147054
-              std. dev:    856792
-
-           percentiles:        10%       25%       50%       75%       90%
-                              7000     16000     41400    118000    320000
-
----------------------------------------------------------------------------------------------------------------
-borrow                                                                                              (unlabeled)
----------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [150,2.000e+08]              units:  1
-         unique values:  1,398                    missing .:  1/110,443
-
-                  mean:    109220
-              std. dev:    690401
-
-           percentiles:        10%       25%       50%       75%       90%
-                              5000     10000     30000     87400    250000
-
----------------------------------------------------------------------------------------------------------------
-repay                                                                                               (unlabeled)
----------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (float)
-
-                 range:  [0,13000000]                 units:  1
-         unique values:  7,182                    missing .:  43,996/110,443
-
-                  mean:   25914.4
-              std. dev:    100622
-
-           percentiles:        10%       25%       50%       75%       90%
-                                 0       825      6000     22000     60000
-
 . 
 . *** Two housing mortgage definitions 
 . tab b14_q12
@@ -118,8 +74,8 @@ repay                                                                           
 (4 missing values generated)
 
 . 
-. * (A) Conservative (let's label 1)housing loan with immovable property as secure type: B14_Q11 == 11 & (B14_Q
-> 12 == 3 | B14_Q12 == 4)
+. * (A) Conservative (let's label 1)housing loan with immovable property as secure type: B14_Q11 == 11 & (B1
+> 4_Q12 == 3 | B14_Q12 == 4)
 . gen mrtg_1_dm = (loan_purpose == "11" & (secure_type == "04"|secure_type == "03"))
 
 . 
@@ -127,16 +83,20 @@ repay                                                                           
 . gen mrtg_2_dm = (loan_purpose == "11" & (b14_q13 != "4"& b14_q13 != ""))
 
 . 
+. *** Housing mortgage features 
 . *houseing mortgage amount
-. foreach var in debt borrow repay {
-  2. gen mrtg_1_`var' = mrtg_1_dm*`var'
-  3. gen mrtg_2_`var' = mrtg_2_dm*`var'
-  4. }
+. forvalues i = 1/2 {
+  2.   foreach var in debt debt_todt borrow repay {
+  3.   gen mrtg_`i'_`var' = mrtg_`i'_dm*`var'
+  4.   }
+  5. }
 (47,671 missing values generated)
-(47,671 missing values generated)
-(1 missing value generated)
+(1,688 missing values generated)
 (1 missing value generated)
 (43,996 missing values generated)
+(47,671 missing values generated)
+(1,688 missing values generated)
+(1 missing value generated)
 (43,996 missing values generated)
 
 . 
@@ -300,6 +260,11 @@ borrowing - |
 (1,477 real changes made, 1,477 to missing)
 
 . 
+. *household feature
+. replace urban = urban*100 
+(64,079 real changes made)
+
+. 
 . *monthly payment. 
 . gen date_temp = ym(2012,7)
 
@@ -344,9 +309,10 @@ borrowing - |
   repay_mt_2 |     66,447    708.7756    4940.214          0   249639.2
 
 . 
-. *year estimation 
+. *loan period estimation 
 . forvalues i = 1/2 {
-  2. gen double loan_period_`i'= - ln(1 - mrtg_`i'_borrow *intst_rate * (1/repay_mt_`i')) / ln(1+ intst_rate)
+  2. gen double loan_period_`i'= - ln(1 - mrtg_`i'_borrow *intst_rate * (1/repay_mt_`i')) / ln(1+ intst_rate
+> )
   3. sum loan_period_`i' [aw = Weight_SS],de
   4. replace loan_period_`i' = . if loan_period_`i' > r(p99)
   5. }
@@ -394,11 +360,17 @@ loan_perio~1 |      3,244    145.3515    193.6086   2.339866    1770.43
 loan_perio~2 |      3,936    145.2648    212.1959   2.339866    1770.43
 
 . 
-. *asset and wealth feature (household level)
-. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold f
-> in_rec) 
+. *the loan is subsidized 
+. gen loan_sub = (b14_q7 != "09")*100 
 
-. egen double real_estate = rowtotal(building_resid land_r_resid land_u_resid)
+. 
+. *asset and wealth feature (household level)
+. egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gol
+> d fin_rec) 
+
+. egen double real_estate = rowtotal(building_dwelling land_r_resid land_u_resid) 
+
+. egen double land_resid = rowtotal(land_r_resid land_u_resid)
 
 . gen double wealth = asset - debt
 (37,081 missing values generated)
@@ -410,57 +382,46 @@ loan_perio~2 |      3,936    145.2648    212.1959   2.339866    1770.43
 . egen total_debt = sum(temp_debt), by(HHID)
 
 . 
+. *label variables
+. label var urban "Urban Household (%)"
+
+. label var hhsize "Houshold Size"
+
+. label var head_age "Household Head Age"
+
+. label var head_female "Female Household Head (%)"
+
+. label var loan_sub "Subsidized (%)"
+
+. 
 . save "${r_output}\b14_hse_mortgage",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b14_hse_mortgage.dt
-> a saved
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\b14_hse_mortgage
+> .dta saved
 
 . 
 . ***********************************************
-. ***stats: individual loans
-. ***********************************************
-. use "${r_output}\b14_hse_mortgage",clear
-
-. 
-. forvalues i=1/2 {
-  2. tabstat real_estate mrtg_`i'_borrow mrtg_`i'_debt mrtg_`i'_repay loan_age intst_rate if mrtg_`i'_dm >0 [aw
->  = Weight_SS], s(mean median sd) format(%10.0fc) 
-  3. }
-
-   stats |  real_e~e  mrtg_1~w  mrtg_1~t  mrtg_1~y  loan_age  intst~te
----------+------------------------------------------------------------
-    mean |   939,168   600,779   591,088    87,494        38         0
-     p50 |   180,000   300,000   244,800    42,840        28         0
-      sd |15,432,568   898,606   936,116   141,055        32         0
-----------------------------------------------------------------------
-
-   stats |  real_e~e  mrtg_2~w  mrtg_2~t  mrtg_2~y  loan_age  intst~te
----------+------------------------------------------------------------
-    mean |   946,036   457,180   507,739    75,238        31         0
-     p50 |   182,400   150,000   177,000    30,780        20         0
-      sd |15,264,291   815,714   905,094   134,232        30         0
-----------------------------------------------------------------------
-
-. 
-. ***********************************************
-. ***stats: household aggregate. (narrow the sample to residential house owners)
+. ***Table 1. Homewoners
 . ***********************************************
 . use "${r_output}\b14_hse_mortgage",clear
 
 . 
-. foreach type in mrtg_1_dm mrtg_2_dm mrtg_1_debt mrtg_2_debt mrtg_1_borrow mrtg_2_borrow mrtg_1_repay mrtg_2_r
-> epay{ 
+. keep if building_dwelling > 0 //only focus on home owner.
+(498 observations deleted)
+
+. 
+. foreach type in mrtg_1_dm mrtg_2_dm mrtg_1_debt mrtg_2_debt mrtg_1_borrow mrtg_2_borrow mrtg_1_repay mrtg_
+> 2_repay{ 
   2. egen double total_`type' = sum(`type'), by(HHID)
   3. } 
 
-. keep HHID total* real_estate wealth debt_total hhwgt 
-
+. //keep HHID total* real_estate wealth asset debt_total hhwgt building_dwelling_area
 . bys HHID: keep if _n == 1 // keep only one observation for each HH
-(36,724 observations deleted)
+(36,582 observations deleted)
 
 . 
-. foreach var in total_mrtg_1_dm total_mrtg_2_dm total_mrtg_1_debt total_mrtg_2_debt total_mrtg_1_borrow total_
-> mrtg_2_borrow total_mrtg_1_repay total_mrtg_2_repay { //only focusing on real estate owner. 
-  2. replace `var' = 0 if mi(`var') & real_estate > 0  //only focus on real estate owner. 
+. foreach var in total_mrtg_1_dm total_mrtg_2_dm total_mrtg_1_debt total_mrtg_2_debt total_mrtg_1_borrow tot
+> al_mrtg_2_borrow total_mrtg_1_repay total_mrtg_2_repay { //only focusing on real estate owner. 
+  2. replace `var' = 0 if mi(`var') 
   3. }
 (0 real changes made)
 (0 real changes made)
@@ -472,118 +433,415 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 (0 real changes made)
 
 . 
-. *liability allocation to mortgage. 
-. forvalues i = 1/2 {
-  2. gen double mrtg_`i'_debt_share =  (total_mrtg_`i'_debt /debt_total)*100
-  3. }
-(65,122 missing values generated)
-(65,122 missing values generated)
+. /* Table Content:
+> a. Value of Residential Real Estate where HH is Dwelling
+> b. Value of Land Associated with #a
+> c. Value of Building with #a
+> d. Size in square of feet of building of #a
+> e. Total assets of these people (median median)
+> f. Percent of assets of residential RE in total assets 
+> g) Who are these people? (i) urban, (ii) hh size, (iii) gender, (iv) age
+> h. How many (%) of these had a mortgage (paid off)
+> i. how many (%) of these _have_ a mortgage (not paid off)
+> */
+. 
+. *Variables to generate
+. replace building_dwelling_area = building_dwelling_area*10.76 //change unit from sq me to sq ft
+variable building_dwelling_area was int now float
+(91,971 real changes made)
 
 . 
-. *borrowed mortgage to real estate value. 
-. forvalues i = 1/2 {
-  2. gen double mrtg_`i'_re_share =  (total_mrtg_`i'_borrow /real_estate)*100
-  3. }
-(14,955 missing values generated)
-(14,955 missing values generated)
+. gen real_estate_share = real_estate/asset*100 //f. Percent of assets of residential RE in total assets 
+(1,190 missing values generated)
 
 . 
-. *stats
-. forvalues i=1/2 { //household with housing mortgage
-  2. tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_repay  ///
-> mrtg_`i'_re_share mrtg_`i'_debt_share if total_mrtg_`i'_dm >0 [aw = hhwgt], s(mean median sd) format(%10.0fc)
->  
+. forvalues i=1/2  {
+  2. gen total_mrtg_`i' = (total_mrtg_`i'_dm > 0)*100 //h. How many (%) of these had a mortgage (paid off)
   3. }
 
-   stats |  real_e~e  total_..  t~1_debt  ~1_repay  mrtg_1..  mrtg_1..
----------+------------------------------------------------------------
-    mean | 2,369,777   649,350   549,207    76,278        47        85
-     p50 | 1,300,000   300,000   199,500    30,000        23       100
-      sd | 4,250,801 1,028,951   993,518   140,896       250        27
-----------------------------------------------------------------------
-
-   stats |  real_e~e  total_..  t~2_debt  ~2_repay  mrtg_2..  mrtg_2..
----------+------------------------------------------------------------
-    mean | 2,036,627   543,813   453,923    63,828        43        82
-     p50 |   976,000   201,000   135,000    20,790        21       100
-      sd | 3,859,689   973,683   945,790   133,593       219        31
-----------------------------------------------------------------------
-
 . 
-. foreach var in total_mrtg_1_dm total_mrtg_2_dm  { 
-  2. replace `var' = 100 if `var'>0 & real_estate > 0  //only focus on real estate owner. 
-  3. replace `var' = 0 if `var' == 0 & real_estate > 0
-  4. }
-(4,456 real changes made)
-(0 real changes made)
-(5,749 real changes made)
-(0 real changes made)
-
-. 
-. forvalues i=1/2 { //all real estate owner
-  2. tabstat real_estate total_mrtg_`i'_borrow total_mrtg_`i'_debt total_mrtg_`i'_repay  ///
-> mrtg_`i'_re_share mrtg_`i'_debt_share total_mrtg_`i'_dm if real_estate >0 [aw = hhwgt], s(mean median sd) for
-> mat(%10.0fc) 
+. forvalues i=1/2  {
+  2. gen total_mrtg_`i'_debt_dm = (total_mrtg_`i'_debt > 0)*100 //i. how many (%) of these _have_ a mortgage
+>  (not paid off)
   3. }
 
-   stats |  real_e~e  total_..  t~1_debt  ~1_repay  mrtg_1..  mrtg_1..  tot~1_dm
----------+----------------------------------------------------------------------
-    mean |   898,799    19,245    16,422     2,285         1         7         3
-     p50 |   250,000         0         0         0         0         0         0
-      sd |12,967,994   209,556   196,480    27,786        44        25        17
---------------------------------------------------------------------------------
+. 
+. *label the key variables
+. label var real_estate "Value of Residential Real Estate where HH is Dwelling"
 
-   stats |  real_e~e  total_..  t~2_debt  ~2_repay  mrtg_2..  mrtg_2..  tot~2_dm
----------+----------------------------------------------------------------------
-    mean |   898,799    21,649    18,235     2,563         2         9         4
-     p50 |   250,000         0         0         0         0         0         0
-      sd |12,967,994   222,877   210,714    29,699        44        27        19
---------------------------------------------------------------------------------
+. label var land_resid "Value of Land Associated"
+
+. label var building_dwelling "Value of Building"
+
+. label var building_dwelling_area "Size of Dwelling in sq ft"
+
+. label var asset "Total asset"
+
+. label var real_estate_share "Residential RE in Total Assets (%)"
+
+. label var total_mrtg_1 "Had a mortgage_1 (%)"
+
+. label var total_mrtg_2 "Had a mortgage_2 (%)"
+
+. label var total_mrtg_1_debt_dm  "Have a mortgage_1 (%)"
+
+. label var total_mrtg_2_debt_dm  "Have a mortgage_2 (%)"
+
+. 
+. *create the table 
+. global var_tab_1 "building_dwelling land_resid building_resid building_dwelling_area real_estate_share urb
+> an hhsize head_female head_age total_mrtg_1 total_mrtg_2 total_mrtg_1_debt_dm total_mrtg_2_debt_dm"
+
+. 
+. xtile qtl = asset [aw=hhwgt] , n(5)
+
+. 
+. qui eststo total : estpost summarize $var_tab_1 [aw = hhwgt],de
+
+. forvalues i = 1/5 {
+  2. qui eststo q`i' : estpost summarize $var_tab_1 [aw = hhwgt] if qtl == `i',de
+  3. }
+
+. 
+. esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%9.1fc))) label collabels(none) ///
+>  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%9.0gc)) ///
+>  title("Tabel 1.1 Summary Statistics of Homeowners (mean)")
+
+Tabel 1.1 Summary Statistics of Homeowners (mean)
+--------------------------------------------------------------------------------------------------
+                              (1)          (2)          (3)          (4)          (5)          (6)
+                              All           Q1           Q2           Q3           Q4           Q5
+--------------------------------------------------------------------------------------------------
+Value of Building       562,044.2     34,069.4     85,440.3    165,343.2    326,540.5    1836659.4
+Value of Land Asso~d    285,902.9      9,407.7     47,097.3     92,187.2    202,245.3    1078616.3
+building_resid          523,912.2     33,447.6     83,082.6    159,336.7    311,785.9    1695957.6
+Size of Dwelling i~t        698.3        356.6        500.1        630.3        757.2      1,035.8
+Residential RE in ~(         50.1         37.9         60.6         52.5         49.5         48.5
+Urban Household (%)          34.9         44.2         20.1         24.7         32.4         53.0
+Houshold Size                 4.4          3.3          4.3          4.6          4.9          5.0
+Female Household H~)         13.9         20.6         14.4         12.6         11.8          9.9
+Household Head Age           46.0         38.1         44.8         46.1         49.1         52.0
+Had a mortgage_1 (%)          2.6          0.4          0.8          1.2          2.6          7.9
+Had a mortgage_2 (%)          3.5          0.8          1.4          2.0          4.0          9.3
+Have a mortgage_1 ~)          2.3          0.4          0.7          1.0          2.2          7.0
+Have a mortgage_2 ~)          2.8          0.5          1.0          1.5          3.0          7.9
+--------------------------------------------------------------------------------------------------
+Observations              110,444       16,467       20,719       22,202       24,080       26,976
+--------------------------------------------------------------------------------------------------
+
+. 
+. esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%9.1fc))) label collabels(none) ///
+>  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%9.0gc)) ///
+>  title("Tabel 1.2 Summary Statistics of Homeowners (med)")
+
+Tabel 1.2 Summary Statistics of Homeowners (med)
+--------------------------------------------------------------------------------------------------
+                              (1)          (2)          (3)          (4)          (5)          (6)
+                              All           Q1           Q2           Q3           Q4           Q5
+--------------------------------------------------------------------------------------------------
+Value of Building       150,000.0     30,000.0     76,500.0    150,000.0    250,000.0    700,000.0
+Value of Land Asso~d     45,500.0          0.0     35,000.0     55,000.0    100,000.0    327,000.0
+building_resid          150,000.0     30,000.0     75,000.0    150,000.0    250,000.0    600,000.0
+Size of Dwelling i~t        516.5        269.0        398.1        495.0        591.8        860.8
+Residential RE in ~(         49.7          0.0         65.9         50.2         43.6         43.5
+Urban Household (%)           0.0          0.0          0.0          0.0          0.0        100.0
+Houshold Size                 4.0          3.0          4.0          4.0          5.0          5.0
+Female Household H~)          0.0          0.0          0.0          0.0          0.0          0.0
+Household Head Age           45.0         35.0         42.0         45.0         48.0         51.0
+Had a mortgage_1 (%)          0.0          0.0          0.0          0.0          0.0          0.0
+Had a mortgage_2 (%)          0.0          0.0          0.0          0.0          0.0          0.0
+Have a mortgage_1 ~)          0.0          0.0          0.0          0.0          0.0          0.0
+Have a mortgage_2 ~)          0.0          0.0          0.0          0.0          0.0          0.0
+--------------------------------------------------------------------------------------------------
+Observations              110,444       16,467       20,719       22,202       24,080       26,976
+--------------------------------------------------------------------------------------------------
 
 . 
 . ***********************************************
-. ***stats: housing value (uint value) quntile and other indicators (scenario) 
+. ***Table 2. Table of Mortgages
 . ***********************************************
 . use "${r_output}\b14_hse_mortgage",clear
 
-. xtile qtl = asset [aw=hhwgt] if mrtg_1_borrow >0, n(5)
+. 
+. *all of the mortgages are those active during survey period. 
+. forvalues i = 1/2 {
+  2. sum mrtg_`i'_debt mrtg_`i'_debt_todt mrtg_`i'_repay if mrtg_`i'_borrow > 0,de 
+  3. }
+
+                         mrtg_1_debt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         8575              0
+ 5%        25000              0
+10%        41000              0       Obs               4,190
+25%       117000              0       Sum of Wgt.       4,190
+
+50%       305155                      Mean           616100.5
+                        Largest       Std. Dev.        932891
+75%       735000       1.08e+07
+90%      1501600       1.14e+07       Variance       8.70e+11
+95%      2249800       1.18e+07       Skewness       4.515652
+99%      4376916       1.28e+07       Kurtosis       35.97414
+
+                      mrtg_1_debt_todt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         5000              0
+ 5%        16617              0
+10%        30000              0       Obs               4,898
+25%        84500              0       Sum of Wgt.       4,898
+
+50%       250000                      Mean           578617.1
+                        Largest       Std. Dev.       1075048
+75%       650000       1.30e+07
+90%      1426000       1.30e+07       Variance       1.16e+12
+95%      2159928       1.74e+07       Skewness       8.741708
+99%      4716000       3.08e+07       Kurtosis       164.9204
+
+                        mrtg_1_repay
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%         3000              0
+10%         7500              0       Obs               4,311
+25%        21000              0       Sum of Wgt.       4,311
+
+50%        47754                      Mean           83161.35
+                        Largest       Std. Dev.      126881.9
+75%        94008        1320000
+90%       178966        1348000       Variance       1.61e+10
+95%       270000        1400000       Skewness       4.866694
+99%       660000        1497835       Kurtosis       36.21526
+
+                         mrtg_2_debt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         3810              0
+ 5%        16706              0
+10%        30000              0       Obs               5,349
+25%        80500              0       Sum of Wgt.       5,349
+
+50%       233280                      Mean           534175.3
+                        Largest       Std. Dev.      896807.6
+75%       604167       1.14e+07
+90%      1330000       1.18e+07       Variance       8.04e+11
+95%      2096460       1.28e+07       Skewness       5.430516
+99%      4140000       1.65e+07       Kurtosis       54.52571
+
+                      mrtg_2_debt_todt
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         2220              0
+ 5%        10000              0
+10%        18880              0       Obs               6,835
+25%        50583              0       Sum of Wgt.       6,835
+
+50%       167674                      Mean           465253.1
+                        Largest       Std. Dev.      974753.7
+75%       489500       1.30e+07
+90%      1180903       1.51e+07       Variance       9.50e+11
+95%      1863590       1.74e+07       Skewness       9.466715
+99%      4060000       3.08e+07       Kurtosis       188.6786
+
+                        mrtg_2_repay
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%         3600              0       Obs               5,441
+25%        15000              0       Sum of Wgt.       5,441
+
+50%        40000                      Mean           74695.41
+                        Largest       Std. Dev.      123112.1
+75%        84500        1348000
+90%       165000        1400000       Variance       1.52e+10
+95%       250000        1470000       Skewness       5.127586
+99%       647250        1497835       Kurtosis       39.96765
 
 . 
-. table qtl if real_estate > 0 , c(p50 real_estate mean real_estate p50 building_resid_area p50 mrtg_1_borrow p
-> 50 loan_period_1 ) format("%9.0fc") 
+. tab year if mrtg_1_debt_todt == 0 & mrtg_1_borrow > 0
 
---------------------------------------------------------------------------------
-5         |
-quantiles |
-of asset  | med(real_~e)  mean(real~e)  med(build~a)  med(mrtg_~w)  med(loan_~1)
-----------+---------------------------------------------------------------------
-        1 |       40,000        40,820            23        17,500            30
-        2 |      103,680       112,171            35        30,000            49
-        3 |      237,000       251,458            46        60,000            52
-        4 |      560,000       599,946            60       200,000            88
-        5 |    1,950,000     4,002,939            90       500,000           124
---------------------------------------------------------------------------------
+       year |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       1997 |          1       11.11       11.11
+       2000 |          2       22.22       33.33
+       2006 |          1       11.11       44.44
+       2009 |          1       11.11       55.56
+       2010 |          2       22.22       77.78
+       2011 |          1       11.11       88.89
+       2012 |          1       11.11      100.00
+------------+-----------------------------------
+      Total |          9      100.00
 
-. table qtl if real_estate > 0 , c(p50 real_estate mean real_estate p50 building_resid_area p50 mrtg_2_borrow p
-> 50 loan_period_2 ) format("%9.0fc") 
+. tab year if mrtg_2_debt_todt == 0 & mrtg_2_borrow > 0
 
---------------------------------------------------------------------------------
-5         |
-quantiles |
-of asset  | med(real_~e)  mean(real~e)  med(build~a)  med(mrtg_~w)  med(loan_~2)
-----------+---------------------------------------------------------------------
-        1 |       40,000        40,820            23        17,500            30
-        2 |      103,680       112,171            35        30,000            49
-        3 |      237,000       251,458            46        60,000            52
-        4 |      560,000       599,946            60       200,000            88
-        5 |    1,950,000     4,002,939            90       500,000           124
---------------------------------------------------------------------------------
+       year |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       1997 |          1        3.57        3.57
+       2000 |          2        7.14       10.71
+       2006 |          1        3.57       14.29
+       2007 |          1        3.57       17.86
+       2008 |          1        3.57       21.43
+       2009 |          1        3.57       25.00
+       2010 |          2        7.14       32.14
+       2011 |          7       25.00       57.14
+       2012 |         12       42.86      100.00
+------------+-----------------------------------
+      Total |         28      100.00
 
 . 
+. forvalues i = 1/2 {
+  2. count if mrtg_`i'_debt_todt == 0 & mrtg_`i'_borrow > 0 & mrtg_`i'_repay<0
+  3. } //though no outstanding value at the date of survey, there's repay.
+  0
+  0
+
+. 
+. /*
+> a) value of loan taken at inception (mortgage value) - amount borrowed
+> b) Term of loan (calculated) 
+> c) Interest rate (given)
+> d) Monthly payment (calculate)
+> e) Is it subsidized (column 7)
+> f) count of mortgages - 100? 200? N. Number of observations 
+> g) Who are these people? (i) urban, (ii) hh size, (iii) gender, (iv) age
+> */
+. 
+. replace intst_rate = intst_rate*100*12
+(84,996 real changes made)
+
+. 
+. label var mrtg_1_borrow "Mortgage Value_1"
+
+. label var mrtg_2_borrow "Mortgage Value_2"
+
+. label var loan_period_1 "Term of Loan_1 (mt)"
+
+. label var loan_period_2 "Term of Loan_2 (mt)"
+
+. label var intst_rate "Interest rate"
+
+. label var repay_mt_1 "Monthly Payment_1"
+
+. label var repay_mt_2 "Monthly Payment_2"
+
+. 
+. *create the table 
+. global var_tab_2 "intst_rate loan_sub urban hhsize head_female head_age"
+
+. 
+. forvalues i = 1990(6)2013 {
+  2. local j = `i' + 5 
+  3. dis `i' "-"`j'
+  4.   forvalues x = 1/2 {
+  5.   qui eststo total_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw 
+> = hhwgt] if mrtg_`x'_borrow > 0,de
+  6.   qui eststo yr_`j'_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw
+>  = hhwgt] if inrange(year,`i',`j') & mrtg_`x'_borrow > 0,de
+  7.   qui eststo yr_1990_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [a
+> w = hhwgt] if year<1990 & mrtg_`x'_borrow > 0,de
+  8.   }
+  9. }
+1990-1995
+1996-2001
+2002-2007
+2008-2013
+
+. 
+. forvalues x = 1/2 {
+  2. esttab total_`x' yr_2013_`x' yr_2007_`x' yr_2001_`x' yr_1995_`x' yr_1990_`x', cells(mean(fmt(%9.1fc))) 
+> label collabels(none) ///
+>  mtitles("All" "2013-2008" "2007-2002" "2001-1996" "1995-1990" "<1990") stats(N, label("Observations") fmt
+> (%9.0gc)) ///
+>  title("Tabel 2.1 Summary Statistics of Mortgages (mean)_`x'")
+  3. }
+
+Tabel 2.1 Summary Statistics of Mortgages (mean)_1
+--------------------------------------------------------------------------------------------------
+                              (1)          (2)          (3)          (4)          (5)          (6)
+                              All    2013-2008    2007-2002    2001-1996    1995-1990        <1990
+--------------------------------------------------------------------------------------------------
+Mortgage Value_1        600,778.7    624,462.6    580,103.7    369,167.3    180,443.2    155,598.9
+Term of Loan_1 (mt)         156.6        151.8        178.0        115.7        116.0        230.3
+Monthly Payment_1        10,000.7     10,424.5      9,360.3      7,846.5      3,504.2        555.4
+Interest rate                12.4         13.1         10.8         10.2          9.0         11.2
+Subsidized (%)               99.5         88.2         94.9         93.8         92.7         94.2
+Urban Household (%)          42.0         53.8         79.6         80.3         62.7         87.6
+Houshold Size                 4.2          4.4          4.6          4.5          4.2          3.4
+Female Household H~)         15.8          8.7          9.8         13.3         12.0          0.0
+Household Head Age           45.4         47.9         50.5         53.6         54.7         49.9
+--------------------------------------------------------------------------------------------------
+Observations               42,025        3,482        1,191          227           38            6
+--------------------------------------------------------------------------------------------------
+
+Tabel 2.1 Summary Statistics of Mortgages (mean)_2
+--------------------------------------------------------------------------------------------------
+                              (1)          (2)          (3)          (4)          (5)          (6)
+                              All    2013-2008    2007-2002    2001-1996    1995-1990        <1990
+--------------------------------------------------------------------------------------------------
+Mortgage Value_2        457,180.0    442,334.9    560,716.6    368,584.3    180,215.3    155,598.9
+Term of Loan_2 (mt)         159.6        157.3        176.1        114.8        115.6        230.3
+Monthly Payment_2         8,674.1      8,499.2      9,594.3      8,288.8      3,482.0        555.4
+Interest rate                13.6         14.3         10.8         10.2          9.0         11.2
+Subsidized (%)               98.8         80.5         94.2         93.3         92.8         94.2
+Urban Household (%)          42.0         48.6         79.0         79.6         63.2         87.6
+Houshold Size                 4.2          4.5          4.6          4.4          4.2          3.4
+Female Household H~)         15.8         11.3         10.3         13.1         11.9          0.0
+Household Head Age           45.5         47.6         50.6         53.6         54.8         49.9
+--------------------------------------------------------------------------------------------------
+Observations               43,995        5,327        1,299          242           40            6
+--------------------------------------------------------------------------------------------------
+
+. 
+. forvalues x = 1/2 {
+  2. esttab total_`x' yr_2013_`x' yr_2007_`x' yr_2001_`x' yr_1995_`x' yr_1990_`x', cells(p50(fmt(%9.1fc))) l
+> abel collabels(none) ///
+>  mtitles("All" "2013-2008" "2007-2002" "2001-1996" "1995-1990" "<1990") stats(N, label("Observations") fmt
+> (%9.0gc)) ///
+>  title("Tabel 2.1 Summary Statistics of Mortgages (med)_`x'")
+  3. }
+
+Tabel 2.1 Summary Statistics of Mortgages (med)_1
+--------------------------------------------------------------------------------------------------
+                              (1)          (2)          (3)          (4)          (5)          (6)
+                              All    2013-2008    2007-2002    2001-1996    1995-1990        <1990
+--------------------------------------------------------------------------------------------------
+Mortgage Value_1        300,000.0    250,000.0    400,000.0    250,000.0     60,000.0     75,000.0
+Term of Loan_1 (mt)         101.9         88.0        135.3         96.4        124.1        204.8
+Monthly Payment_1         5,000.0      5,200.0      5,000.0      3,987.5      2,495.8          0.0
+Interest rate                11.5         12.0         11.0         10.5          9.5         12.0
+Subsidized (%)              100.0        100.0        100.0        100.0        100.0        100.0
+Urban Household (%)           0.0        100.0        100.0        100.0        100.0        100.0
+Houshold Size                 4.0          4.0          4.0          4.0          4.0          3.0
+Female Household H~)          0.0          0.0          0.0          0.0          0.0          0.0
+Household Head Age           45.0         46.0         49.0         54.0         56.0         49.0
+--------------------------------------------------------------------------------------------------
+Observations               42,025        3,482        1,191          227           38            6
+--------------------------------------------------------------------------------------------------
+
+Tabel 2.1 Summary Statistics of Mortgages (med)_2
+--------------------------------------------------------------------------------------------------
+                              (1)          (2)          (3)          (4)          (5)          (6)
+                              All    2013-2008    2007-2002    2001-1996    1995-1990        <1990
+--------------------------------------------------------------------------------------------------
+Mortgage Value_2        150,000.0    140,000.0    400,000.0    250,000.0     60,000.0     75,000.0
+Term of Loan_2 (mt)          97.1         86.7        134.7         96.4        124.1        204.8
+Monthly Payment_2         3,934.9      3,428.6      5,000.0      3,987.5      2,475.0          0.0
+Interest rate                12.0         12.0         11.0         10.5         10.0         12.0
+Subsidized (%)              100.0        100.0        100.0        100.0        100.0        100.0
+Urban Household (%)           0.0          0.0        100.0        100.0        100.0        100.0
+Houshold Size                 4.0          4.0          4.0          4.0          4.0          3.0
+Female Household H~)          0.0          0.0          0.0          0.0          0.0          0.0
+Household Head Age           45.0         46.0         49.0         54.0         56.0         49.0
+--------------------------------------------------------------------------------------------------
+Observations               43,995        5,327        1,299          242           40            6
+--------------------------------------------------------------------------------------------------
+
+.  
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS70_h
-> ousing_mortgage.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\03_Import NSS7
+> 0_housing_mortgage.log
   log type:  text
- closed on:   6 Nov 2020, 07:57:45
----------------------------------------------------------------------------------------------------------------
+ closed on:  10 Nov 2020, 09:11:26
+------------------------------------------------------------------------------------------------------------

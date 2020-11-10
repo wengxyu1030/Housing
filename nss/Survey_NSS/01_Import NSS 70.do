@@ -56,12 +56,15 @@ use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household 
 *Keep head 
 keep if b4q1 == "01" // keep heads only 
 ren b4q5 head_age 
+
 ren  b4q4 head_gender 
 destring head_gender, replace
 label define gender 1 "Male" 2 "Female"
 label values head_gender gender 
-keep HHID head_age head_gender
-save "${r_output}\b4",replace //later gender info
+gen head_female = (head_gender == 2)*100
+
+keep HHID head_age head_gender head_female
+save "${r_output}\b4",replace 
 
 *Asset non_fin： land from b5.1 & b5.2 (rural & urban) srl 99
 use "${r_input}\Visit 1_Block 5pt1_Details of land owned by the household as on 30.06.12.dta",clear
@@ -110,11 +113,16 @@ sum b6_q6
 
 egen double building_all = sum(b6_q6*(b6_q3 == "11")), by(HHID)
 egen double building_all_man = sum(b6_q6*(b6_q3 != "11")),  by(HHID)
-egen double building_resid = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
+
+egen double building_resid = sum(b6_q6*(b6_q3 == "01")), by(HHID)
+egen double building_dwelling = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
+
 egen double building_resid_area = sum(b6_q5*(inlist(b6_q3,"01","02","03"))), by(HHID)
+egen double building_dwelling_area = sum(b6_q5*(b6_q3 == "01")), by(HHID)
+
 duplicates drop HHID,  force
 
-keep HHID building_all* building_resid building_resid_area
+keep HHID building_all* building_resid building_resid_area building_dwelling building_dwelling_area
 
 *Check the manual (man) sum with survey sum
 count if building_resid > building_all
