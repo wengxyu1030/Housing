@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Import NSS70 from Raw Files and save dta to Output Folder
-* Date: Oct 16, 2020
-* Version 1.2
+* Date: Nov 11, 2020
+* Version 2
 * Last Editor: Aline
 ****************************************************************************
 
@@ -114,10 +114,10 @@ sum b6_q6
 egen double building_all = sum(b6_q6*(b6_q3 == "11")), by(HHID)
 egen double building_all_man = sum(b6_q6*(b6_q3 != "11")),  by(HHID)
 
-egen double building_resid = sum(b6_q6*(b6_q3 == "01")), by(HHID)
-egen double building_dwelling = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
-
+egen double building_resid = sum(b6_q6*(inlist(b6_q3,"01","02","03"))), by(HHID)
 egen double building_resid_area = sum(b6_q5*(inlist(b6_q3,"01","02","03"))), by(HHID)
+
+egen double building_dwelling = sum(b6_q6*(b6_q3 == "01")), by(HHID)
 egen double building_dwelling_area = sum(b6_q5*(b6_q3 == "01")), by(HHID)
 
 duplicates drop HHID,  force
@@ -265,11 +265,52 @@ save "${r_output}\b13",replace
 
 *Debt: cash loands payable b14: Type of loan(8) Purpose of loan (11) Type of mortgage(13) , srl 99 (total)
 use "${r_input}\Visit 1_Block 14",clear
-keep if b14_q1 == "99" 
+ 
+ *debt 
+gen debt = b14_q17 // 17 is the outstanding amount on 30.06.2012
+gen debt_todt = b14_q16 //outstanding amount at the date of survey. 
+sum debt,de
 
-*debt
-gen debt = b14_q17 
-keep HHID debt
+gen temp_debt =  (b14_q1 == "99")*debt
+egen double total_debt = sum(temp_debt), by(HHID)
+drop temp_debt
+
+gen temp_debt =  (b14_q1 != "99")*debt_todt
+egen double total_debt_m = sum(temp_debt),by(HHID)
+drop temp_debt
+
+gen temp_debt_todt =  (b14_q1 == "99")*debt_todt
+egen double total_debt_todt = sum(temp_debt_todt), by(HHID)
+drop temp_debt_todt
+
+gen temp_debt_todt = (b14_q1 == "99")*debt_todt //to date of survey the total debt. 
+egen double total_debt_todt_m = sum(temp_debt_todt), by(HHID)
+drop temp_debt_todt
+
+ *check the manual total and the survey total
+count if total_debt > total_debt_m
+count if total_debt < total_debt_m // manual has 568 observations where it is larger 
+
+tab b14_q1
+sort HHID
+br HHID b14* if total_debt == total_debt_m //there are hosueholds with no total liability coded.  
+//need to use the 99 total and not the manual to match the paper 
+
+ *generate type of liabilty
+gen gold_loan = (b14_q12 == "05")*debt
+gen oth_secure_loan = (inlist(b14_q12,"01","02","06","07","08","09"))*debt
+gen mrtg_loan = (inlist(b14_q12,"03","04"))*debt
+
+gen unsecure_loan = (b14_q12 == "10")*debt
+egen double secure_loan = rowtotal(mrtg_loan gold_loan oth_secure_loan) 
+
+ *collapse at household level. 
+foreach type in secure_loan mrtg_loan gold_loan oth_secure_loan unsecure_loan { 
+egen double total_`type' = sum(`type'), by(HHID)
+} 
+
+keep HHID total*
+bys HHID: keep if _n == 1 // keep only one observation for each HH
 save "${r_output}\b14",replace
 
 *Debt: kind of loan payable b15 col 11: housing 11
@@ -286,11 +327,20 @@ merge 1:1 HHID using "${r_output}/`f'"
 drop _merge
 }
 
-/*
-foreach var in land_r land_u building_all livestock trspt agri non_farm shares fin_other fin_gold fin_rec {
-replace `var' = 0 if mi(`var')
-} 
-*/
- 
+*generate asset value by type
+egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other fin_retire gold fin_rec) 
+
+egen double durable_other = rowtotal(livestock trspt agri non_farm)
+
+egen double real_estate = rowtotal(building_all land_r land_u)
+
+egen double asset_non_fin = rowtotal(real_estate gold durable_other)
+
+egen double asset_fin = rowtotal(shares fin_other fin_rec) 
+
+*generate wealth data
+gen double wealth = asset - total_debt
+gen double wealth_ln = ln(wealth)
+
 qui compress
 save "${r_output}\NSS70_All",replace

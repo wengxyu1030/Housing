@@ -141,7 +141,7 @@ save "${r_output}\b14_hse_mortgage",replace
 ***********************************************
 use "${r_output}\b14_hse_mortgage",clear
 
-keep if building_dwelling > 0 //only focus on home owner.
+//keep if building_dwelling > 0 //only focus on home owner.
 
 foreach type in mrtg_1_dm mrtg_2_dm mrtg_1_debt mrtg_2_debt mrtg_1_borrow mrtg_2_borrow mrtg_1_repay mrtg_2_repay{ 
 egen double total_`type' = sum(`type'), by(HHID)
@@ -158,11 +158,10 @@ a. Value of Residential Real Estate where HH is Dwelling
 b. Value of Land Associated with #a
 c. Value of Building with #a
 d. Size in square of feet of building of #a
-e. Total assets of these people (median median)
+e. Total assets of these people (median median) //using as quintile. 
 f. Percent of assets of residential RE in total assets 
 g) Who are these people? (i) urban, (ii) hh size, (iii) gender, (iv) age
-h. How many (%) of these had a mortgage (paid off)
-i. how many (%) of these _have_ a mortgage (not paid off)
+h. How many (%) of these had a mortgage (paid off) /Mortgage holders
 */
 
 *Variables to generate
@@ -185,28 +184,45 @@ label var building_dwelling "Value of Building"
 label var building_dwelling_area "Size of Dwelling in sq ft"
 label var asset "Total asset"
 label var real_estate_share "Residential RE in Total Assets (%)"
-label var total_mrtg_1 "Had a mortgage_1 (%)"
-label var total_mrtg_2 "Had a mortgage_2 (%)"
-label var total_mrtg_1_debt_dm  "Have a mortgage_1 (%)"
-label var total_mrtg_2_debt_dm  "Have a mortgage_2 (%)"
+label var total_mrtg_1 "Mortgage Holders_1 (%)"
+label var total_mrtg_2 "Mortgage Holders_2 (%)"
 
 *create the table 
-global var_tab_1 "building_dwelling land_resid building_resid building_dwelling_area real_estate_share urban hhsize head_female head_age total_mrtg_1 total_mrtg_2 total_mrtg_1_debt_dm total_mrtg_2_debt_dm"
 
+
+preserve
+
+global var_tab_1 "real_estate land_resid building_dwelling building_dwelling_area real_estate_share urban hhsize head_female head_age total_mrtg_1 total_mrtg_2"
+
+gen double obs = (real_estate + land_resid + building_dwelling + building_dwelling_area + real_estate_share + urban + hhsize + head_female + head_age + total_mrtg_1 + total_mrtg_2) != .
+tab obs //obvservations with none of the value mssing. 
+
+gen homeowner = (building_dwelling > 0 )*100
 xtile qtl = asset [aw=hhwgt] , n(5)
 
-qui eststo total : estpost summarize $var_tab_1 [aw = hhwgt],de
-forvalues i = 1/5 {
-qui eststo q`i' : estpost summarize $var_tab_1 [aw = hhwgt] if qtl == `i',de
+foreach var in $var_tab_1  {
+replace `var' = . if building_dwelling <= 0  //only focus on home owner.
 }
 
-esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%9.1fc))) label collabels(none) ///
- mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%9.0gc)) ///
- title("Tabel 1.1 Summary Statistics of Homeowners (mean)")
+qui eststo total : estpost summarize $var_tab_1 [aw = hhwgt] if obs == 1,de
+forvalues i = 1/5 {
+eststo q`i' : estpost summarize $var_tab_1 [aw = hhwgt] if qtl == `i' & obs == 1 ,de
+}
 
-esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%9.1fc))) label collabels(none) ///
- mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%9.0gc)) ///
- title("Tabel 1.2 Summary Statistics of Homeowners (med)")
+esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.1fc))) label collabels(none) ///
+ mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") ///   stats(N, label("Observations") fmt(%15.0gc))
+ title("Tabel 1.1 Summary Statistics of Homeowners (mean)") varwidth(40) ///
+ addnote("Notes: Households weighted by survey weights." ///
+ "       Homeowners are households own residential building used as dwelling by household members." ///
+ "       Real estate includes dweeling and urban and rural land used as residential area.")
+
+esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.1fc))) label collabels(none) ///
+ mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") ///  stats(N, label("Observations") fmt(%15.0gc))
+ title("Tabel 1.2 Summary Statistics of Homeowners (med)") varwidth(40) ///
+ addnote("Notes: Households weighted by survey weights." ///
+ "       Homeowners are households own residential building used as dwelling by household members." ///
+ "       Real estate includes dweeling and urban and rural land used as residential area.")
+restore
 
 ***********************************************
 ***Table 2. Table of Mortgages
@@ -237,8 +253,8 @@ g) Who are these people? (i) urban, (ii) hh size, (iii) gender, (iv) age
 
 replace intst_rate = intst_rate*100*12
 
-label var mrtg_1_borrow "Mortgage Value_1"
-label var mrtg_2_borrow "Mortgage Value_2"
+label var mrtg_1_borrow "Mortgage Value at Inception_1"
+label var mrtg_2_borrow "Mortgage Value at Inception_2"
 label var loan_period_1 "Term of Loan_1 (mt)"
 label var loan_period_2 "Term of Loan_2 (mt)"
 label var intst_rate "Interest rate"
@@ -247,27 +263,29 @@ label var repay_mt_2 "Monthly Payment_2"
 
 *create the table 
 global var_tab_2 "intst_rate loan_sub urban hhsize head_female head_age"
+gen double obs = (intst_rate + loan_sub + urban + hhsize + head_female + head_age) != .
+tab obs
 
 forvalues i = 1990(6)2013 {
 local j = `i' + 5 
 dis `i' "-"`j'
   forvalues x = 1/2 {
-  qui eststo total_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if mrtg_`x'_borrow > 0,de
-  qui eststo yr_`j'_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if inrange(year,`i',`j') & mrtg_`x'_borrow > 0,de
-  qui eststo yr_1990_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if year<1990 & mrtg_`x'_borrow > 0,de
+  qui eststo total_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if mrtg_`x'_borrow > 0 & obs == 1,de
+  qui eststo yr_`j'_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if inrange(year,`i',`j') & mrtg_`x'_borrow > 0 & obs == 1,de
+  qui eststo yr_1990_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if year<1990 & mrtg_`x'_borrow > 0 & obs == 1,de
   }
 }
 
 forvalues x = 1/2 {
-esttab total_`x' yr_2013_`x' yr_2007_`x' yr_2001_`x' yr_1995_`x' yr_1990_`x', cells(mean(fmt(%9.1fc))) label collabels(none) ///
- mtitles("All" "2013-2008" "2007-2002" "2001-1996" "1995-1990" "<1990") stats(N, label("Observations") fmt(%9.0gc)) ///
- title("Tabel 2.1 Summary Statistics of Mortgages (mean)_`x'")
+esttab total_`x' yr_2013_`x' yr_2007_`x' yr_2001_`x' yr_1995_`x' yr_1990_`x', cells(mean(fmt(%15.1fc))) label collabels(none) ///
+ mtitles("All" "2013-2008" "2007-2002" "2001-1996" "1995-1990" "<1990") stats(N, label("Observations") fmt(%15.0gc)) ///
+ title("Tabel 2.1 Summary Statistics of Mortgages (mean)_`x'") varwidth(40)
 }
 
 forvalues x = 1/2 {
-esttab total_`x' yr_2013_`x' yr_2007_`x' yr_2001_`x' yr_1995_`x' yr_1990_`x', cells(p50(fmt(%9.1fc))) label collabels(none) ///
- mtitles("All" "2013-2008" "2007-2002" "2001-1996" "1995-1990" "<1990") stats(N, label("Observations") fmt(%9.0gc)) ///
- title("Tabel 2.1 Summary Statistics of Mortgages (med)_`x'")
+esttab total_`x' yr_2013_`x' yr_2007_`x' yr_2001_`x' yr_1995_`x' yr_1990_`x', cells(p50(fmt(%15.1fc))) label collabels(none) ///
+ mtitles("All" "2013-2008" "2007-2002" "2001-1996" "1995-1990" "<1990") stats(N, label("Observations") fmt(%15.0gc)) ///
+ title("Tabel 2.1 Summary Statistics of Mortgages (med)_`x'") varwidth(40)
 }
  
 log close
