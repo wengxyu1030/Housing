@@ -24,7 +24,7 @@ global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\02_Table of Means NSS 70.log",replace
+//log using "${script}\02_Table of Means NSS 70.log",replace
 
 ****************************************************************************
 * Load the data and replicate the assumption https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2797680
@@ -32,45 +32,45 @@ log using "${script}\02_Table of Means NSS 70.log",replace
 use "${root}\Data Output Files\NSS70_All.dta",clear
 
 *generate asset value by type
-egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
+egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other fin_retire gold fin_rec) 
 
 egen double durable_other = rowtotal(livestock trspt agri non_farm)
 
-egen double real_estate = rowtotal(building_resid land_r land_u)
+egen double real_estate = rowtotal(building_all land_r land_u)
 
 egen double asset_non_fin = rowtotal(real_estate gold durable_other)
 
-egen double asset_fin = rowtotal(shares fin_other fin_rec)
+egen double asset_fin = rowtotal(shares fin_other fin_rec) 
 
 *generate wealth data
 gen double wealth = asset - debt
 gen double wealth_ln = ln(wealth)
 
 *summary statistics
-sum asset land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec building_resid 
+sum asset land_r land_u building_all building_resid livestock trspt agri non_farm shares fin_other gold fin_rec  
 
 ****************************************************************************
 * Asset allocation
 ****************************************************************************
 keep if head_age >= 24 //consistent with the paper restriction.
+keep if asset > 0 //only include hosueholds with assets. 
 
 **share of real estate on 
 * real_estate (77%), durable good (7%), gold (11%)
-gen re_share = real_estate/asset
-gen du_share = durable_other/asset
-gen gl_share = gold / asset
+gen double re_share = real_estate/asset *100
+gen double du_share = durable_other/asset*100
+gen double gl_share = gold /asset*100
 
 sum re_share du_share gl_share //gold is 11% closest with paper. 
 sum re_share du_share gl_share [aw = hhwgt] 
-sum re_share du_share gl_share [aw = pwgt] //gold is 11% closest with paper. 
 
 ** USE TABLE 1 to try and match mean and median of assets. Paper has Mean of 1,581,228 and Median of 501,880
 *Unweighted 
 tabstat asset, s(mean p50) format("%9.0fc") // 1,813,187   602,800
 *Weighted
 global asset_table "asset_fin fin_retire asset_non_fin real_estate durable_other gold asset"
-tabstat $asset_table [aw=hhwgt], s(mean p50) format("%9.0fc") // total: 1,561,322   490,570
-tabstat $asset_table [aw=pwgt], s(mean p50) format("%9.0fc") // total: 1,754,928   567,775
+tabstat $asset_table [aw=hhwgt], s(mean p50) format("%9.0fc") 
+tabstat $asset_table [aw=pwgt], s(mean p50) format("%9.0fc") 
 
 *write to the matrix
 preserve
@@ -120,6 +120,7 @@ drop name type
 list
 
 restore
+
 **residential building ownership
 codebook building_resid 
 

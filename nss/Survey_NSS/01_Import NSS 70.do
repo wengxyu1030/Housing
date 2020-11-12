@@ -233,17 +233,16 @@ count if b12_q3 < 0
 replace b12_q3 = . if b12_q3 <0
 
 egen double gold = sum(b12_q3*(b12_q1 == 12)), by(HHID)
-egen double fin_retire = sum(b12_q3*(inlist(b12_q1,5,6))), by(HHID) //retirement account
-egen double fin_other = sum(b12_q3*(b12_q1 == 11)), by(HHID)
-egen double fin_other_man = sum(b12_q3*(inrange(b12_q1,1,7)| b12_q1 == 10)), by(HHID)
+egen double fin_retire = sum(b12_q3*(inlist(b12_q1,6,7))), by(HHID) //retirement account
+egen double fin_other = sum(b12_q3*(inrange(b12_q1,1,5) )), by(HHID)
+
 duplicates drop HHID, force
   
-  *Check the manual (man) sum with survey sum
-  count if fin_other > fin_other_man
-  count if fin_other < fin_other_man
- 
-drop fin_other
+  /*
+drop fin_other 
 ren fin_other_man fin_other
+*/
+
 keep HHID fin_other gold fin_retire
 save "${r_output}\b12",replace
 
@@ -266,40 +265,16 @@ save "${r_output}\b13",replace
 
 *Debt: cash loands payable b14: Type of loan(8) Purpose of loan (11) Type of mortgage(13) , srl 99 (total)
 use "${r_input}\Visit 1_Block 14",clear
-drop if b14_q1 == "99" //drop the total amount
+keep if b14_q1 == "99" 
 
 *debt
-gen debt = b14_q17
-gen b14 = debt
-
-*loan purpose
-gen loan_purpose = b14_q11
-gen hous_loan = (b14_q11 == "11")*debt
-
-*credit agency
-gen credit_agency = b14_q6
-
-destring(b14_q6),replace
-gen credit_formal = (!inrange(b14_q6,12,17)& b14_q6!=9)*debt
-
-*mortgage
-gen mortgage_type = b14_q13
-gen has_mortgage =  (b14_q13 != "4")*debt
-
-*borrowed amount
-gen br_amount = b14_q5
-
-*aggregate at household level. *** When you collapse, check if any HH has two housing loans - we don't want to combine them. In fact we should try and do all this in file 03_Mortgage so we can keep file 01 clean while we play around with this data
-collapse (sum) hous_loan (sum) credit_formal (sum) has_mortgage  (sum) br_amount (sum) debt,by(HHID)
-label var hous_loan "loan with purpose on housing"
-label var has_mortgage "loan with mortgage"
-
+gen debt = b14_q17 
+keep HHID debt
 save "${r_output}\b14",replace
 
 *Debt: kind of loan payable b15 col 11: housing 11
 use "${r_input}\Visit 1_Block 15_kind loans payable by the household.dta",replace
 save "${r_output}\b15",replace //late housing info
-
 
 
 *******merge to master data******************************
