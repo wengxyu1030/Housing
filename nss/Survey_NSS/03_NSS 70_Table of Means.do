@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Generate tables for homeowners, liability, and housing mortgage. 
-* Date: Nov 10, 2020
+* Date: Nov 15, 2020
 * Version 3.1
 * Last Editor: Aline
 ****************************************************************************
@@ -26,7 +26,7 @@ global r_output "${root}\Data Output Files"
 
 
 ****************************************************************************
-* Summary table for asset and liability Table 0
+* Summary table for asset and liability: Table 0
 ****************************************************************************
 use "${root}\Data Output Files\NSS70_All.dta",clear
 
@@ -38,13 +38,16 @@ gen debt_dm = (total_debt > 0)*100
 gen asset_pos =  asset if asset > 0
 gen total_debt_pos = total_debt if total_debt > 0
 
+*home ownership
+gen own_home = (building_dwelling > 0)*100
+
 /*
 Quantile of wealth
 Asset: Real Estate, Total Asset
 Liability: Mortgage, Total Liabilities
 */
 
-global var_tab "asset asset_pos asset_dm total_debt total_debt_pos debt_dm"
+global var_tab "asset asset_pos asset_dm total_debt total_debt_pos debt_dm own_home"
 mdesc $var_tab
 
 xtile qtl = wealth [aw=hhwgt], n(5)
@@ -68,13 +71,19 @@ label var total_debt_pos "Average Debt for Indebted HHs."
 label var asset_dm "Own Asset (%)"
 label var debt_dm "Own Debt (%)"
 
+label var own_home "Dwelling Ownership (%)"
+
 esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
- title("Tabel 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)")
+ title("Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)") ///
+ addnotes("Notes: Wealth is defined as total assests net total debt." ///
+          "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling")
 
-esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
+esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
- title("Tabel 0.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)")
+ title("Table 0.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)") ///
+ addnotes("Notes: Wealth is defined as total assests net total debt." ///
+          "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling")
  
 ****************************************************************************
 * Housing mortgage loan features
@@ -169,15 +178,6 @@ sum loan_period_*
 
 *the loan is subsidized 
 gen loan_sub = (b14_q7 != "09")*100 
-
-*asset and wealth feature (household level)
-egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non_farm shares fin_other gold fin_rec) 
-egen double real_estate = rowtotal(building_dwelling land_r_resid land_u_resid) 
-egen double land_resid = rowtotal(land_r_resid land_u_resid)
-gen double wealth = asset - debt
-
-gen temp_debt =  (b14_q1 == "99")*debt
-egen total_debt = sum(temp_debt), by(HHID)
 
 *label variables
 label var urban "Urban Household (%)"

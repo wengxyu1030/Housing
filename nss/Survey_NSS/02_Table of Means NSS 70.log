@@ -1,226 +1,242 @@
-------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Me
-> ans NSS 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NS
+> S 70.log
   log type:  text
- opened on:  12 Nov 2020, 06:33:29
+ opened on:  15 Nov 2020, 04:55:49
 
 . 
+.  
 . ****************************************************************************
-. * Summary table for asset and liability
+. * Compare with official NSS70 report. 
 . ****************************************************************************
+.  
+.  **Official NSS70 Report
+. /* Statement 3.1
+> Households owning asset: rural 98.3% urban 93.5%
+> Averate value of total assets (AVA) owned: rural: 1,006,985 urban 2,285,135
+> */
+. 
+. /* Statement 3.4
+> Households owning debt: rural 31.44% urban 22.37%
+> Average amount of debt (AOD) owned: rural: 32522 urban 84625 (all households)
+> */
 . use "${root}\Data Output Files\NSS70_All.dta",clear
 
 . 
-. /*
-> Quantile of wealth
-> Asset: Real Estate, Total Asset
-> Liability: Mortgage, Total Liabilities
-> */
-. 
-. global var_tab "real_estate asset total_debt"
+. gen asset_dm = (asset > 0)*100
 
-. xtile qtl = wealth [aw=hhwgt] , n(5)
+. gen debt_dm = (total_debt > 0)*100 
 
 . 
-. gen double obs = (real_estate+asset+total_debt) != .
-
-. 
-. //not restrcting the sample to positive asset or liability.
-. eststo total : estpost summarize $var_tab [aw = hhwgt] if obs == 1,de
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)  e(kurto~)     e(sum) 
--------------+----------------------------------------------------------------------------------------
- real_estate |     73720   2.09e+08    1342897   1.51e+13    3883746   21.68709   964.5156   2.81e+14 
-       asset |     73720   2.09e+08    1521031   1.65e+13    4067549   20.08913   849.7986   3.19e+14 
-  total_debt |     73720   2.09e+08   114196.9   3.52e+11   593096.2   110.2939   29583.73   2.39e+13 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)     e(p50)     e(p75) 
--------------+----------------------------------------------------------------------------------------
- real_estate |         0   3.27e+08          0          0      29062     160000     460000    1220000 
-       asset |         0   3.33e+08       2800      43800      86410     220800     562160    1413190 
-  total_debt |         0   1.83e+08          0          0          0          0      16841      78000 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
- real_estate |   3000000    5205000   1.34e+07 
-       asset |   3407500    5833300   1.44e+07 
-  total_debt |    250000     450000    1557160 
-
-. forvalues i = 1/5 {
-  2. eststo q`i' : estpost summarize $var_tab [aw = hhwgt] if qtl == `i',de
+. forvalues i = 0/1{
+  2. eststo tab_urban_`i': estpost sum asset_dm asset debt_dm total_debt [aw = hhwgt] if urban == `i'
   3. }
 
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)  e(kurto~)     e(sum) 
+             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)     e(min)     e(max)     e(sum) 
 -------------+----------------------------------------------------------------------------------------
- real_estate |     12860   4.19e+07   87399.93   2.81e+11     530449    99.7478   16491.07   3.66e+12 
-       asset |     12860   4.19e+07   128483.4   3.37e+11   580594.8   93.34162   14988.07   5.39e+12 
-  total_debt |     12860   4.19e+07     109703   1.11e+12    1053207    95.2361   14836.18   4.60e+12 
+    asset_dm |     62135   3.12e+08   98.77035   121.4546   11.02065          0        100   3.08e+10 
+       asset |     62135   3.12e+08    1043210   8.12e+12    2848736          0   2.51e+08   3.26e+14 
+     debt_dm |     62135   3.12e+08   30.96812   2137.822   46.23659          0        100   9.67e+09 
+  total_debt |     62135   3.12e+08   32017.53   2.84e+10   168638.9          0   1.82e+07   9.99e+12 
 
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)     e(p50)     e(p75) 
+             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)     e(min)     e(max)     e(sum) 
 -------------+----------------------------------------------------------------------------------------
- real_estate |         0   9.50e+07          0          0          0          0      50000     100500 
-       asset |         0   1.02e+08          0       2800      11500      43800      86500     126500 
-  total_debt |         0   1.83e+08          0          0          0          0      12500      60950 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
- real_estate |    145000     203460     700000 
-       asset |    190000     284000     900000 
-  total_debt |    194800     350500    1220000 
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)  e(kurto~)     e(sum) 
--------------+----------------------------------------------------------------------------------------
- real_estate |     13631   4.19e+07   215623.7   1.45e+10   120333.4   6.383564   148.8939   9.03e+12 
-       asset |     13631   4.19e+07   275462.4   1.83e+10   135108.4   12.11668   330.3985   1.15e+13 
-  total_debt |     13631   4.19e+07   38933.88   1.39e+10     117884   17.57921    544.727   1.63e+12 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)     e(p50)     e(p75) 
--------------+----------------------------------------------------------------------------------------
- real_estate |         0    4475000          0          0     107700     154000     210000     272500 
-       asset |    136500    5737000     140000     153520     166200     202650     260000     321200 
-  total_debt |         0    5481250          0          0          0          0      10000      37500 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
- real_estate |    321000     358560     542992 
-       asset |    370500     431740     645000 
-  total_debt |     97630     167800     400000 
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)  e(kurto~)     e(sum) 
--------------+----------------------------------------------------------------------------------------
- real_estate |     14186   4.19e+07     470530   3.48e+10     186474   3.644569   62.24818   1.97e+13 
-       asset |     14186   4.19e+07   573419.6   3.71e+10   192634.6   6.713291   116.8934   2.40e+13 
-  total_debt |     14186   4.19e+07   54152.37   2.29e+10   151417.3     12.821   286.7904   2.27e+12 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)     e(p50)     e(p75) 
--------------+----------------------------------------------------------------------------------------
- real_estate |         0    4500000          0     231000     305000     369833     460000     567500 
-       asset |    353100    5875000     361050     376670     396200     451300     545510     659680 
-  total_debt |         0    5432000          0          0          0          0      12200      50150 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
- real_estate |    656000     700000     950000 
-       asset |    732800     814000    1144680 
-  total_debt |    132840     242500     568000 
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)  e(kurto~)     e(sum) 
--------------+----------------------------------------------------------------------------------------
- real_estate |     15617   4.19e+07    1021471   1.28e+11   357904.2   1.536754   16.91402   4.28e+13 
-       asset |     15617   4.19e+07    1194339   1.32e+11   363947.3   2.851217   28.26397   5.00e+13 
-  total_debt |     15617   4.19e+07   94227.87   5.91e+10   243028.8   9.000504    142.377   3.95e+12 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)     e(p50)     e(p75) 
--------------+----------------------------------------------------------------------------------------
- real_estate |         0    6268200          0     559000     670000     797800     980000    1225000 
-       asset |    729230    7674480     743000     782500     820000     923000    1129600    1403940 
-  total_debt |         0    6769821          0          0          0          0      23000      89700 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
- real_estate |   1450000    1556000    1960000 
-       asset |   1609770    1722200    2245855 
-  total_debt |    239000     413000     976000 
-
-             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)  e(kurto~)     e(sum) 
--------------+----------------------------------------------------------------------------------------
- real_estate |     17426   4.19e+07    4919733   5.85e+13    7645755    12.6863   295.6446   2.06e+14 
-       asset |     17426   4.19e+07    5433756   6.24e+13    7899324   12.08477   272.8593   2.28e+14 
-  total_debt |     17426   4.19e+07   273928.1   5.18e+11   719614.9   8.849797    138.376   1.15e+13 
-
-             |    e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25)     e(p50)     e(p75) 
--------------+----------------------------------------------------------------------------------------
- real_estate |         0   3.27e+08    1078000    1567000    1710000    2070000    2995000    5200000 
-       asset |   1675900   3.33e+08    1717400    1836300    1962200    2354400    3383480    5813533 
-  total_debt |         0   1.90e+07          0          0          0          0      57000     254000 
-
-             |    e(p90)     e(p95)     e(p99) 
--------------+---------------------------------
- real_estate |   9050000   1.34e+07   3.19e+07 
-       asset |   9933500   1.44e+07   3.38e+07 
-  total_debt |    637318    1202500    3135000 
+    asset_dm |     48665   1.67e+08   95.97698    386.125   19.65006          0        100   1.61e+10 
+       asset |     48665   1.67e+08    2352252   4.26e+14   2.06e+07          0   1.85e+09   3.94e+14 
+     debt_dm |     48665   1.67e+08   21.64339   1695.937   41.18176          0        100   3.62e+09 
+  total_debt |     48665   1.67e+08   83174.01   3.95e+11   628105.6          0   1.83e+08   1.39e+13 
 
 . 
-. label var real_estate "Real Estate"
+. label var asset_dm "Own Asset (%)"
 
-. label var asset "Total Assets"
+. label var debt_dm "Own Debt (%)"
 
-. label var total_debt "Total Debt"
+. label var asset "Average Asset"
 
-. label var obs "Observation"
-
-. 
-. esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.1fc))) label collabels(none) ///
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
->  title("Tabel 1.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)")
-
-Tabel 1.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)
---------------------------------------------------------------------------------------------------
-                              (1)          (2)          (3)          (4)          (5)          (6)
-                              All           Q1           Q2           Q3           Q4           Q5
---------------------------------------------------------------------------------------------------
-Real Estate           1,342,897.2     87,399.9    215,623.7    470,530.0  1,021,470.8  4,919,732.6
-Total Assets          1,521,031.1    128,483.4    275,462.4    573,419.6  1,194,338.8  5,433,755.8
-Total Debt              114,196.9    109,703.0     38,933.9     54,152.4     94,227.9    273,928.1
---------------------------------------------------------------------------------------------------
-Observations               73,720       12,860       13,631       14,186       15,617       17,426
---------------------------------------------------------------------------------------------------
+. label var total_debt "Average Debt"
 
 . 
-. esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.1fc))) label collabels(none) ///
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
->  title("Tabel 1.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)")
+. esttab tab_urban_0 tab_urban_1,cells(mean(fmt(%15.0fc))) label collabels(none) ///
+>  mtitles("Rural" "Urban")
 
-Tabel 1.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)
---------------------------------------------------------------------------------------------------
-                              (1)          (2)          (3)          (4)          (5)          (6)
-                              All           Q1           Q2           Q3           Q4           Q5
---------------------------------------------------------------------------------------------------
-Real Estate             460,000.0     50,000.0    210,000.0    460,000.0    980,000.0  2,995,000.0
-Total Assets            562,160.0     86,500.0    260,000.0    545,510.0  1,129,600.0  3,383,480.0
-Total Debt               16,841.0     12,500.0     10,000.0     12,200.0     23,000.0     57,000.0
---------------------------------------------------------------------------------------------------
-Observations               73,720       12,860       13,631       14,186       15,617       17,426
---------------------------------------------------------------------------------------------------
+----------------------------------------------
+                              (1)          (2)
+                            Rural        Urban
+----------------------------------------------
+Own Asset (%)                  99           96
+Average Asset           1,043,210    2,352,252
+Own Debt (%)                   31           22
+Average Debt               32,018       83,174
+----------------------------------------------
+Observations                62135        48665
+----------------------------------------------
 
+. 
+.  
+. clear matrix
+
+. global pdf_tab "asset_dm asset debt_dm total_debt"
+
+. eststo all: quietly estpost summarize $pdf_tab [aw=hhwgt]
+
+. 
+. unab vars : $pdf_tab 
+
+. local num : word count `vars'
+
+. matrix m = J(`num',4,0)
+
+. local i = 1
+
+. 
+. foreach var in $pdf_tab {
+  2. qui sum `var' [aw=hhwgt] if urban == 0,de
+  3. matrix m[`i',1] = `r(mean)'
+  4. qui sum `var' if urban == 0,de
+  5. matrix m[`i',2] = `r(mean)'
+  6. qui sum `var' [aw=hhwgt] if urban == 1,de
+  7. matrix m[`i',3] = `r(mean)'
+  8. qui sum `var' if urban == 1,de
+  9. matrix m[`i',4] = `r(mean)'
+ 10. local i = `i' + 1
+ 11. }
+
+. 
+. 
+. matrix rownames m = $pdf_tab
+
+. matrix colnames m = Rural_w Rural_uw Urban_w Urban_uw
+
+. matrix list m
+
+m[4,4]
+              Rural_w   Rural_uw    Urban_w   Urban_uw
+  asset_dm  98.770353  99.559025  95.976983  98.101305
+     asset  1043210.5  1276396.2  2352251.9  2427901.2
+   debt_dm  30.968119  40.566508  21.643389  41.189767
+total_debt  32017.532  43777.466  83174.014  132358.29
+
+. 
+. svmat m,names(col)
+
+. gen name = _n
+
+. 
+. keep name Rural* Urban*
+
+. drop if mi(Rural_w)
+(110,796 observations deleted)
+
+. 
+. save "${r_output}\m_ast_lbt_pdf",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\m_ast_lbt_pdf.dta save
+> d
+
+. 
+. import excel "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries\pdf_t
+> ab.xlsx", sheet("Sheet1") firstrow clear
+
+. save "${r_output}\tab_pdf",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\tab_pdf.dta saved
+
+. 
+. merge 1:1 name using  "${r_output}\m_ast_lbt_pdf"
+(note: variable name was byte, now float to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                 4  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. 
+. foreach sector in Rural Urban {
+  2. gen `sector'_w_dt = (`sector'_w  - `sector'_pdf)/`sector'_pdf *100
+  3. gen `sector'_uw_dt = (`sector'_uw - `sector'_pdf)/`sector'_pdf *100
+  4. format `sector'* %9.1fc
+  5. }
+
+. 
+. drop name
+
+. 
+. list
+
+     +--------------------------------------------------------------------------------------------------+
+  1. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
+     | Own Asset (%) |      98.3 |      93.5 |      98.8 |      99.6 |      96.0 |      98.1 |      0.5 |
+     |--------------------------------------------------------------------------------------------------|
+     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
+     |                 1.3            |                 2.6            |                 4.9            |
+     +--------------------------------------------------------------------------------------------------+
+
+     +--------------------------------------------------------------------------------------------------+
+  2. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
+     | Average Asset | 1006985.0 | 2285135.0 | 1043210.4 | 1276396.3 | 2352251.8 | 2427901.3 |      3.6 |
+     |--------------------------------------------------------------------------------------------------|
+     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
+     |                26.8            |                 2.9            |                 6.2            |
+     +--------------------------------------------------------------------------------------------------+
+
+     +--------------------------------------------------------------------------------------------------+
+  3. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
+     |  Own Debt (%) |      31.4 |      22.4 |      31.0 |      40.6 |      21.6 |      41.2 |     -1.5 |
+     |--------------------------------------------------------------------------------------------------|
+     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
+     |                29.0            |                -3.2            |                84.1            |
+     +--------------------------------------------------------------------------------------------------+
+
+     +--------------------------------------------------------------------------------------------------+
+  4. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
+     |  Average Debt |  32,522.0 |  84,625.0 |  32,017.5 |  43,777.5 |  83,174.0 | 132,358.3 |     -1.6 |
+     |--------------------------------------------------------------------------------------------------|
+     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
+     |                34.6            |                -1.7            |                56.4            |
+     +--------------------------------------------------------------------------------------------------+
+
+. 
 . 
 . ****************************************************************************
-. * Load the data and replicate the assumption 
+. * Compare to Housing Finance Landscape paper. 
 . * https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2797680
 . ****************************************************************************
 . use "${root}\Data Output Files\NSS70_All.dta",clear
 
 . 
 . *summary statistics
-. sum asset land_r land_u building_all building_resid livestock trspt agri non_farm shares fin_other gold fi
-> n_rec  
+. sum asset land_r land_u building_all building_resid livestock trspt agri non_farm shares fin_other gold fin_rec 
+>  
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
        asset |    110,800     1782154    1.13e+07          0   1.85e+09
-      land_r |     67,747     1041569     3905052          0   2.49e+08
-      land_u |     34,217     1380122     8276187          0   1.28e+09
-building_all |     95,488    614870.7    1.01e+07          0   1.85e+09
-building_r~d |     95,488    523603.5     9808247          0   1.85e+09
+      land_r |    110,800    636851.5     3095437          0   2.49e+08
+      land_u |    110,800    426206.2     4643134          0   1.28e+09
+building_all |    110,800    529898.7     9350650          0   1.85e+09
+building_r~d |    110,800    489770.9     9145890          0   1.85e+09
 -------------+---------------------------------------------------------
-   livestock |     44,407    32474.12    54060.96          0    2590000
-       trspt |     71,749    74586.56    279375.5          0   2.07e+07
-        agri |     48,270     8792.89    50198.23          0    7700000
-    non_farm |     24,552           0           0          0          0
-      shares |      3,836    46152.68      351695          0   1.21e+07
+   livestock |    110,800    13015.15    37743.58          0    2590000
+       trspt |    110,800    48298.84    227621.3          0   2.07e+07
+        agri |    110,800    3830.621    33418.16          0    7700000
+    non_farm |    110,800           0           0          0          0
+      shares |    110,800    1597.849     65972.4          0   1.21e+07
 -------------+---------------------------------------------------------
-   fin_other |    101,412    23563.03    177000.4          0   3.25e+07
-        gold |    101,412    63457.91    160273.4          0   1.29e+07
-     fin_rec |      6,775    65060.67    424340.3          0   2.00e+07
+   fin_other |    110,800    21566.55    169462.9          0   3.25e+07
+        gold |    110,800    58081.17    154348.2          0   1.29e+07
+     fin_rec |    110,800    3978.213    106074.3          0   2.00e+07
 
 . 
 . ****************************************************************************
 . * Asset allocation
 . ****************************************************************************
 . 
-. **share of real estate on 
-. * real_estate (77%), durable good (7%), gold (11%)
+. **Indian Household Finance Landscape (share)
+. /*share of real estate on 
+> real_estate (77%), durable good (7%), gold (11%) */
+. 
 . gen double re_share = real_estate/asset *100
 (1,198 missing values generated)
 
@@ -228,7 +244,7 @@ building_r~d |     95,488    523603.5     9808247          0   1.85e+09
 (1,198 missing values generated)
 
 . gen double gl_share = gold /asset*100
-(9,407 missing values generated)
+(1,198 missing values generated)
 
 . 
 . sum re_share du_share gl_share if head_age >= 24 & asset > 0  //gold is 11% closest with paper. 
@@ -237,7 +253,7 @@ building_r~d |     95,488    523603.5     9808247          0   1.85e+09
 -------------+---------------------------------------------------------
     re_share |    107,856    77.25209    29.18087          0        100
     du_share |    107,856    6.310022    12.70273          0        100
-    gl_share |     99,897    10.93642    19.77933          0        100
+    gl_share |    107,856    10.12939    19.24908          0        100
 
 . sum re_share du_share gl_share [aw = hhwgt] if head_age >= 24 & asset > 0 
 
@@ -245,13 +261,12 @@ building_r~d |     95,488    523603.5     9808247          0   1.85e+09
 -------------+-----------------------------------------------------------------
     re_share | 107,856   454809072    77.29683   29.92245          0        100
     du_share | 107,856   454809072    5.839521    12.1774          0        100
-    gl_share |  99,897   415240583    12.36733   21.44628          0        100
+    gl_share | 107,856   454809072    11.29137   20.78646          0        100
 
 . 
-. ** USE TABLE 1 to try and match mean and median of assets. Paper has Mean of 1,581,228 and Median of 501,8
-> 80
+. **Indian Household Financing Landscape (Table 1)
 . *Unweighted 
-. tabstat asset, s(mean p50) format("%9.0fc") // 1,813,187   602,800
+. tabstat asset, s(mean p50) format("%9.0fc")
 
     variable |      mean       p50
 -------------+--------------------
@@ -261,20 +276,25 @@ building_r~d |     95,488    523603.5     9808247          0   1.85e+09
 . *Weighted
 . global asset_table "asset_fin fin_retire asset_non_fin real_estate durable_other gold asset"
 
-. tabstat $asset_table [aw=hhwgt], s(mean p50) format("%9.0fc") 
+. 
+. tabstat $asset_table [aw=hhwgt], s(mean p50) format("%15.0fc") 
 
    stats |  as~t_fin  fin_re~e  as~n_fin  real_e~e  durabl~r      gold     asset
 ---------+----------------------------------------------------------------------
-    mean |    22,885    30,103 1,450,530 1,346,562    48,248    62,445 1,500,276
-     p50 |     1,000         0   438,750   376,000     7,100    23,000   459,330
+    mean |         22,885         26,861      1,450,530      1,346,562         48,248         55,719      1,500,27
+> 6
+     p50 |          1,000              0        438,750        376,000          7,100         18,000        459,33
+> 0
 --------------------------------------------------------------------------------
 
-. tabstat $asset_table [aw=pwgt], s(mean p50) format("%9.0fc") 
+. tabstat $asset_table [aw=pwgt], s(mean p50) format("%15.0fc") 
 
    stats |  as~t_fin  fin_re~e  as~n_fin  real_e~e  durabl~r      gold     asset
 ---------+----------------------------------------------------------------------
-    mean |    21,282    28,990 1,683,881 1,567,126    58,634    63,914 1,731,527
-     p50 |     1,210         0   538,000   468,900    14,900    25,000   558,200
+    mean |         21,282         26,363      1,683,881      1,567,126         58,634         58,121      1,731,52
+> 7
+     p50 |          1,210              0        538,000        468,900         14,900         20,000        558,20
+> 0
 --------------------------------------------------------------------------------
 
 . 
@@ -317,11 +337,11 @@ building_r~d |     95,488    523603.5     9808247          0   1.85e+09
 m[7,2]
                    mean        p50
    asset_fin  23976.499       1200
-  fin_retire  30961.231          0
+  fin_retire  28267.597          0
 asset_non_~n  1521485.6     476700
  real_estate    1412533     408000
 durable_ot~r  50594.536       9500
-        gold  63919.019      25000
+        gold   58358.05      20000
        asset  1573729.7     500350
 
 . 
@@ -335,8 +355,7 @@ durable_ot~r  50594.536       9500
 . gen name = _n
 
 . save "${r_output}\m_asset",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\m_asset.dta save
-> d
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\m_asset.dta saved
 
 . 
 . 
@@ -344,8 +363,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 . import excel "${r_input}\paper_tab_1.xlsx", sheet("Sheet1") firstrow clear
 
 . save "${r_input}\tab_1.dta",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries\tab_1.dta 
-> saved
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries\tab_1.dta saved
 
 . 
 . keep if type == "asset"
@@ -382,12 +400,12 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Da
      | mean_tb    p50_tb              name_full       mean      p50   delta_~n   delta~50 |
      |------------------------------------------------------------------------------------|
   1. |  24,681     1,350        Financial asset    23976.5     1200         -3        -11 |
-  2. |  28,317         0    Retirement accounts   30961.23        0          9          . |
+  2. |  28,317         0    Retirement accounts    28267.6        0         -0          . |
   3. | 1528232   478,300   Non-financial assets    1521486   476700         -0         -0 |
-  4. | 1441279   407,000            Real estate    1412533   408000         -2          0 |
-  5. |  58,660    11,680          Durable goods   50594.54     9500        -14        -19 |
+  4. | 1441279   407,000        o/w Real estate    1412533   408000         -2          0 |
+  5. |  58,660    11,680      o/w Durable goods   50594.54     9500        -14        -19 |
      |------------------------------------------------------------------------------------|
-  6. |  58,292    20,000           Gold/bullion   63919.02    25000         10         25 |
+  6. |  58,292    20,000       o/w Gold/bullion   58358.05    20000          0          0 |
   7. | 1581228   501,880            Total asset    1573730   500350         -0         -0 |
      +------------------------------------------------------------------------------------+
 
@@ -395,70 +413,8 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Da
 . restore
 
 . 
-. **residential building ownership
-. codebook building_resid 
-
-------------------------------------------------------------------------------------------------------------
-building_resid                                                                                   (unlabeled)
-------------------------------------------------------------------------------------------------------------
-
-                  type:  numeric (long)
-
-                 range:  [0,1.850e+09]                units:  1
-         unique values:  4,155                    missing .:  15,312/110,800
-
-                  mean:    523603
-              std. dev:   9.8e+06
-
-           percentiles:        10%       25%       50%       75%       90%
-                             28000     70000    160000    400000   1.0e+06
-
 . 
-. gen legal_own = (building_resid > 0)
-
-. replace legal_own = 0 if mi(building_resid) //treat missing as household do not own real estate assets.
-(15,312 real changes made)
-
 . 
-. bysort urban: sum legal_own [aw = hhwgt],de 
-
-------------------------------------------------------------------------------------------------------------
--> urban = 0
-
-                          legal_own
--------------------------------------------------------------
-      Percentiles      Smallest
- 1%            0              0
- 5%            0              0
-10%            1              0       Obs              62,135
-25%            1              0       Sum of Wgt.   312128567
-
-50%            1                      Mean           .9303854
-                        Largest       Std. Dev.      .2544984
-75%            1              1
-90%            1              1       Variance       .0647694
-95%            1              1       Skewness      -3.382252
-99%            1              1       Kurtosis       12.43963
-
-------------------------------------------------------------------------------------------------------------
--> urban = 1
-
-                          legal_own
--------------------------------------------------------------
-      Percentiles      Smallest
- 1%            0              0
- 5%            0              0
-10%            0              0       Obs              48,665
-25%            0              0       Sum of Wgt.   167449822
-
-50%            1                      Mean           .5857583
-                        Largest       Std. Dev.      .4925957
-75%            1              1
-90%            1              1       Variance       .2426505
-95%            1              1       Skewness      -.3481931
-99%            1              1       Kurtosis       1.121238
-
-
 . 
 . ****************************************************************************
 . * Liabilitiy allocation
@@ -466,8 +422,8 @@ building_resid                                                                  
 . use "${r_output}\NSS70_All.dta",clear
 
 . 
-. 
-. ** Liability allocation gold (4%), unsecured loan (55%), mortgage loan (23%)
+. **Indian Household Financing Landscape (share)
+. //Liability allocation gold (4%), unsecured loan (55%), mortgage loan (23%)
 . 
 . *generate share of gold loan on total liability
 . gen double gold_loan_share = total_gold_loan/total_debt
@@ -481,8 +437,8 @@ building_resid                                                                  
 
 . 
 . *Need to match 4%, 55% and 23% (only for households the date of survey liability is positive) 
-. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw
->  = pwgt] if head_age >= 24 & total_debt > 0
+. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw = pwg
+> t] if head_age >= 24 & total_debt > 0
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -494,8 +450,8 @@ total_unse~n |  44,866   630792348    59537.58   235053.2          0   1.64e+07
 -------------+-----------------------------------------------------------------
 total_mrtg~n |  44,866   630792348     83053.9   706915.8          0   1.83e+08
 
-. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw
->  = hhwgt] if head_age >= 24 & total_debt > 0
+. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw = hhw
+> gt] if head_age >= 24 & total_debt > 0
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -507,8 +463,8 @@ total_unse~n |  44,866   131560566    59338.92   277057.6          0   1.64e+07
 -------------+-----------------------------------------------------------------
 total_mrtg~n |  44,866   131560566     86940.1   651197.6          0   1.83e+08
 
-. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan if 
-> head_age >= 24 & total_debt > 0
+. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan if head_a
+> ge >= 24 & total_debt > 0
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
@@ -521,30 +477,29 @@ total_unse~n |     44,866    64410.36    255636.5          0   1.64e+07
 total_mrtg~n |     44,866    99142.26    985712.2          0   1.83e+08
 
 . 
-. ** USE TABLE 1 to try and match mean and median of liability. Paper has Mean of 180,153 and Median of 51,6
-> 14
-. global lbt_table "total_secure_loan total_mrtg_loan total_gold_loan total_oth_secure_loan total_unsecure_l
-> oan total_debt"
+. **Indian Household Financing Landscape (Table 1)
+. global lbt_table "total_secure_loan total_mrtg_loan total_gold_loan total_oth_secure_loan total_unsecure_loan to
+> tal_debt"
 
 . 
 . *Unweighted 
-. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan , s(mean p50) forma
-> t("%9.0fc") 
+. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan , s(mean p50) format("%9.
+> 0fc") 
 
    stats |  total~dt  total~bt  t~d_loan  t~unse~n  t~g_loan
 ---------+--------------------------------------------------
-    mean |   148,923   124,272     4,379    39,772    60,931
-     p50 |    36,900    15,400         0         0         0
+    mean |    99,085    82,683     2,913    26,462    40,540
+     p50 |    11,000         0         0         0         0
 ------------------------------------------------------------
 
 . *Weighted
-. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=hhwgt], s(mean 
-> p50) format("%9.0fc") 
+. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=hhwgt], s(mean p50) f
+> ormat("%9.0fc") 
 
    stats |  total~dt  total~bt  t~d_loan  t~unse~n  t~g_loan
 ---------+--------------------------------------------------
-    mean |   139,437   114,197     6,950    38,468    55,389
-     p50 |    39,264    16,841         0         0         0
+    mean |    60,904    49,879     3,036    16,802    24,193
+     p50 |         0         0         0         0         0
 ------------------------------------------------------------
 
 . 
@@ -553,7 +508,7 @@ total_mrtg~n |     44,866    99142.26    985712.2          0   1.83e+08
 
 . 
 . keep if head_age >= 24 & total_debt > 0 //in paper: keep households with head older than 24.
-(30,370 observations deleted)
+(65,934 observations deleted)
 
 . 
 . clear matrix
@@ -599,21 +554,19 @@ total_unse~n  59338.919      11200
 . keep mean p50
 
 . keep if !mi(mean) | !mi(p50)
-(80,424 observations deleted)
+(44,860 observations deleted)
 
 . gen name = _n
 
 . save "${r_output}\m_liability",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\m_liability.dta 
-> saved
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\m_liability.dta saved
 
 . 
-. *table 1 data to compare
+. **Table 1. 
 . import excel "${r_input}\paper_tab_1.xlsx", sheet("Sheet1") firstrow clear
 
 . save "${r_input}\tab_1.dta",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries\tab_1.dta 
-> saved
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries\tab_1.dta saved
 
 . 
 . keep if type == "liability"
@@ -650,21 +603,23 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Da
 . 
 . list
 
-     +------------------------------------------------------------------------------------+
-     | mean_tb   p50_tb                name_full       mean     p50   delta_~n   delta~50 |
-     |------------------------------------------------------------------------------------|
-  1. | 120,845        0            Secured loans     121468       0          1          . |
-  2. |  86,631        0           Mortgage loans   86940.09       0          0          . |
-  3. |  10,817        0               Gold loans   11018.76       0          2          . |
-  4. |  23,397        0      Other secured loans   23509.15       0          0          . |
-  5. |  59,308   11,250          Unsecured loans   59338.92   11200          0         -0 |
-     |------------------------------------------------------------------------------------|
-  6. | 180,153   51,614               Total debt   180806.9   52000          0          1 |
-  7. |  49,108    8,000   Non-institutional debt          .       .          .          . |
-     +------------------------------------------------------------------------------------+
+     +----------------------------------------------------------------------------------------+
+     | mean_tb   p50_tb                    name_full       mean     p50   delta_~n   delta~50 |
+     |----------------------------------------------------------------------------------------|
+  1. | 120,845        0                Secured loans     121468       0          1          . |
+  2. |  86,631        0           o/w Mortgage loans   86940.09       0          0          . |
+  3. |  10,817        0               o/w Gold loans   11018.76       0          2          . |
+  4. |  23,397        0      o/w Other secured loans   23509.15       0          0          . |
+  5. |  59,308   11,250              Unsecured loans   59338.92   11200          0         -0 |
+     |----------------------------------------------------------------------------------------|
+  6. | 180,153   51,614                   Total debt   180806.9   52000          0          1 |
+  7. |  49,108    8,000   o/w Non-institutional debt          .       .          .          . |
+     +----------------------------------------------------------------------------------------+
 
 . restore
 
+. 
+. 
 . 
 . ****************************************************************************
 . * Liabilitiy allocation (value weighted) on 
@@ -728,8 +683,8 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Da
 
 . gen debt_share_panel_b = 100 * debt_type_total / debt_total
 
-. table liability_type, c(mean debt_share_panel_b sd debt_share_panel_b ) format("%9.0f") // get 16, 49 (mor
-> tgage), 4, 32 => so gold+unsec = 36
+. table liability_type, c(mean debt_share_panel_b sd debt_share_panel_b ) format("%9.0f") // get 16, 49 (mortgage)
+> , 4, 32 => so gold+unsec = 36
 
 ------------------------------------------
 liability |
@@ -749,8 +704,8 @@ _type     | mean(debt_s~b)    sd(debt_s~b)
 
 . gen debt_share_panel_b_wt = 100 * debt_type_total_wt/ debt_total_wt
 
-. table liability_type, c(mean debt_share_panel_b_wt sd debt_share_panel_b_wt ) format("%9.0f") // get 13, 4
-> 8 (mortgage), 6, 33 => so gold+unsec = 39
+. table liability_type, c(mean debt_share_panel_b_wt sd debt_share_panel_b_wt ) format("%9.0f") // get 13, 48 (mor
+> tgage), 6, 33 => so gold+unsec = 39
 
 ------------------------------------------
 liability |
@@ -766,8 +721,8 @@ _type     | mean(debt_s~t)    sd(debt_s~t)
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Me
-> ans NSS 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NS
+> S 70.log
   log type:  text
- closed on:  12 Nov 2020, 06:33:44
-------------------------------------------------------------------------------------------------------------
+ closed on:  15 Nov 2020, 04:56:00
+------------------------------------------------------------------------------------------------------------------

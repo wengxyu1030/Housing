@@ -26,7 +26,6 @@ global r_output "${root}\Data Output Files"
 
 log using "${script}\02_Table of Means NSS 70.log",replace
 
-
  
 ****************************************************************************
 * Compare with official NSS70 report. 
@@ -109,8 +108,6 @@ format `sector'* %9.1fc
 drop name
 
 list
-
-
 
 
 ****************************************************************************

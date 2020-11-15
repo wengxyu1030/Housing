@@ -24,7 +24,8 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 ****************************************************************************
-*gen date of survey 
+* Gen date of survey 
+****************************************************************************
 use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
 gen month = real(substr(Survey_Date,3,2))
 gen year = 2013 //there's 2017 and 2019 should be mistake
