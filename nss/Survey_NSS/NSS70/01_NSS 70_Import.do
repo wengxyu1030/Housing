@@ -24,8 +24,7 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 ****************************************************************************
-* Gen date of survey 
-****************************************************************************
+*gen date of survey 
 use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
 gen month = real(substr(Survey_Date,3,2))
 gen year = 2013 //there's 2017 and 2019 should be mistake
@@ -94,6 +93,7 @@ replace b5_2_6 = . if b5_2_6 < 0
 egen double land_u = sum(b5_2_6*(b5_2_1 == "99")), by(HHID)
 egen double land_u_man = sum(b5_2_6*(b5_2_1 != "99")), by(HHID)
 egen double land_u_resid = sum(b5_2_6*(b5_2_1 != "99")*( b5_2_3 == "10")), by(HHID)
+
 duplicates drop HHID, force
 
 *Check the manual (man) sum with survey sum
@@ -347,16 +347,22 @@ egen double asset = rowtotal(land_r land_u building_all livestock trspt agri non
 
 egen double durable_other = rowtotal(livestock trspt agri non_farm)
 
+egen double land_resid = rowtotal(land_r_resid land_u_resid)
+
 egen double real_estate = rowtotal(building_all land_r land_u)
+
+egen double real_estate_dwelling = rowtotal(building_dwelling land_resid)
 
 egen double asset_non_fin = rowtotal(real_estate gold durable_other)
 
 egen double asset_fin = rowtotal(shares fin_other fin_rec) 
 
+
+
 *generate wealth data
 gen double wealth = asset - total_debt
 sum wealth,de
-gen double wealth_ln = ln(wealth) //1% negative wealth. 
+gen double wealth_ln = ln(wealth) //1% negative 
 
 *house keeping
 mdesc *

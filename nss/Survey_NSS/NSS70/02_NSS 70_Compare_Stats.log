@@ -1,9 +1,8 @@
-------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NS
-> S 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_NSS 70_Compare_Stats.log
   log type:  text
- opened on:  15 Nov 2020, 04:55:49
+ opened on:  15 Nov 2020, 21:57:41
 
 . 
 .  
@@ -130,12 +129,11 @@ total_debt  32017.532  43777.466  83174.014  132358.29
 
 . 
 . save "${r_output}\m_ast_lbt_pdf",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\m_ast_lbt_pdf.dta save
-> d
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\m_ast_lbt_pdf.dta saved
 
 . 
-. import excel "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries\pdf_t
-> ab.xlsx", sheet("Sheet1") firstrow clear
+. import excel "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Data & Dictionaries\pdf_tab.xlsx", sheet("She
+> et1") firstrow clear
 
 . save "${r_output}\tab_pdf",replace
 file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files\tab_pdf.dta saved
@@ -165,37 +163,37 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 . 
 . list
 
-     +--------------------------------------------------------------------------------------------------+
-  1. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
-     | Own Asset (%) |      98.3 |      93.5 |      98.8 |      99.6 |      96.0 |      98.1 |      0.5 |
-     |--------------------------------------------------------------------------------------------------|
-     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
-     |                 1.3            |                 2.6            |                 4.9            |
-     +--------------------------------------------------------------------------------------------------+
+     +------------------------------------------------------------------------------------------------------------------------+
+  1. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt | Ru~uw_dt | Ur~_w_dt |
+     | Own Asset (%) |      98.3 |      93.5 |      98.8 |      99.6 |      96.0 |      98.1 |      0.5 |      1.3 |      2.6 |
+     |------------------------------------------------------------------------------------------------------------------------|
+     |                                                        Ur~uw_dt                                                        |
+     |                                                             4.9                                                        |
+     +------------------------------------------------------------------------------------------------------------------------+
 
-     +--------------------------------------------------------------------------------------------------+
-  2. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
-     | Average Asset | 1006985.0 | 2285135.0 | 1043210.4 | 1276396.3 | 2352251.8 | 2427901.3 |      3.6 |
-     |--------------------------------------------------------------------------------------------------|
-     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
-     |                26.8            |                 2.9            |                 6.2            |
-     +--------------------------------------------------------------------------------------------------+
+     +------------------------------------------------------------------------------------------------------------------------+
+  2. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt | Ru~uw_dt | Ur~_w_dt |
+     | Average Asset | 1006985.0 | 2285135.0 | 1043210.4 | 1276396.3 | 2352251.8 | 2427901.3 |      3.6 |     26.8 |      2.9 |
+     |------------------------------------------------------------------------------------------------------------------------|
+     |                                                        Ur~uw_dt                                                        |
+     |                                                             6.2                                                        |
+     +------------------------------------------------------------------------------------------------------------------------+
 
-     +--------------------------------------------------------------------------------------------------+
-  3. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
-     |  Own Debt (%) |      31.4 |      22.4 |      31.0 |      40.6 |      21.6 |      41.2 |     -1.5 |
-     |--------------------------------------------------------------------------------------------------|
-     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
-     |                29.0            |                -3.2            |                84.1            |
-     +--------------------------------------------------------------------------------------------------+
+     +------------------------------------------------------------------------------------------------------------------------+
+  3. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt | Ru~uw_dt | Ur~_w_dt |
+     |  Own Debt (%) |      31.4 |      22.4 |      31.0 |      40.6 |      21.6 |      41.2 |     -1.5 |     29.0 |     -3.2 |
+     |------------------------------------------------------------------------------------------------------------------------|
+     |                                                        Ur~uw_dt                                                        |
+     |                                                            84.1                                                        |
+     +------------------------------------------------------------------------------------------------------------------------+
 
-     +--------------------------------------------------------------------------------------------------+
-  4. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt |
-     |  Average Debt |  32,522.0 |  84,625.0 |  32,017.5 |  43,777.5 |  83,174.0 | 132,358.3 |     -1.6 |
-     |--------------------------------------------------------------------------------------------------|
-     |            Ru~uw_dt            |            Ur~_w_dt            |            Ur~uw_dt            |
-     |                34.6            |                -1.7            |                56.4            |
-     +--------------------------------------------------------------------------------------------------+
+     +------------------------------------------------------------------------------------------------------------------------+
+  4. |     name_full | Rural_pdf | Urban_pdf |   Rural_w |  Rural_uw |   Urban_w |  Urban_uw | Ru~_w_dt | Ru~uw_dt | Ur~_w_dt |
+     |  Average Debt |  32,522.0 |  84,625.0 |  32,017.5 |  43,777.5 |  83,174.0 | 132,358.3 |     -1.6 |     34.6 |     -1.7 |
+     |------------------------------------------------------------------------------------------------------------------------|
+     |                                                        Ur~uw_dt                                                        |
+     |                                                            56.4                                                        |
+     +------------------------------------------------------------------------------------------------------------------------+
 
 . 
 . 
@@ -207,8 +205,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 
 . 
 . *summary statistics
-. sum asset land_r land_u building_all building_resid livestock trspt agri non_farm shares fin_other gold fin_rec 
->  
+. sum asset land_r land_u building_all building_resid livestock trspt agri non_farm shares fin_other gold fin_rec  
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
@@ -281,20 +278,16 @@ building_r~d |    110,800    489770.9     9145890          0   1.85e+09
 
    stats |  as~t_fin  fin_re~e  as~n_fin  real_e~e  durabl~r      gold     asset
 ---------+----------------------------------------------------------------------
-    mean |         22,885         26,861      1,450,530      1,346,562         48,248         55,719      1,500,27
-> 6
-     p50 |          1,000              0        438,750        376,000          7,100         18,000        459,33
-> 0
+    mean |         22,885         26,861      1,450,530      1,346,562         48,248         55,719      1,500,276
+     p50 |          1,000              0        438,750        376,000          7,100         18,000        459,330
 --------------------------------------------------------------------------------
 
 . tabstat $asset_table [aw=pwgt], s(mean p50) format("%15.0fc") 
 
    stats |  as~t_fin  fin_re~e  as~n_fin  real_e~e  durabl~r      gold     asset
 ---------+----------------------------------------------------------------------
-    mean |         21,282         26,363      1,683,881      1,567,126         58,634         58,121      1,731,52
-> 7
-     p50 |          1,210              0        538,000        468,900         14,900         20,000        558,20
-> 0
+    mean |         21,282         26,363      1,683,881      1,567,126         58,634         58,121      1,731,527
+     p50 |          1,210              0        538,000        468,900         14,900         20,000        558,200
 --------------------------------------------------------------------------------
 
 . 
@@ -437,8 +430,8 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Da
 
 . 
 . *Need to match 4%, 55% and 23% (only for households the date of survey liability is positive) 
-. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw = pwg
-> t] if head_age >= 24 & total_debt > 0
+. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw = pwgt] if head_age >= 24
+>  & total_debt > 0
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -450,8 +443,8 @@ total_unse~n |  44,866   630792348    59537.58   235053.2          0   1.64e+07
 -------------+-----------------------------------------------------------------
 total_mrtg~n |  44,866   630792348     83053.9   706915.8          0   1.83e+08
 
-. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw = hhw
-> gt] if head_age >= 24 & total_debt > 0
+. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan [aw = hhwgt] if head_age >= 2
+> 4 & total_debt > 0
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -463,8 +456,8 @@ total_unse~n |  44,866   131560566    59338.92   277057.6          0   1.64e+07
 -------------+-----------------------------------------------------------------
 total_mrtg~n |  44,866   131560566     86940.1   651197.6          0   1.83e+08
 
-. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan if head_a
-> ge >= 24 & total_debt > 0
+. sum gold_loan_share unsecure_share mrtg_loan_share total_gold_loan total_unsecure_loan total_mrtg_loan if head_age >= 24 & total_deb
+> t > 0
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
@@ -478,13 +471,11 @@ total_mrtg~n |     44,866    99142.26    985712.2          0   1.83e+08
 
 . 
 . **Indian Household Financing Landscape (Table 1)
-. global lbt_table "total_secure_loan total_mrtg_loan total_gold_loan total_oth_secure_loan total_unsecure_loan to
-> tal_debt"
+. global lbt_table "total_secure_loan total_mrtg_loan total_gold_loan total_oth_secure_loan total_unsecure_loan total_debt"
 
 . 
 . *Unweighted 
-. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan , s(mean p50) format("%9.
-> 0fc") 
+. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan , s(mean p50) format("%9.0fc") 
 
    stats |  total~dt  total~bt  t~d_loan  t~unse~n  t~g_loan
 ---------+--------------------------------------------------
@@ -493,8 +484,7 @@ total_mrtg~n |     44,866    99142.26    985712.2          0   1.83e+08
 ------------------------------------------------------------
 
 . *Weighted
-. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=hhwgt], s(mean p50) f
-> ormat("%9.0fc") 
+. tabstat total_debt_todt total_debt total_gold_loan total_unsecure_loan total_mrtg_loan [aw=hhwgt], s(mean p50) format("%9.0fc") 
 
    stats |  total~dt  total~bt  t~d_loan  t~unse~n  t~g_loan
 ---------+--------------------------------------------------
@@ -683,8 +673,8 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Raw Da
 
 . gen debt_share_panel_b = 100 * debt_type_total / debt_total
 
-. table liability_type, c(mean debt_share_panel_b sd debt_share_panel_b ) format("%9.0f") // get 16, 49 (mortgage)
-> , 4, 32 => so gold+unsec = 36
+. table liability_type, c(mean debt_share_panel_b sd debt_share_panel_b ) format("%9.0f") // get 16, 49 (mortgage), 4, 32 => so gold+u
+> nsec = 36
 
 ------------------------------------------
 liability |
@@ -704,8 +694,8 @@ _type     | mean(debt_s~b)    sd(debt_s~b)
 
 . gen debt_share_panel_b_wt = 100 * debt_type_total_wt/ debt_total_wt
 
-. table liability_type, c(mean debt_share_panel_b_wt sd debt_share_panel_b_wt ) format("%9.0f") // get 13, 48 (mor
-> tgage), 6, 33 => so gold+unsec = 39
+. table liability_type, c(mean debt_share_panel_b_wt sd debt_share_panel_b_wt ) format("%9.0f") // get 13, 48 (mortgage), 6, 33 => so 
+> gold+unsec = 39
 
 ------------------------------------------
 liability |
@@ -721,8 +711,7 @@ _type     | mean(debt_s~t)    sd(debt_s~t)
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_Table of Means NS
-> S 70.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\02_NSS 70_Compare_Stats.log
   log type:  text
- closed on:  15 Nov 2020, 04:56:00
-------------------------------------------------------------------------------------------------------------------
+ closed on:  15 Nov 2020, 21:57:53
+--------------------------------------------------------------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\02_Table of Means NSS 70.log",replace
+log using "${script}\02_NSS 70_Compare_Stats.log",replace
 
  
 ****************************************************************************
