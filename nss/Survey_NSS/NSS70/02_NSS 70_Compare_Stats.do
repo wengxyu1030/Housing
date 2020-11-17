@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Generate a summary table of NSS 70, compare to published stats
-* Date: Nov 15, 2020
+* Date: Nov 16, 2020
 * Version 3
 * Last Editor: Aline 
 ****************************************************************************
@@ -24,7 +24,7 @@ global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\02_NSS 70_Compare_Stats.log",replace
+log using "${script}\NSS70\02_NSS 70_Compare_Stats.log",replace
 
  
 ****************************************************************************

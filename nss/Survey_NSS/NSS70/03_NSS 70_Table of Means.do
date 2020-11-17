@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Generate tables for homeowners, liability, and housing mortgage. 
-* Date: Nov 15, 2020
+* Date: Nov 16, 2020
 * Version 3.1
 * Last Editor: Aline
 ****************************************************************************
@@ -24,7 +24,7 @@ global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 
-//log using "${script}\03_NSS70_Table of Means.log",replace
+log using "${script}\NSS70\03_NSS70_Table of Means.log",replace
 
 ****************************************************************************
 * Summary table for asset and liability: Table 0
