@@ -42,19 +42,19 @@ gen total_debt_pos = total_debt if total_debt > 0
 *home ownership
 gen own_home = (building_dwelling > 0)*100
 
+*urban hosuehold unit
+replace urban = urban*100
+
 /*
 Quantile of wealth
 Asset: Real Estate, Total Asset
 Liability: Mortgage, Total Liabilities
 */
 
-global var_tab "asset asset_pos asset_dm total_debt total_debt_pos debt_dm own_home"
+global var_tab "asset asset_pos asset_dm total_debt total_debt_pos debt_dm own_home urban hhsize head_female head_age"
 mdesc $var_tab
 
-xtile qtl = wealth [aw=hhwgt], n(5)
-
 table qtl [aw = hhwgt], c(med wealth) format(%15.0fc)
-
 
 //not restrcting the sample to positive asset or liability.
 
@@ -74,6 +74,12 @@ label var debt_dm "Own Debt (%)"
 
 label var own_home "Dwelling Ownership (%)"
 
+label var urban "Urban Household (%)"
+label var hhsize "Household Size"
+label var head_age "Household Head Age"
+label var head_female "Female Household Head (%)"
+
+*household feature
 esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
  title("Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)") ///
@@ -227,7 +233,11 @@ h. How many (%) of these had a mortgage (paid off) /Mortgage holders
 *Variables to generate
 replace building_dwelling_area = building_dwelling_area*10.76 //change unit from sq me to sq ft
 
-gen real_estate_dwelling_share = real_estate_dwelling/asset*100 //f. Percent of assets of residential RE in total assets 
+gen double real_estate_dwelling_share = real_estate_dwelling/asset*100 //f. Percent of assets of residential RE in total assets 
+
+gen double land_re_share = land_resid/real_estate_dwelling*100 //percent of land to RE value
+
+gen double dwell_sqft = building_dwelling/building_dwelling_area*100 //value of dwelling per sq.ft
 
 forvalues i=1/2  {
 gen total_mrtg_`i' = (total_mrtg_`i'_dm > 0)*100 //h. How many (%) of these had a mortgage during the survey period. 
@@ -236,8 +246,10 @@ gen total_mrtg_`i' = (total_mrtg_`i'_dm > 0)*100 //h. How many (%) of these had 
 *label the key variables
 label var real_estate_dwelling "Value of Residential Real Estate"
 label var land_resid "Value of Land Associated"
+label var land_re_share "Residential land in RE asset (%)"
 label var building_dwelling "Value of Building"
 label var building_dwelling_area "Size of Dwelling in sq. ft"
+label var dwell_sqft "Value of dwelling per sq.ft (%)"
 label var asset "Total asset"
 label var real_estate_dwelling_share "Residential RE in Total Assets (%)"
 label var total_mrtg_1 "Mortgage Holders_1 (%)"
@@ -245,10 +257,9 @@ label var total_mrtg_2 "Mortgage Holders_2 (%)"
 
 
 *create the table 
-global var_tab_1 "real_estate_dwelling land_resid building_dwelling building_dwelling_area real_estate_dwelling_share urban hhsize head_female head_age total_mrtg_1 total_mrtg_2"
+global var_tab_1 "real_estate_dwelling land_resid land_re_share building_dwelling building_dwelling_area dwell_sqft real_estate_dwelling_share urban hhsize head_female head_age total_mrtg_1 total_mrtg_2"
 
 gen homeowner = (building_dwelling > 0 )*100
-xtile qtl = asset [aw=hhwgt] , n(5)
 
 mdesc $var_tab_1  //check missing values 
 
@@ -269,14 +280,14 @@ eststo q`i' : estpost summarize $var_tab_1 owner [aw = hhwgt] if qtl == `i',de
 
 esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
- title("Table 1.1 Summary Statistics of Homeowners by Assets Quintile(mean)") varwidth(40) ///
+ title("Table 1.1 Summary Statistics of Homeowners by Wealth Quintile(mean)") varwidth(40) ///
  addnote("Notes: Households weighted by survey weights." ///
  "       Homeowners are households own residential building used as dwelling by household members." ///
  "       Real estate includes dwelling and urban and rural land used as residential area.")
 
 esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) ///
  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
- title("Table 1.2 Summary Statistics of Homeowners by Assets Quintile (med)") varwidth(40) ///
+ title("Table 1.2 Summary Statistics of Homeowners by Wealth Quintile (med)") varwidth(40) ///
  addnote("Notes: Households weighted by survey weights." ///
  "       Homeowners are households own residential building used as dwelling by household members." ///
  "       Real estate includes dwelling and urban and rural land used as residential area.")
@@ -352,22 +363,11 @@ forvalues x = 1/2 {
 esttab total_`x' yr_2013_`x' yr_2011_`x' yr_2009_`x' yr_2007_`x' yr_2005_`x' yr_2003_`x' yr_2002_`x', cells(p50(fmt(%15.0fc))) label collabels(none) ///
  mtitles("All" "2012-2013" "2010-2011" "2008-2009" "2006-2007" "2004-2005" "2002-2003" "<2002") stats(N, label("Observations") fmt(%15.0gc)) ///
  title("Table 2.2 Summary Statistics of Mortgages (med)_`x' by Borrowed Year") varwidth(25) ///
- addnotes("Notes: Households weighted by survey weights."///
+ addnotes("Notes: Households weighted by survey weights." ///
           "       The term of loan is imputed by monthly payment, interest rate, and the mortgage value at inception." ///
 		  "       The monthly payment is estimated by the amount repaid divide during 7/1/2012 to date of survey.")
 }
-}
 
-*impute the missing loan information
-forvalues i = 1/2 {
-mdesc loan_period_`i' mrtg_`i'_borrow intst_rate year repay_mt_`i' repay_mt mrtg_`i'_repay if mrtg_`i'_borrow > 0 //check missing value: 97% loan period missing. 
-}
-
-forvalues i = 1/2 {
-tab year if mrtg_`i'_borrow > 0 & obs_`i' == 0, sort
-}
- 
-reg loan_period_1 mrtg_1_borrow intst_rate year repay_mt_1
 
 
 *******************************************************************
@@ -401,13 +401,13 @@ label var repay_mt_2 "Monthly Payment_2"
 
 replace intst_rate = intst_rate*100*12
 
-xtile qtl = wealth [aw=hhwgt], n(5)
-
+*check the missings. 
 forvalues x = 1/2 {
 gen double obs_`x' = (intst_rate + loan_sub + urban + hhsize + head_female + head_age + mrtg_`x'_borrow + loan_period_`x' + repay_mt_`x') != . //obsevations will full loan information
 mdesc intst_rate loan_sub urban hhsize head_female head_age mrtg_`x'_borrow loan_period_`x' repay_mt_`x' if mrtg_`x'_borrow > 0 & obs_`x' == 1
 }
 
+*creat the tables. 
 forvalues i = 1(1)5 {
   forvalues x = 1/2 {
     eststo total_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if mrtg_`x'_borrow > 0 & obs_`x' == 1,de
@@ -429,6 +429,35 @@ esttab total_`x' qtl_1_`x' qtl_2_`x' qtl_3_`x' qtl_4_`x' qtl_5_`x', cells(p50(fm
  title("Table 3.2 Summary Statistics of Mortgages (med)_`x' by Wealth Quintile") varwidth(40) ///
  addnotes("Notes: Households weighted by survey weights.",  ///
           "       The term of loan is imputed by monthly payment, interest rate, and the mortgage value at inception.")
+}
+
+*******************************************************************
+*** Table 4. creat the tables for the imputed 
+*******************************************************************
+use "${r_output}\b14_hse_mortgage",clear
+
+label var mrtg_1_borrow "Mortgage Value at Inception_1"
+label var mrtg_2_borrow "Mortgage Value at Inception_2"
+label var loan_period_1 "Term of Loan_1 (mt)"
+label var loan_period_2 "Term of Loan_2 (mt)"
+label var intst_rate "Interest rate (%)"
+label var repay_mt_1 "Monthly Payment_1"
+label var repay_mt_2 "Monthly Payment_2"
+
+//impute borrowed amont using payment and insterest rate and demography
+forvalues i = 1/2 {
+areg mrtg_`i'_borrow repay_mt_`i' intst_rate urban head_age qtl hhsize,a(year) r
+predict mrtg_`i'_borrow_est
+replace mrtg_`i'_borrow_est  = . if mrtg_`i'_borrow > 0 | mrtg_`i'_borrow_est<0 //only keep the estimate when the original value is missing. 
+sum mrtg_`i'_borrow*
+}
+
+forvalues i = 1/2 {
+br mrtg_`i'_borrow_est intst_rate repay_mt_`i' if mrtg_`i'_borrow_est > 0
+replace intst_rate = . if intst_rate == 0
+replace repay_mt_`i' = . if repay_mt_`i' == 0
+gen double obs_`i' = (intst_rate + mrtg_`i'_borrow_est + repay_mt_`i') != . //obsevations have enough information to impute loan period
+tab obs_`i' //no complete data for imputation. 
 }
 
 log close

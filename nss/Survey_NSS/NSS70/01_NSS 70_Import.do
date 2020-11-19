@@ -357,13 +357,12 @@ egen double asset_non_fin = rowtotal(real_estate gold durable_other)
 
 egen double asset_fin = rowtotal(shares fin_other fin_rec) 
 
-
-
 *generate wealth data
 gen double wealth = asset - total_debt
 sum wealth,de
 gen double wealth_ln = ln(wealth) //1% negative 
 
+xtile qtl = wealth [aw = hhwgt],n(5)
 *house keeping
 mdesc *
 
