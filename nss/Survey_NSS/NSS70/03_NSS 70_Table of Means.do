@@ -25,7 +25,7 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 log using "${script}\NSS70\03_NSS70_Table of Means.log",replace
-
+set linesize 255
 ****************************************************************************
 * Summary table for asset and liability: Table 0
 ****************************************************************************
@@ -52,15 +52,15 @@ Liability: Mortgage, Total Liabilities
 */
 
 global var_tab "asset asset_pos asset_dm total_debt total_debt_pos debt_dm own_home urban hhsize head_female head_age"
-mdesc $var_tab
+//mdesc $var_tab
 
 table qtl [aw = hhwgt], c(med wealth) format(%15.0fc)
 
 //not restrcting the sample to positive asset or liability.
 
-eststo total : estpost summarize $var_tab [aw = hhwgt] ,de
+qui eststo total : estpost summarize $var_tab [aw = hhwgt] ,de
 forvalues i = 1/5 {
-eststo q`i' : estpost summarize $var_tab [aw = hhwgt] if qtl == `i',de
+qui eststo q`i' : estpost summarize $var_tab [aw = hhwgt] if qtl == `i',de
 }
 
 label var asset "Average HH. Assets"
@@ -70,7 +70,7 @@ label var total_debt "Average HH. Debt"
 label var total_debt_pos "Average Debt for Indebted HHs."
 
 label var asset_dm "Own Asset (%)"
-label var debt_dm "Own Debt (%)"
+label var debt_dm "In Debt (%)"
 
 label var own_home "Dwelling Ownership (%)"
 
@@ -105,10 +105,10 @@ gen borrow = b14_q5 //original borrowed amount
 gen repay = b14_q14 //amount (`) repaid (including interest) during 01.07.2012 to date of survey
 
 *** Two housing mortgage definitions 
-tab b14_q12
+//tab b14_q12
 gen secure_type = b14_q12
 
-tab b14_q11
+//tab b14_q11
 gen loan_purpose = b14_q11
 
 * (A) Conservative (label 1)housing loan with immovable property as secure type: B14_Q11 == 11 & (B14_Q12 == 3 | B14_Q12 == 4)
@@ -124,8 +124,8 @@ egen double debt_total = sum(debt),by(HHID)
 egen double borrow_total = sum(borrow),by(HHID)
 
 *** Other laon features
-tab b14_q3 [aw = Weight_SS]
-tab b14_q2 [aw = Weight_SS]
+//tab b14_q3 [aw = Weight_SS]
+//tab b14_q2 [aw = Weight_SS]
 
 *interest rate and type
 gen intst_rate = b14_q10/100/12
@@ -160,7 +160,7 @@ forvalues i = 1/2 {
   }
 }
 
-mdesc mrtg_*
+//mdesc mrtg_*
 
 *household feature
 replace urban = urban*100 
@@ -170,7 +170,7 @@ gen date_temp = ym(2012,7)
 gen repay_mt = date_survey - date_temp //01.07.2012 to date of survey
 
 drop date_temp
-tab repay_mt 
+//tab repay_mt 
 
 forvalues i=1/2  {
 gen double repay_mt_`i' = mrtg_`i'_repay/repay_mt //monthly payment calculation
@@ -243,15 +243,15 @@ forvalues i=1/2  {
 gen total_mrtg_`i' = (total_mrtg_`i'_dm > 0)*100 //h. How many (%) of these had a mortgage during the survey period. 
 }
 
-*label the key variables
-label var real_estate_dwelling "Value of Residential Real Estate"
-label var land_resid "Value of Land Associated"
-label var land_re_share "Residential land in RE asset (%)"
-label var building_dwelling "Value of Building"
-label var building_dwelling_area "Size of Dwelling in sq. ft"
-label var dwell_sqft "Value of dwelling per sq.ft (%)"
-label var asset "Total asset"
-label var real_estate_dwelling_share "Residential RE in Total Assets (%)"
+*label the key variables //Primary Residential Real Estate 
+label var real_estate_dwelling "Total PRRE Value"
+label var land_resid "Land PRRE Value"
+label var land_re_share "Share of Land PRRE Value in Total PRRE Value (%)"
+label var building_dwelling "Building PRRE Value"
+label var building_dwelling_area "Size of Builing of PREE"
+label var dwell_sqft "PRRE Value in INR / Sq Ft (Sq ft is of building value)"
+label var asset "Total Assets"
+label var real_estate_dwelling_share "PRRE Value in Total Assets (%)"
 label var total_mrtg_1 "Mortgage Holders_1 (%)"
 label var total_mrtg_2 "Mortgage Holders_2 (%)"
 
@@ -261,7 +261,7 @@ global var_tab_1 "real_estate_dwelling land_resid land_re_share building_dwellin
 
 gen homeowner = (building_dwelling > 0 )*100
 
-mdesc $var_tab_1  //check missing values 
+//mdesc $var_tab_1  //check missing values 
 
 foreach var in $var_tab_1  {
 replace `var' = . if building_dwelling == 0 | mi(building_dwelling) //only focus on home owner.
@@ -270,12 +270,12 @@ replace `var' = . if building_dwelling == 0 | mi(building_dwelling) //only focus
 mdesc $var_tab_1 //check missing valuee
 
 gen owner = (building_dwelling > 0 & !mi(building_dwelling))*100
-tab owner //obvservations with none of the value mssing. 
+//tab owner //obvservations with none of the value mssing. 
 label var owner "Home Ownership (%)"
 
 qui eststo total : estpost summarize $var_tab_1 owner [aw = hhwgt],de
 forvalues i = 1/5 {
-eststo q`i' : estpost summarize $var_tab_1 owner [aw = hhwgt] if qtl == `i',de
+qui eststo q`i' : estpost summarize $var_tab_1 owner [aw = hhwgt] if qtl == `i',de
 }
 
 esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
@@ -373,7 +373,7 @@ esttab total_`x' yr_2013_`x' yr_2011_`x' yr_2009_`x' yr_2007_`x' yr_2005_`x' yr_
 *******************************************************************
 *** Table 3. Table of Mortgages feature by wealth quintile
 *******************************************************************
-
+/*
 *check the cases where one household have several mortgages. 
 use "${r_output}\b14_hse_mortgage",clear
 
@@ -387,6 +387,7 @@ tab mrtg_`i'_n if mrtg_`i'_borrow > 0 //more than 70% only with 1 housing mortga
 }
 
 br HHID mrtg_1_borrow if mrtg_1_n > 1 & mrtg_1_borrow  > 0 //there are cases with multiple same amount mortgages.
+*/
 
 *generate the mortgage status by household wealth status. 
 use "${r_output}\b14_hse_mortgage",clear
@@ -410,8 +411,8 @@ mdesc intst_rate loan_sub urban hhsize head_female head_age mrtg_`x'_borrow loan
 *creat the tables. 
 forvalues i = 1(1)5 {
   forvalues x = 1/2 {
-    eststo total_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if mrtg_`x'_borrow > 0 & obs_`x' == 1,de
-    eststo qtl_`i'_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if qtl == `i' & mrtg_`x'_borrow > 0 & obs_`x' == 1,de
+    qui eststo total_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if mrtg_`x'_borrow > 0 & obs_`x' == 1,de
+    qui eststo qtl_`i'_`x' : estpost summarize mrtg_`x'_borrow loan_period_`x' repay_mt_`x' $var_tab_2 [aw = hhwgt] if qtl == `i' & mrtg_`x'_borrow > 0 & obs_`x' == 1,de
   }
 }
 
@@ -444,7 +445,31 @@ label var intst_rate "Interest rate (%)"
 label var repay_mt_1 "Monthly Payment_1"
 label var repay_mt_2 "Monthly Payment_2"
 
-//impute borrowed amont using payment and insterest rate and demography
+keep if mrtg_1_borrow > 0 | mrtg_2_borrow > 0 //only keep housing mortgage
+
+**check missing values
+//loan features: repay_mt_`i' intst_rate loan_period_`i'
+
+forvalues i = 1/2 {
+gen repay_intst_`i' = (repay_mt_`i' + intst_rate)
+label var repay_intst_`i' "Both payment and interest exist_`i'"
+
+gen repay_term_`i' = (repay_mt_`i' + loan_period_`i') 
+label var repay_term_`i' "Both payment and term of loan exist_`i'"
+
+gen intst_term_`i' = (intst_rate + loan_period_`i') 
+label var intst_term_`i' "Both interest and term of loan exist_`i'"
+
+gen repay_intst_term_`i' = (repay_mt_`i' + intst_rate + loan_period_`i') 
+label var repay_intst_term_`i' "All the three features exist_`i'"
+}
+
+forvalues i = 1/2 {
+//combination missing status. 
+mdesc repay_mt_`i' intst_rate loan_period_`i' repay_intst_`i' repay_term_`i' intst_term_`i' repay_intst_term_`i' 
+}
+
+**impute borrowed amont using payment and insterest rate and demography
 forvalues i = 1/2 {
 areg mrtg_`i'_borrow repay_mt_`i' intst_rate urban head_age qtl hhsize,a(year) r
 predict mrtg_`i'_borrow_est

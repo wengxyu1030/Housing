@@ -27,4 +27,16 @@ global r_output "${root}\Data Output Files"
 ****************************************************************************
 * Check the stratum with UFS add up to more than 1m
 ****************************************************************************
-use "${r_output}\NSS76_All",clear
+use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
+
+keep if sector == 2
+
+label var Vill_Blk_Slno "FSU No." 
+
+tab Vill_Blk_Slno //each FSU with 14 households. (most them of equal value)
+tab Stratum //each stratum have different households, strutum is a district
+
+gen str_fsu = Stratum + Vill_Blk_Slno
+duplicates drop str_fsu,force
+
+tab Stratum,sort //stratum contain various number of fsu (from 453 to 8) 
