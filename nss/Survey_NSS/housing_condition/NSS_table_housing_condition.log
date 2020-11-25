@@ -1,0 +1,99 @@
+----------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_cond
+> ition\NSS_table_housing_condition.log
+  log type:  text
+ opened on:  25 Nov 2020, 07:07:34
+
+. ****************************************************************************
+. * Load data
+. ****************************************************************************
+. use "${root}\NSS49\Data Output Files\NSS49_housing_condition.dta",clear
+
+. 
+. foreach survey in NSS65 NSS76 {
+  2. append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
+  3. }
+(note: variable B3_q2 was byte in the using data, but will be str2 now)
+(note: variable B3_q5 was str5 in the using data, but will be byte now)
+(note: variable B3_q12 was str1 in the using data, but will be byte now)
+(note: variable B3_q6 was str1, now str3 to accommodate using data's values)
+(note: variable B3_q7 was str1, now str2 to accommodate using data's values)
+(note: variable B3_q10 was str1, now str2 to accommodate using data's values)
+(note: variable B6_q5 was byte, now int to accommodate using data's values)
+(note: variable B6_q6 was byte, now int to accommodate using data's values)
+(note: variable B6_q7 was byte, now int to accommodate using data's values)
+(note: variable B6_q8 was byte, now int to accommodate using data's values)
+(note: variable B6_q17 was byte, now int to accommodate using data's values)
+(label hh_urbanl already defined)
+(label hh_tnl already defined)
+(note: variable id was str16, now str29 to accommodate using data's values)
+(note: variable hh_weight was float, now double to accommodate using data's values)
+(label water already defined)
+(label hh_urbanl already defined)
+(label hh_tnl already defined)
+
+. 
+. drop h20_exclusive h20b_pip_exl h20b_pip_shr h20b_grd_exl h20b_grd_shr h20b_other h20_cooking ///
+> san_source san_distance
+
+. 
+. ****************************************************************************
+. * Generate the time series table of housing conditions
+. ****************************************************************************
+. local var_summary hh_size in_* h20* san* 
+
+. 
+. foreach survey in $nss_round {
+  2. qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
+  3. }
+
+. 
+. esttab NSS49 NSS65 NSS76, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2008" "2018") stats(N, label("Observations") fmt(%15.0gc)) ///
+>  title("Table 1 Summary Statistics of Housing Condition (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyd in the NSS round")
+
+Table 1 Summary Statistics of Housing Condition (mean)
+--------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)
+                                                  1993         2008         2018
+--------------------------------------------------------------------------------
+Size of Household                                    5            5            4
+Number of Rooms                                      3            3            4
+Wall: Cement or Stone (%)                           49           69           84
+Roof: Cement or Stone (%)                           29           49           65
+Floor: Cement or Stone (%)                          36           59           73
+All Materials: Cement or Stone (%)                  22           39           55
+Separate Kitchen (%)                                39           50           60
+Flat (%)                                             .            .           13
+Dwelling Size (sq ft)                              432          445          500
+People per room                                      2            2            1
+Area in sq ft per person                           105          111          139
+Drinking  water  Source(code)                        2            3            5
+Drinking  Water Distance (code)                      2            2            2
+Water: Improved Source (%)                          70           87           88
+Water: Piped into Dwelling (%)                      34           45           29
+Water: Piped into Yard (%)                           .            .           13
+Water: Pump/Tubewell in Premises (%)                34           48           27
+Water: Pump/Tubewell Outside Premises (%)           36           43           26
+Water: Other (%)                                    28            7            5
+Sanitation: Improved Source (%)                     18           33           77
+Sanitation: Exclusive Flush (%)                     18           33           52
+Sanitation: Shared Flush (%)                         1            2            1
+Sanitation: Exclusive Imp Latrine (%)               20           35           78
+Sanitation: Shared Latrine (%)                       2            3           22
+Sanitation: Other (%)                               80           65           22
+--------------------------------------------------------------------------------
+Observations                                   119,421      153,518      106,838
+--------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyd in the NSS round
+
+.  
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_cond
+> ition\NSS_table_housing_condition.log
+  log type:  text
+ closed on:  25 Nov 2020, 07:07:52
+----------------------------------------------------------------------------------------------------------

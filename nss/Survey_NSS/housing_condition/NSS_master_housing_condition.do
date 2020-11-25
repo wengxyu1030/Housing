@@ -16,31 +16,19 @@ clear matrix
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76\"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\housing_condition_master"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
 
 di "$root"
-global r_script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition"
-
-/*
-global r_input "${root}\Raw Data & Dictionaries"
-di "${r_input}"
-*/
-global r_output "${root}\Data Output Files"
+global r_script "${root}\housing_condition"
 
 
 *Define the survey rounds. 
-global nss_round "NSS49 NSS76" 
-
-// write a loop on the nss number here. 
+global nss_round "NSS49 NSS76 NSS65" 
 
 foreach survey in $nss_round {
 
 do "${r_script}/`survey'_housing_condition.do"
 
-****************************************************************************
-* Load the data
-****************************************************************************
-//use "${root}\Data Output Files\NSS76_All.dta"
 
 ****************************************************************************
 * Get the Variable List for Housing Condition
@@ -64,7 +52,15 @@ sum *permanent
 gen in_all_permanent = (in_wall_permanent*in_roof_permanent*in_floor_permanent) / 1e4
 label var in_all_permanent "All Materials: Cement or Stone (%)"
 
+gen survey = "`survey'"
+if inlist(survey,"NSS76","NSS65") {
 gen in_sep_kitch = 100*inrange(kitch,1,2) 
+}
+
+if survey == "NSS49" {
+gen in_sep_kitch = 100*inrange(kitch,2,3) 
+}
+
 label var in_sep_kitch "Separate Kitchen (%)" 
 
 capture confirm var flat
@@ -74,7 +70,7 @@ capture confirm var flat
  if _rc!= 0 {
     gen in_flat = . 
   }  
-  label var in_flat "Flat (%)"
+label var in_flat "Flat (%)"
 
 gen in_size = size 
 label var in_size "Dwelling Size (sq ft)"
@@ -108,27 +104,44 @@ label var in_ppl_area "Area in sq ft per person"
 • Surface water is water located above ground and includes rivers, dams, lakes, ponds, streams, canals, and irrigation channels.
 */
 
-
+if survey == "NSS76" {
 label define water 7 "Hand Pump" 2 "Piped Dwelling" 3 "Piped Yard" 5 "Public Tap" 6 "Tube Well" 1 "Bottled" 9 "Unprotected Well" 8 "Protected Well" 19 "Other"
+}
 
-//gen h20_temp = b5_1
+if survey == "NSS65" {
+label define water 7 "other tank/pond" 2 "Piped Dwelling/tap" 3 "tube well/hand pump" 5 "well: unprotected" 6 "tank/pond (reserved for drinking)" 1 "Bottled" 4 "well: protected" 8 "river/canal/lake" 19 "Other"
+}
 label values h20_temp water
-*From neighbor=piped dwelling, protected spring = protected well
-recode h20_temp (4 = 2) (12=8) (11 15 16 13 10 14 = 19)
 
-//gen h20_exclusive = b5_4 == 1 
+*From neighbor=piped dwelling, protected spring = protected well
+recode h20_temp (12=8) 
 
 *Gen Piped-Exclusive Piped-Shared Ground-Exclusive Ground-Shared Other
+if survey == "NSS76" {
 gen h20b_pip_exl = inrange(h20_temp,2,5) * h20_exclusive
 gen h20b_pip_shr = inrange(h20_temp,2,5) * (h20_exclusive == 0)
 gen h20b_grd_exl = inrange(h20_temp,6,9) * h20_exclusive
 gen h20b_grd_shr = inrange(h20_temp,6,9) * (h20_exclusive == 0)
 gen h20b_other = h20b_pip_exl != 1 & h20b_pip_shr != 1 & h20b_grd_exl != 1 & h20b_grd_shr != 1
-
+}
+if survey == "NSS65" {
+gen h20b_pip_exl = inlist(h20_temp,2) * h20_exclusive
+gen h20b_pip_shr = inlist(h20_temp,2) * (h20_exclusive == 0)
+gen h20b_grd_exl = inlist(h20_temp,3,4,5) * h20_exclusive //spring is not included because unknown whether protected or not
+gen h20b_grd_shr = inlist(h20_temp,3,4,5) * (h20_exclusive == 0)
+gen h20b_other = h20b_pip_exl != 1 & h20b_pip_shr != 1 & h20b_grd_exl != 1 & h20b_grd_shr != 1
+}
+if survey == "NSS49" {
+gen h20b_pip_exl = inlist(h20_temp,1) * h20_exclusive
+gen h20b_pip_shr = inlist(h20_temp,1) * (h20_exclusive == 0)
+gen h20b_grd_exl = inlist(h20_temp,2,3) * h20_exclusive //spring is not included because unknown whether protected or not
+gen h20b_grd_shr = inlist(h20_temp,2,3) * (h20_exclusive == 0)
+gen h20b_other = h20b_pip_exl != 1 & h20b_pip_shr != 1 & h20b_grd_exl != 1 & h20b_grd_shr != 1
+}
 tab h20_temp h20_exclusive
 
 *Generate H20 Improved Water 
-*Codes: 
+*NSS76 Codes: 
 * bottled water - 01												NOT IMPROVED bottled water (bottled water is considered improved only when the household use another improved source for cooking and personal hygiene)
 * piped water into dwelling - 02									IMPROVED 
 * piped water to yard/plot - 03										IMPROVED 
@@ -148,8 +161,42 @@ tab h20_temp h20_exclusive
 *others (cart with small tank or drum, etc) - 19)					NOT IMPROVED 
 * 
 
-gen h20_improved = 100 * (h20_temp == 2 | h20_temp == 3 | h20_temp == 4 | h20_temp == 5 | h20_temp == 6 | h20_temp == 7 | h20_temp == 8 |  ///
-						   h20_temp == 12 |h20_temp == 14)
+*NSS65 Codes:
+* bottoled water - 01                                               NOT IMPROVED
+* tap - 02                                                          IMPROVED
+* tube well/hand pump - 03                                          IMPROVED
+* well: protected -04                                               NOT IMPROVED
+* well: unprotected -05                                             NOT IMPROVED
+* tank/pond (reserved for drinking) -06                             NOT IMPROVED
+* other tank/pond -07                                               NOT IMPROVED 
+* river/canal/lake -08                                              NOT IMPROVED
+* spring -10                                                        NOT IMPROVED (?)
+* harvested rainwater -11                                           IMPROVED
+* other -19                                                         NOT IMPROVDE
+*
+
+*NSS49 Codes:
+* tap - 01                                                          IMPROVED
+* tube well/hand pump - 02                                          IMPROVED
+* well -03                                                          NOT IMPROVED
+* tank/pond (reserved for drinking) -04                             NOT IMPROVED
+* other tank/pond -05                                               NOT IMPROVED 
+* river/canal/lake -06                                              NOT IMPROVED
+* spring -07                                                        NOT IMPROVED (?)
+* other -09                                                         NOT IMPROVDE
+*
+
+if survey == "NSS76" {
+ gen h20_improved = 100 * inlist(h20_temp,2,3,4,5,6,7,8,12,14)
+}
+if survey == "NSS65" {
+ gen h20_improved = 100 * inlist(h20_temp,2,3) // spring is not included because unknown whether protected or not
+}
+if survey == "NSS49" {
+ gen h20_improved = 100 * inlist(h20_temp,1,2)
+}
+label var h20_improved "Water: Improved Source (%)"
+
 *Check HH who use bottle water to drink, if the household uses an improved source for cooking / cleaning
 capture confirm h20_cooking
 if _rc == 0 {
@@ -159,19 +206,50 @@ if _rc == 0 {
 											
     table h20_cooking h20_improved if h20_temp == 1
 }
-//please add a note on the different definition on nss49 here.
-label var h20_improved "Water: Improved Source (%)"
-						   				   
-gen h20_piped_in = 100* (h20_temp == 2 | h20_temp == 1 |h20_temp == 10 | h20_temp == 11)
+//NSS65 and 49 do not have the water source for cooking/cleaning coded. 
+
+if survey == "NSS76" {						   				   
+ gen h20_piped_in = 100*inlist(h20_temp,1,2,10,11) 
+}
+if survey == "NSS65" {						   				   
+ gen h20_piped_in = 100*inlist(h20_temp,1,2,6,7) 
+}
+if survey == "NSS49" {						   				   
+ gen h20_piped_in = 100*inlist(h20_temp,1,4,5) 
+}
 label var h20_piped_in "Water: Piped into Dwelling (%)"
 
-gen h20_yard = 100* (h20_temp == 3 | h20_temp ==4 )
+if survey == "NSS76" {	
+ gen h20_yard = 100* inlist(h20_temp,3,4) 
+}
+if survey == "NSS65" {	
+ gen h20_yard = . //no information at this detailed level 
+}
+if survey == "NSS49" {	
+ gen h20_yard = . //no information at this detailed level 
+}
 label var h20_yar "Water: Piped into Yard (%)"
 
-gen h20_pump_in = 100* inrange(h20_temp,5,8)*(h20_distance <= 2) // include a protected well
+if survey == "NSS76" {	
+ gen h20_pump_in = 100* inrange(h20_temp,5,8)*(h20_distance <= 2) // include a protected well
+}
+if survey == "NSS65" {	
+ gen h20_pump_in = 100* inrange(h20_temp,2,4)*(h20_distance <= 2) // include a protected well
+}
+if survey == "NSS49" {	
+ gen h20_pump_in = 100* inrange(h20_temp,1,2)*(h20_distance <= 2) // well is not included because unknown whether protected or not
+}
 label var h20_pump_in "Water: Pump/Tubewell in Premises (%)"
 
-gen h20_pump_out = 100* inrange(h20_temp,5,8)*(h20_distance > 2) // include a protected well
+if survey == "NSS76" {	
+ gen h20_pump_out = 100* inrange(h20_temp,5,8)*(h20_distance > 2) // include a protected well
+}
+if survey == "NSS65" {	
+ gen h20_pump_out = 100* inrange(h20_temp,2,4)*(h20_distance > 2) // include a protected well
+}
+if survey == "NSS49" {	
+ gen h20_pump_out = 100* inrange(h20_temp,1,2)*(h20_distance > 2) // well is not included because unknown whether protected or not
+}
 label var h20_pump_out "Water: Pump/Tubewell Outside Premises (%)"
 
 gen h20_other = 100* (h20_piped_in!=100 & h20_pump_in!=100 & h20_pump_out!=100 & h20_yard!=100)
@@ -179,6 +257,28 @@ label var h20_other "Water: Other (%)"
 
 
 ************************ SANITATION **************************
+/*
+source: https://www.who.int/water_sanitation_health/monitoring/jmp2012/key_terms/en/
+
+***************************************
+“Improved” sanitation access
+***************************************
+Improved sanitation includes sanitation facilities that hygienically separate human excreta from human contact.
+Access to basic sanitation is measured against the proxy indicator: the proportion of people using improved sanitation facilities (such as those with sewer connections, septic system connections, pour-flush latrines, ventilated improved pit latrines and pit latrines with a slab or covered pit)
+Shared sanitation facilities are otherwise-acceptable improved sanitation facilities that are shared between two or more households. 
+
+***************************************
+“Unimproved” sanitation access
+***************************************
+Shared facilities include public toilets and are not considered improved.
+Unimproved sanitation facilities do not ensure a hygienic separation of human excreta from human contact and include:
+pit latrines without slabs or platforms or open pit
+hanging latrines
+bucket latrines
+open defecation in fields, forests, bushes, bodies of water or other open spaces, or disposal of human feces with other forms of solid waste.
+*/
+
+*NSS76:
 * Generate Sanitation Improved 
 *flush/pour-flush to: piped sewer system - 01, 					IMPROVED
 *septic tank - 02, 												IMPROVED
@@ -192,25 +292,73 @@ label var h20_other "Water: Other (%)"
 * not used - 11 )												NOT IMRPOVED
 *others - 19; 													NOT IMRPOVED
 
+*NSS65:
+* service -1                                                    NOT IMPROVED (It is a service type (conservancy system) of latrine. These latrines contain a bucket from which night soil is removed by human agency. Disadvantages of this type are: a. exposure to flies b. soil and water contamination c. buckets need frequent replacement d. adequate staff needed for collection)
+* pit -2                                                        NOT IMPORVED (?)
+* septic tank/flush -3                                          IMPROVED
+* not know - 4                                                  NOT IMPROVED
+* other latrine - 9                                             NOT IMPROVED
 
-gen san_improved = 100 * inlist(san_source,1,2,3,4,6,7,10) * inrange(san_distance,1,2)
-tab san_source san_improved 
+*NSS49:
+* no latrine -1                                                 NOT IMPROVED 
+* service latrine -2                                            NOT IMPORVED
+* septic tank -3                                                IMPROVED
+* flush system - 4                                              IMPROVED
+* other latrine - 9                                             NOT IMPROVED
+ 
+if survey == "NSS76" {
+ gen san_improved = 100 * inlist(san_source,1,2,3,4,6,7,10) * inrange(san_distance,1,2)
+} 
+if survey == "NSS65" {
+ gen san_improved = 100 * inlist(san_source,3) * inrange(san_distance,1,2)
+} 
+if survey == "NSS49" {
+ gen san_improved = 100 * inlist(san_source,3,4) * inrange(san_distance,1,2)
+} 
+tab san_source san_improved
 label var san_improved "Sanitation: Improved Source (%)"
-
 sum san_improved [aw=hh_weight]
 
-gen san_flush_private = 100 * inlist(san_source,1,2) * inrange(san_distance,1,2)
+if survey == "NSS76" {
+ gen san_flush_private = 100 * inlist(san_source,1,2) * inrange(san_distance,1,2)
+}
+if survey == "NSS65" {
+ gen san_flush_private = 100 * inlist(san_source,3) * inrange(san_distance,1,2)
+}
+if survey == "NSS49" {
+ gen san_flush_private = 100 * inlist(san_source,3,4) * inrange(san_distance,1,2)
+}
 label var san_flush_private "Sanitation: Exclusive Flush (%)"
 
-gen san_flush_shared = 100 * inlist(san_source,1,2) * inrange(san_distance,3,9)
+if survey == "NSS76" {
+ gen san_flush_shared = 100 * inlist(san_source,1,2) * inrange(san_distance,3,9)
+}
+if survey == "NSS65" {
+ gen san_flush_shared = 100 * inlist(san_source,3) * inrange(san_distance,3,9)
+}
+if survey == "NSS49" {
+ gen san_flush_shared = 100 * inlist(san_source,3,4) * inrange(san_distance,3,9)
+}
 label var san_flush_shared "Sanitation: Shared Flush (%)"
 
-gen san_imp_lat_private = 100 * inlist(san_source,3,4,6,7,10) * inrange(san_distance,1,2)
+
+gen san_imp_lat_private = san_improved * inrange(san_distance,1,2)
 label var san_imp_lat_private "Sanitation: Exclusive Imp Latrine (%)"
+
 *Include shared flush into improved private latrine 
 replace san_imp_lat_private = 100 if san_flush_shared == 100
 
-gen san_not_imp_lat_shared = 100 * inlist(san_source,3,4,6,7,8,10) * inrange(san_distance,3,9)
+if inlist(survey,"NSS76") {
+ gen san_not_imp_lat_shared = 100 * !inlist(san_source,11) * inrange(san_distance,3,9)
+}
+
+if inlist(survey,"NSS65") {
+ gen san_not_imp_lat_shared = 100 * inlist(san_distance,3)
+}
+
+if inlist(survey,"NSS49") {
+ gen san_not_imp_lat_shared = 100 * !inlist(san_source,1) * inlist(san_distance,3)
+}
 label var san_not_imp_lat_shared "Sanitation: Shared Latrine (%)"
 
 *include shared latrine into other 
@@ -222,3 +370,4 @@ sum san_flush_private  san_imp_lat_private  san_other [aw=hh_weight]
 *save the file 
 save "${r_output}/`survey'_housing_condition.dta", replace  
 }
+

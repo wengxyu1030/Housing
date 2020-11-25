@@ -1,6 +1,6 @@
 ****************************************************************************
-* Description: Generate housing condition for nss49
-* Date: Nov. 20, 2020
+* Description: Generate housing condition for nss65
+* Date: Nov. 24, 2020
 * Version 1.0
 * Last Editor: Aline 
 ****************************************************************************
@@ -15,8 +15,8 @@ clear matrix
 ****************************************************************************
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
-if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 49\"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS49"
+if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 65\"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS65"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
@@ -26,10 +26,9 @@ global r_output "${root}\Data Output Files"
 ****************************************************************************
 * Get the Variable List for Housing Condition
 ****************************************************************************
-
-use "${r_input}\Block-3-Part-1-household characteristics records.dta",clear  
+use "${r_input}\b12",clear  
     *id_survey:
-	gen id_survey = "49"
+	gen id_survey = Round
 	
     *id: common id
 	gen id = Key_hhold
@@ -43,17 +42,41 @@ use "${r_input}\Block-3-Part-1-household characteristics records.dta",clear
    
     *hh_state, hh_tn: whether the state is Tamil Nadu
     gen hh_state = State
-	gen hh_tn = (hh_state == "23")  //check the state code, harmonize with the 76th. 
+	gen hh_tn = (hh_state == "33")
 	
 	label define hh_tnl 0 "non-TN" 1 "TN"
 	label values hh_tn hh_tnl
 	
     *multiplier
-    gen hh_weight = Wgt_Combined
+    gen hh_weight = Wgt_combined
 	destring(hh_weight),replace
 
+    save "${r_output}\b1",replace
+
+use "${r_input}\b3",clear 
+    *id: common is
+	gen id = Key_hhold
+
     *hh_size: household size
-    gen hh_size = B3_q1 
+	gen hh_size = B3_q3
+	
+	*hq_tenure: the tenurial status
+	gen hq_tenure = B3_q11
+	destring(hq_tenure),replace
+	
+	*infra_has_dwell: has dwelling
+	gen infra_has_dwell = (hq_tenure != 6)
+	
+	*hq_tenure_se: Secured Tenure: 
+	//owned: freehold-1, leasehold-2; hired: employer quarter-3, hired dwelling units with written contract-4
+	gen legal_tenure_se = 0  if (hq_tenure != 6)  //only for household has dwelling.
+	replace legal_tenure_se = 1 if inrange(hq_tenure,1,4) //with dwelling and the status is secured
+    
+	*legal_own: the dwelling is woned
+	gen legal_own = (inrange(hq_tenure,1,2))
+	
+	*legal_rent: the dwelling is woned
+	gen legal_rent = (inrange(hq_tenure,3,5))
 	
 /* 	*hh_land: land posessed 
 	gen hh_land = b3_q13
@@ -61,9 +84,15 @@ use "${r_input}\Block-3-Part-1-household characteristics records.dta",clear
 	*hq_nslum: the area type of dwelling unit is not in notified slum/ non-notified slum/ squatter settlement
 	gen hq_nslum = 0 if inrange(b3_q15,1,3)
 	replace hq_nslum = 1 if b3_q15 == 9  */
+	
+/* 	save "${r_output}\b3",replace	
 
+use "${r_input}\b3_1",clear 
+    *id: common is
+	gen id = Key_hhold */
+	
 	*hh_umce: household monthly consumer expenditure
-	gen hh_umce = B3_q3
+	gen hh_umce = B3_q19 
 	gen hh_umce_ln = ln(hh_umce)
 	
 	/* //missing b3_q16 (travel distance) datapoint in the raw data. 
@@ -75,20 +104,20 @@ use "${r_input}\Block-3-Part-1-household characteristics records.dta",clear
 	
 	save "${r_output}\b3",replace	
 	
-use "${r_input}\Block-7-Particulars of living facilities-Records",clear 
+use "${r_input}\b4",clear 
 
 unab var_all: _all
-local exclude "Key_Hhold"
+local exclude "Key_hhold"
 local var: list var_all - exclude
 disp "`var'"
 destring `var',replace  
 
     *id: common id
-	gen id =  Key_Hhold
+	gen id =  Key_hhold
 	
 	*infra_water_in: Distance to the principal source of drinking water: within dwelling/premises
-	gen infra_water_in = 1 if B7_q4 == 1
-	replace infra_water_in = 0 if inrange(B7_q4,2,7)
+	gen infra_water_in = 1 if inrange(B4_q5,1,2)
+	replace infra_water_in = 0 if inrange(B4_q5,3,7)
 	
 /* 	*hq_water: Access to improved drinking water sources 
 	//(bottled water - 01, piped water into dwelling - 02)
@@ -108,25 +137,25 @@ destring `var',replace
 		
 	*hq_elec: household has electricity for domestic use
 	gen hq_elec = (b4_q31 == 1)  */
+
 	
-	save "${r_output}\b7",replace
+	save "${r_output}\b4",replace
 	
-/* 		
 use "${r_input}\b5",clear
 
 unab var_all: _all
-local exclude "Key_Hhold"
+local exclude "Key_hhold"
 local var: list var_all - exclude
 disp "`var'"
 destring `var',replace  
 
     *id: common id
-	gen id =  Key_Hhold	
+	gen id =  Key_hhold	
 	
 	*hq_drainage: drainage system is pucca structure: underground -1, covered pucca -2, open pucca -3,
 	gen infra_pucca_drainage = inrange(B5_q8,1,3)
 	
-*hq_nflood: did not experience flood in last 5 years
+/* 	*hq_nflood: did not experience flood in last 5 years
 	gen hq_nflood = (b5_q14 == 3)
 	
 	*hq_level: Plinth level of the house 
@@ -146,36 +175,30 @@ destring `var',replace
 	
 	*hq_path: direct opening to approach road/lane/constructed path
 	gen hq_path = inrange(b5_q15,1,4) 
-
+*/
 	
 	save "${r_output}\b5",replace
-*/	
+	
 
-use "${r_input}\Block-6-Particulars of dwelling-Records",clear
+use "${r_input}\b6",clear
 
 unab var_all: _all
-local exclude "Key_Hhold"
+local exclude "Key_hhold"
 local var: list var_all - exclude
 disp "`var'"
 destring `var',replace  
 
     *id : common id
-	gen id =  Key_Hhold
+	gen id =  Key_hhold
 	
-	*in_room: total number of rooms in the dwelling
-	egen in_room = rowtotal(B6_q7 B6_q8)
-	label var in_room "Number of Rooms"
-	replace in_room =1 if in_room == 0
+	*infra_room: total number of rooms in the dwelling
+	gen infra_room = B6_q2 + B6_q3
 	
-	*infra_area: total floor area of the dwelling: in square feet/ Area of covered verandah(NSS49)
-	gen infra_area = (B6_q9 + B6_q10 + B6_q11 + B6_q12)*10.7639
+	*infra_area: total floor area of the dwelling: in square feet
+	gen infra_area = B6_q8
 	
-	/*Check the definition: The floor space of the covered verandah and that of uncovered verandah are to be recorded agains items 11 and
-12 respectively in square metres. C overed and uncovered verandahs are defined in para 4.0.3 (f). ( 1 sq. ft. =
-0.0292 sq.mt. )
-*/
-	*infra_pucca_floor: floor type is pucca
-	gen infra_pucca_floor = inrange(B6_q17,4,6)
+	*infra_pucca_floor: floor type is pucca: brick / stone / lime stone - 4,cement -5, mosaic / tiles - 6
+	gen infra_pucca_floor = inrange(B6_q14,4,6)
 	
 	*infra_imp_floor: the improved material for floor (DHS): bamboo / log - 2, wood / plank - 3, brick / stone / lime stone - 4,cement -5, mosaic / tiles - 6
 	gen infra_imp_floor = inrange(B6_q14,2,6)
@@ -183,34 +206,21 @@ destring `var',replace
 	*infra_imp_wall: wall type is pucca/ improved material(DHS): 
 	//timber - 5, burnt brick /stone/ lime stone - 6,
     //iron or other metal sheet - 7, cement / RBC / RCC - 8, other pucca - 9
-	gen infra_imp_wall = inrange(B6_q18,5,9)
+	gen infra_imp_wall = inrange(B6_q15,5,9)
 	
 	*infra_imp_roof: roof type is pucca
 	//tiles / slate - 5, burnt brick / stone / lime stone - 6, iron / zinc /other metal
     //sheet /asbestos sheet - 7, cement / RBC / RCC - 8, other pucca - 9
-	gen infra_imp_roof = inrange(B6_q19,5,10)
-	
-	*hq_tenure: the tenurial status
-	gen hq_tenure = B6_q1
-	destring(hq_tenure),replace
-	
-	*infra_has_dwell: has dwelling
-	gen infra_has_dwell = (hq_tenure != 1)
-	
-	*hq_tenure_se: Secured Tenure: //no info for nss49
-	//owned: freehold-1, leasehold-2; hired: employer quarter-3, hired dwelling units with written contract-4
-	//gen legal_tenure_se = 0  if (hq_tenure != 6)  //only for household has dwelling.
-	//replace legal_tenure_se = 1 if inrange(hq_tenure,1,4) //with dwelling and the status is secured
-    
-	*legal_own: the dwelling is owned
-	gen legal_own = (hq_tenure == 2)
-	
-	*legal_rent: the dwelling is rented
-	gen legal_rent = (inrange(hq_tenure,3,4))
+	gen infra_imp_roof = inrange(B6_q16,5,9)
 	
 	*cost_rent: if hired, the monthly rent (Rs.)
-	gen cost_rent  = B6_q2 
+	gen cost_rent  = B6_q17 
 	
+	*in_room: total number of rooms
+	egen in_room = rowtotal(B6_q2 B6_q3)
+	label var in_room "Number of Rooms"
+	replace in_room =1 if in_room == 0
+		
 /* 	*hq_dwell_type: type of dwelling
 	gen hq_dwell_type = b6_q1
 	
@@ -227,18 +237,19 @@ destring `var',replace
 	*hq_kitchen: with separate kitchen
 	gen hq_kitchen = (b6_q12 != 3) */
 	
+	
 	save "${r_output}\b6",replace
 
 /* use "${r_input}\b7",clear
 
 unab var_all: _all
-local exclude "Key_Hhold"
+local exclude "Key_hhold"
 local var: list var_all - exclude
 disp "`var'"
 destring `var',replace  
 
     *id : common id
-	gen id =  Key_Hhold 
+	gen id =  Key_hhold 
 	
 	*hq_slum_doc: the head of the household posess documents pertaining to the residence status in the slum
 	gen hq_slum_doc = (b7_q8 != 5)
@@ -253,30 +264,29 @@ destring `var',replace
 	save "${r_output}\b7",replace */
 	
 *****merge to master file*****
-use "${r_output}\b3",clear
+use "${r_output}\b1",clear
 
-global FILE "b6 b7"
+global FILE "b3 b4 b5 b6"
 
 foreach file in $FILE {
 merge 1:1 id using "${r_output}/`file'", nogen  force //there are section only survyed household with dwelling. 
 }
 
 *variables utilized in the hosuing condition code (double)
-clonevar wall = B6_q18 //wall material 
-clonevar roof = B6_q19 //roof mateiral
-clonevar floor = B6_q17 //floor material
-clonevar kitch = B6_q16 //separate kitchen
+clonevar wall = B6_q15 //wall material 
+clonevar roof = B6_q16 //roof mateiral
+clonevar floor = B6_q14 //floor material
+clonevar kitch = B6_q13 //separate kitchen
 //clonevar flat = b7_1 //is a flat no data in this round
-clonevar size = infra_area //dwelling size. 
+clonevar size = B6_q8 //dwelling size. 
 
-clonevar h20_temp = B7_q1 //Principal source of drinking water 
-gen h20_exclusive = (B7_q3 ==1) //Access to principal source of drinking waterm(water exclusive use)
+clonevar h20_temp = B4_q1_1 //Principal source of drinking water (the marjor one selected)
+gen h20_exclusive = (B4_q4==1) //Access to principal source of drinking waterm(water exclusive use)
 //clonevar h20_cooking = b5_17 //Principal source of water excluding drinking (not available in this data)
-clonevar h20_distance = B7_q4 //Distance of the principal source of drinking water
+clonevar h20_distance = B4_q5 //Distance of the principal source of drinking water
 
-clonevar san_source = B7_q7 //type of latrine used by the household
-clonevar san_distance = B7_q8 //Access of the household to latrine
+clonevar san_source = B4_q9 //type of latrine used by the household
+clonevar san_distance = B4_q8 //Access of the household to latrine
 
 *******save file*****  
-
-save "${r_output}/nss49",replace
+save "${r_output}/nss65",replace

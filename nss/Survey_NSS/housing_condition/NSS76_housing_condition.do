@@ -41,7 +41,7 @@ clonevar flat = b7_1 //is a flat
 clonevar size = b7_8 //dwelling size. 
 
 clonevar h20_temp = b5_1 //Principal source of drinking water 
-clonevar h20_exclusive = b5_4 //Access to principal source of drinking waterm(water exclusive use)
+gen h20_exclusive = (b5_4==1) //Access to principal source of drinking waterm(water exclusive use)
 clonevar h20_cooking = b5_17 //Principal source of water excluding drinking
 clonevar h20_distance = b5_5 //Distance of the principal source of drinking water
 
