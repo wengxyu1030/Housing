@@ -29,14 +29,29 @@ global r_output "${root}\Data Output Files"
 ****************************************************************************
 use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
 
-keep if sector == 2
+keep if Sector == "2"
 
 label var Vill_Blk_Slno "FSU No." 
 
-tab Vill_Blk_Slno //each FSU with 14 households. (most them of equal value)
+tab Vill_Blk_Slno //each first stage unit (FSU) with 14 households. (most them of equal value)
 tab Stratum //each stratum have different households, strutum is a district
 
-gen str_fsu = Stratum + Vill_Blk_Slno
+preserve
+gen str_fsu = Stratum + Vill_Blk_Slno //for each strutum, how many unique fsu are there?
 duplicates drop str_fsu,force
+tab Stratum,sort //stratum contain various number of fsu (from 8 to 453) 
+restore
 
-tab Stratum,sort //stratum contain various number of fsu (from 453 to 8) 
+preserve
+gen state_str = State_District + Stratum //for each state_district, how many stratum there?
+duplicates drop state_str,force
+tab State_District,sort //state_district (from 1-4 stratum) 
+restore
+
+preserve
+gen state_fsu = State_District + Vill_Blk_Slno //for each state, how many fsu there?
+duplicates drop state_fsu,force
+tab State_District,sort //state district contain various number of fsu (from 2-147 stratum) 
+restore
+
+//with the assumption that 20,000 population per FSU, district with more than 50 FSU is more than 1000,000 population.

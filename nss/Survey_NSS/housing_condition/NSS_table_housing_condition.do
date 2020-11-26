@@ -37,7 +37,7 @@ foreach survey in NSS65 NSS76 {
 append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
 }
 
-drop h20_exclusive h20b_pip_exl h20b_pip_shr h20b_grd_exl h20b_grd_shr h20b_other h20_cooking ///
+drop h20_temp h20_distance h20_exclusive h20b_pip_exl h20b_pip_shr h20b_grd_exl h20b_grd_shr h20b_other h20_cooking ///
 san_source san_distance
 
 ****************************************************************************
