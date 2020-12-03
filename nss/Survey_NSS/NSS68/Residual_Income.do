@@ -7,17 +7,25 @@
 clear 
 set more off 
 
-global ROOT "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
-cd "${ROOT}"
+if "`c(username)'" == "wb308830" local pc = 0
+if "`c(username)'" != "wb308830" local pc = 1
+if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 68"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
 
-global raw "${ROOT}\raw"
-global inter "${ROOT}\inter"
-global final "${ROOT}\final"
+cd "${root}"
 
+global r_input "${root}\Raw Data & Dictionaries"
+global r_output "${root}\Data Output Files"
 
+log using "${script}\NSS68\02_NSS68_Residual_Income_Affordability.log",replace
+set linesize 255
+
+***************************************************************
 *Step 1: Estimate the housing consumption per household member. 
-use "${raw}\bk_12.dta",clear
-merge m:1 ID using "${raw}\bk_3.dta"
+***************************************************************
+use "${r_input}\bk_12.dta",clear
+merge m:1 ID using "${r_input}\bk_3.dta"
 
 gen hh_size = B3_v01
    
@@ -47,47 +55,79 @@ gen hh_size = B3_v01
 rename ID hhid
 drop _merge
 
-
+******************************************************************************
 *Step 2: Estimate the non-housing expenditure for household at national pline
-merge 1:1 hhid using "${raw}\poverty68.dta"
+******************************************************************************
+merge 1:1 hhid using "${r_input}\poverty68.dta"
 keep if _merge == 3
 drop _merge
 
    gen urban = (B1_v05 == 2) 
    keep if urban == 1
    
-   gen delta_pline = (abs(mpce_mrp - pline)/pline * 100 <= 10) //find households around poverty line
-   tab delta_pline
+   *different budget scenario: pline, double pline, triple pline.    
+   forvalues i = 1/3 {
+   gen pline_`i' = pline*`i'
+   gen delta_pline_`i' = (abs(mpce_mrp - pline_`i')/pline_`i' * 100 <= 10) //find households around poverty line
+   tab delta_pline_`i'
+   }
    
    *Non-housing consumption per capita
    gen double exp_non_housing_pp = mpce_mrp - total_exp_housing_pp
    
-save "${inter}\ria_1.dta",replace
+save "${r_output}\ria_1.dta",replace
+
+   *find the median non_housing consumption by state by scenario
+   forvalues i = 1/3{
+   use "${r_output}\ria_1.dta",clear
    
-use "${inter}\ria_1.dta",clear
+   keep if delta_pline_`i' == 1 
+   egen double exp_non_housing_pp_line_`i' = median(exp_non_housing_pp), by(state)
    
-   keep if delta_pline == 1 
-   egen double exp_non_housing_pp_line = median(exp_non_housing_pp), by(state)
    bys state: keep if _n == 1
-   keep state exp_non_housing_pp_line
+   keep state exp_non_housing_pp_line_`i'
  
-save "${inter}\ria_non_housing_line.dta",replace
-merge 1:m state using "${inter}\ria_1.dta"
+   save "${r_output}\ria_non_housing_line_`i'.dta",replace
+   }
+   
+   use "${r_output}\ria_non_housing_line_1.dta",clear
+   forvalues i = 2/3{
+   merge 1:1 state using "${r_output}\ria_non_housing_line_`i'.dta"
+   drop _merge
+   }
+   
+save "${r_output}\ria_non_housing_line.dta",replace
+   
+merge 1:m state using "${r_output}\ria_1.dta"
 keep if _merge == 3 //only on urban sector
 drop _merge  
+
 	*find the affordable housings
-    gen affordable = (exp_non_housing_pp > exp_non_housing_pp_line)*100
-    tab affordable [aw = hhwt]
+	forvalues i = 1/3 {
+    gen affordable_`i' = (exp_non_housing_pp > exp_non_housing_pp_line_`i')*100
+    tab affordable_`i' [aw = hhwt]
+    }
+	
+save "${r_output}\ria_final.dta",replace
 
-save "${final}\ria_final.dta",replace
-
+******************************************************************************
 *Step 3: stats by consumption quintile 
-use "${final}\ria_final.dta",clear
+******************************************************************************
+use "${r_output}\ria_final.dta",clear
 
 xtile mpce_qt = mpce_mrp [aw = hhwt] , n(5)
+global var_tab_1 "affordable_1 affordable_2 affordable_3"
 
-tab affordable [aw = hhwt]
+qui eststo total : estpost summarize $var_tab_1 [aw = hhwt],de
+forvalues i = 1/5 {
+qui eststo q`i' : estpost summarize $var_tab_1 [aw = hhwt] if mpce_qt == `i',de
+}
+esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
+ mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
+ title("Table 1. Share of Households Living in Affordable Houses by Consumption Expenditure Quintile in Urban India") varwidth(40) ///
+ addnote("Notes: Households weighted by survey weights." ///
+ "       The analysis is using the Residual Income Approach." ///
+ "       The affordable_1 is estimated using non-housing expenses drawn from India's urban national poverty threshold by state." ///
+ "       The affordable_2 and affordable_3 are estimated utilizing the similar approach but with the double and triple poverty thresholds.")
 
-table mpce_qt [aw = hhwt],c(mean affordable)
-
-table mpce_qt,c(med exp_non_housing_pp med exp_non_housing_pp_line)
+table mpce_qt [aw = hhwt],c(mean affordable_1 mean affordable_2 mean affordable_3)
