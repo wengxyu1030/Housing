@@ -55,3 +55,22 @@ tab State_District,sort //state district contain various number of fsu (from 2-1
 restore
 
 //with the assumption that 20,000 population per FSU, district with more than 50 FSU is more than 1000,000 population.
+
+****************************************************************************
+* Check the districts that mapped to two stratums
+****************************************************************************
+/*within the urban areas of a district, if there are one or more towns with population 10 lakhs 
+or more as per population census 2001 in a district, 
+each of them forms a separate basic stratum and the remaining urban areas of the district are 
+considered as another basic stratum. 
+*/
+use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
+keep if Sector == "2"
+
+keep District_id Stratum
+duplicates drop District_id Stratum,force
+egen stratum_n = count(Stratum),by(District_id)
+
+keep if stratum_n>1
+duplicates drop District_id,force 
+count //30 districts. 

@@ -25,7 +25,7 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 *Define the survey rounds. 
-global nss_round "NSS49 NSS76 NSS65" 
+global nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
 
 log using "${script}\NSS_table_housing_condition.log",replace
 ****************************************************************************
@@ -33,7 +33,7 @@ log using "${script}\NSS_table_housing_condition.log",replace
 ****************************************************************************
 use "${root}\NSS49\Data Output Files\NSS49_housing_condition.dta",clear
 
-foreach survey in NSS65 NSS76 {
+foreach survey in NSS58 NSS65 NSS69 NSS76 {
 append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
 }
 
@@ -49,8 +49,8 @@ foreach survey in $nss_round {
 qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
 }
 
-esttab NSS49 NSS65 NSS76, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
- mtitles("1993" "2008" "2018") stats(N, label("Observations") fmt(%15.0gc)) ///
+esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
+ mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
  title("Table 1 Summary Statistics of Housing Condition (mean)") ///
  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
  

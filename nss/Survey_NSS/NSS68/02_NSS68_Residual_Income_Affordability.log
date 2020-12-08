@@ -288,3 +288,4 @@ mpce_mrp  | mean(afford~1)  mean(afford~2)  mean(afford~3)
 . 
 end of do-file
 
+. exit, clear
