@@ -47,11 +47,23 @@ local var_summary hh_size in_* h20* san*
 
 foreach survey in $nss_round {
 qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
+qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
+qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
 }
 
 esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
- title("Table 1 Summary Statistics of Housing Condition (mean)") ///
+ title("Table 1 Summary Statistics of Housing Condition in India (mean)") ///
+ addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+
+esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
+ mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+ title("Table 2 Summary Statistics of Housing Condition in Urban India (mean)") ///
+ addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+ 
+esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
+ mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+ title("Table 3 Summary Statistics of Housing Condition in Rural India (mean)") ///
  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
  
 log close

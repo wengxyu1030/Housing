@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
   log type:  text
- opened on:   8 Dec 2020, 07:19:01
+ opened on:   8 Dec 2020, 08:04:15
 
 . ****************************************************************************
 . * Load data
@@ -67,7 +67,9 @@
 . 
 . foreach survey in $nss_round {
   2. qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
-  3. }
+  3. qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
+  4. qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
+  5. }
 
 . 
 . esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
@@ -99,10 +101,21 @@ Observations                                   119,421       97,882      153,518
 ----------------------------------------------------------------------------------------------------------
 Notes: The value is missing if the information was not surveyed in the NSS round
 
-.  
+. 
+. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2"2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+unmatched quote
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
 . log close
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
   log type:  text
- closed on:   8 Dec 2020, 07:19:26
+ closed on:   8 Dec 2020, 08:05:30
 -----------------------------------------------------------------------------------------------------------------------------------------------------
