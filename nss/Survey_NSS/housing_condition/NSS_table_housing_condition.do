@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Generate table for housing condition for all nss
-* Date: Nov. 25, 2020
+* Date: Dec. 10, 2020
 * Version 1.0
 * Last Editor: Aline 
 ****************************************************************************
@@ -28,8 +28,7 @@ global r_output "${root}\Data Output Files"
 global nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
 
 log using "${script}\NSS_table_housing_condition.log",replace
-set linesize 225
-
+set linesize 255
 ****************************************************************************
 * Load data
 ****************************************************************************
@@ -80,8 +79,9 @@ egen qt=xtile(mpce), n(5) by(survey)
 egen qt_u =xtile(mpce) if hh_urban == 1, n(5) by(survey)
 egen qt_r =xtile(mpce) if hh_urban == 0, n(5) by(survey)
 
-
-foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+ 
+foreach var in `var_list' {
 gen `var'_1 = `var' *(qt == 1)
 replace `var'_1  = . if (qt != 1)
 
@@ -129,7 +129,7 @@ h20_improved_1	h20_improved_5	san_improved_1	san_improved_5	san_flush_private_1	
 foreach survey in $nss_round {
 qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
 
-  foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+  foreach var in `var_list' {
   replace `var'_1 = `var' *(qt_u == 1)
   replace `var'_1  = . if (qt_u != 1)
 
@@ -138,7 +138,7 @@ qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if 
   }
 qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
 
-  foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+  foreach var in `var_list' {
   replace `var'_1 = `var' *(qt_r == 1)
   replace `var'_1  = . if (qt_r != 1)
 
@@ -169,4 +169,40 @@ esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.1fc))) label 
            "       The wealth quintile is estimated from the monthly per capita consumer expenditure." ///
 		   "       Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.")
 
+
+
+***converging trend of housing condition for q1 and q5 (Urban)***
+
+foreach var in `var_list' {
+  replace `var'_1 = `var' *(qt_u == 1)
+  replace `var'_1  = . if (qt_u != 1)
+
+  replace `var'_5 = `var' *(qt_u == 5)
+  replace `var'_5  = . if (qt_u != 5)
+ }
+ 
+collapse (mean) *_1 *_5,by(survey)  
+
+
+foreach var in `var_list' {
+gen `var'_dt = (`var'_5 - `var'_1)/`var'_1
+}
+
+gen year = .
+replace year = 1993 if survey == "NSS49"
+replace year = 2002 if survey == "NSS58"
+replace year = 2009 if survey == "NSS65"
+replace year = 2012 if survey == "NSS69"
+replace year = 2018 if survey == "NSS76"
+
+estimates clear
+foreach var in `var_list' {
+qui reg `var'_dt year 
+eststo `var'
+}
+
+esttab `var_list' , nose not label b("%9.2f")	r2 /// fmt( %9.0gc %9.0gc %9.2f)) ///
+title("Regression of Housing Condition Equality between Q1 and Q5 on Year (Urban India)") ///
+addnotes("Note: Regressions dependent variables are the delta of housing condition indicator measures" ///
+         "      between quintile 5 and 1.")	
 log close

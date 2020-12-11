@@ -1,13 +1,11 @@
------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\N
-> SS_table_housing_condition.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
   log type:  text
- opened on:  10 Dec 2020, 20:46:36
+ opened on:  11 Dec 2020, 04:17:29
 
-. set linesize 225
+. set linesize 255
 
-. 
 . ****************************************************************************
 . * Load data
 . ****************************************************************************
@@ -188,8 +186,10 @@ Notes: The value is missing if the information was not surveyed in the NSS round
 (228340 missing values generated)
 
 . 
-. 
-. foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+. local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
+.  
+. foreach var in `var_list' {
   2. gen `var'_1 = `var' *(qt == 1)
   3. replace `var'_1  = . if (qt != 1)
   4. 
@@ -303,11 +303,10 @@ Notes: The value is missing if the information was not surveyed in the NSS round
 
 . 
 . 
-. 
 . foreach survey in $nss_round {
   2. qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
   3. 
-.   foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+.   foreach var in `var_list' {
   4.   replace `var'_1 = `var' *(qt_u == 1)
   5.   replace `var'_1  = . if (qt_u != 1)
   6. 
@@ -316,7 +315,7 @@ Notes: The value is missing if the information was not surveyed in the NSS round
   8.   }
   9. qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
  10. 
-.   foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+.   foreach var in `var_list' {
  11.   replace `var'_1 = `var' *(qt_r == 1)
  12.   replace `var'_1  = . if (qt_r != 1)
  13. 
@@ -1031,9 +1030,135 @@ Notes: The value is missing if the information was not surveyed in the NSS round
        Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.
 
 . 
+. 
+. 
+. ***converging trend of housing condition for q1 and q5***
+. 
+. foreach var in `var_list' {
+  2.   replace `var'_1 = `var' *(qt_u == 1)
+  3.   replace `var'_1  = . if (qt_u != 1)
+  4. 
+.   replace `var'_5 = `var' *(qt_u == 5)
+  5.   replace `var'_5  = . if (qt_u != 5)
+  6.  }
+(573,207 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(573,207 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(530,290 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(552,156 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,497 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(535,049 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,310 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(550,542 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(508,165 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(531,058 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(522,323 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(549,614 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(399,999 real changes made)
+(416,693 real changes made, 416,693 to missing)
+(403,814 real changes made)
+(418,671 real changes made, 418,671 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(557,630 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(555,813 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(510,996 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(536,054 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(506,393 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(529,618 real changes made)
+(529,315 real changes made, 529,315 to missing)
+
+.  
+. collapse (mean) *_1 *_5,by(survey)  
+
+. 
+. 
+. foreach var in `var_list' {
+  2. gen `var'_dt = (`var'_5 - `var'_1)/`var'_1
+  3. }
+(1 missing value generated)
+
+. 
+. gen year = .
+(5 missing values generated)
+
+. replace year = 1993 if survey == "NSS49"
+(1 real change made)
+
+. replace year = 2002 if survey == "NSS58"
+(1 real change made)
+
+. replace year = 2009 if survey == "NSS65"
+(1 real change made)
+
+. replace year = 2012 if survey == "NSS69"
+(1 real change made)
+
+. replace year = 2018 if survey == "NSS76"
+(1 real change made)
+
+. 
+. estimates clear
+
+. foreach var in `var_list' {
+  2. qui reg `var'_dt year 
+  3. eststo `var'
+  4. }
+
+. 
+. esttab `var_list' , nose not label b("%9.2f")   r2 /// fmt( %9.0gc %9.0gc %9.2f)) ///
+> title("Regression of Housing Condition Equality between Q1 and Q5 on Year (Urban India)") ///
+> addnotes("Note: Regressions dependent variables are the delta of housing condition indicator measures" ///
+>          "      between quintile 5 and 1.")     
+
+Regression of Housing Condition Equality between Q1 and Q5 on Year (Urban India)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                              (1)             (2)             (3)             (4)             (5)             (6)             (7)             (8)             (9)            (10)            (11)            (12)            (13)            (14)   
+                       hh_size_dt      in_room_dt    in_wall_pe~t    in_roof_pe~t    in_floor_p~t    in_all_per~t    in_sep_kit~t      in_flat_dt      in_size_dt    in_ppl_roo~t    in_ppl_are~t    h20_improv~t    san_improv~t    san_flush_~t   
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+year                        -0.00           -0.01           -0.01*          -0.03           -0.02*          -0.04           -0.02            0.06           -0.01           -0.00           -0.01           -0.01***        -0.07**         -0.06*  
+Constant                     3.90           11.86           29.46*          56.32           45.88*          81.16           48.02         -113.04           20.24           -0.67           16.42           16.11***       150.77**        118.33*  
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Observations                    5               5               5               5               5               5               5               4               5               5               5               5               5               5   
+R-squared                   0.536           0.067           0.859           0.539           0.785           0.561           0.303           0.642           0.100           0.000           0.014           0.991           0.961           0.881   
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Note: Regressions dependent variables are the delta of housing condition indicator measures
+      between quintile 5 and 1.
+* p<0.05, ** p<0.01, *** p<0.001
+
 . log close
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
   log type:  text
- closed on:  10 Dec 2020, 20:49:58
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ closed on:  11 Dec 2020, 04:21:15
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
