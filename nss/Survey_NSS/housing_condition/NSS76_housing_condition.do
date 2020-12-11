@@ -28,7 +28,7 @@ global r_output "${root}\Data Output Files"
 ****************************************************************************
 * Load the data
 ****************************************************************************
-use "${root}\Data Output Files\NSS76_All.dta"
+use "${root}\Data Output Files\NSS76_All.dta" //from the script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS76\01_NSS76_Import.do"
 
 ****************************************************************************
 * Get the Variable List for Housing Condition

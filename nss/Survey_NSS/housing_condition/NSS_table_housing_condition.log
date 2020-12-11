@@ -1,9 +1,13 @@
------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\N
+> SS_table_housing_condition.log
   log type:  text
- opened on:   8 Dec 2020, 08:04:15
+ opened on:  10 Dec 2020, 20:46:36
 
+. set linesize 225
+
+. 
 . ****************************************************************************
 . * Load data
 . ****************************************************************************
@@ -59,11 +63,17 @@
 > san_source san_distance
 
 . 
+. replace in_room = 1 if in_room == 0
+(0 real changes made)
+
+. 
 . ****************************************************************************
 . * Generate the time series table of housing conditions
 . ****************************************************************************
 . local var_summary hh_size in_* h20* san* 
 
+. 
+. *All, Urban, Rural India housing condition****
 . 
 . foreach survey in $nss_round {
   2. qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
@@ -72,50 +82,958 @@
   5. }
 
 . 
-. esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
->  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
->  title("Table 1 Summary Statistics of Housing Condition (mean)") ///
+. esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0fc)) /// 
+>  title("Table 1 Summary Statistics of Housing Condition in India (mean)") ///
 >  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
 
-Table 1 Summary Statistics of Housing Condition (mean)
+Table 1 Summary Statistics of Housing Condition in India (mean)
 ----------------------------------------------------------------------------------------------------------
                                                    (1)          (2)          (3)          (4)          (5)
                                                   1993         2002         2009         2012         2018
 ----------------------------------------------------------------------------------------------------------
-Size of Household                                    5            5            5            5            4
-Number of Rooms                                      3            3            3            4            4
-Wall: Cement or Stone (%)                           49           62           69           76           84
-Roof: Cement or Stone (%)                           29           42           49           53           65
-Floor: Cement or Stone (%)                          36           50           59           64           73
-All Materials: Cement or Stone (%)                  22           31           39           43           55
-Separate Kitchen (%)                                39           44           50           53           60
-Flat (%)                                             .           10           10           18           13
-Dwelling Size (sq ft)                              432          407          445          428          500
-People per room                                      2            2            2            2            1
-Area in sq ft per person                           105           99          111          112          139
-Water: Improved Source (%)                          70           83           87           85           85
-Sanitation: Improved Source (%)                     18           26           33           52           77
-Sanitation: Exclusive Flush (%)                     18           26           33           40           52
+Size of Household                                  5.0          5.0          4.8          4.5          4.3
+Number of Rooms                                    2.8          2.9          3.2          3.7          3.9
+Wall: Cement or Stone (%)                         48.8         62.2         68.9         76.1         83.5
+Roof: Cement or Stone (%)                         29.2         41.7         48.7         53.3         64.6
+Floor: Cement or Stone (%)                        35.8         49.8         59.0         63.8         72.5
+All Materials: Cement or Stone (%)                21.6         31.4         39.2         43.4         55.1
+Separate Kitchen (%)                              39.1         44.4         50.4         53.3         60.2
+Flat (%)                                             .          9.9          9.7         17.8         12.9
+Dwelling Size (sq ft)                            432.0        406.9        444.8        428.1        499.6
+People per room                                    2.4          2.3          1.9          1.7          1.4
+Area in sq ft per person                         105.4         98.8        111.4        112.1        138.7
+Water: Improved Source (%)                        70.0         82.9         86.9         85.4         85.3
+Sanitation: Improved Source (%)                   18.4         25.5         33.4         52.3         76.8
+Sanitation: Exclusive Flush (%)                   18.4         25.5         33.4         40.1         52.4
 ----------------------------------------------------------------------------------------------------------
 Observations                                   119,421       97,882      153,518       95,548      106,838
 ----------------------------------------------------------------------------------------------------------
 Notes: The value is missing if the information was not surveyed in the NSS round
 
 . 
-. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(41) ///
->  mtitles("1993" "2002" "2"2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
-unmatched quote
-r(198);
+. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 2 Summary Statistics of Housing Condition in Urban India (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
 
-end of do-file
+Table 2 Summary Statistics of Housing Condition in Urban India (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  4.6          4.5          4.2          4.1          3.9
+Number of Rooms                                    2.8          3.2          3.6          4.3          4.3
+Wall: Cement or Stone (%)                         78.8         87.9         91.8         93.4         95.4
+Roof: Cement or Stone (%)                         57.8         64.1         71.3         73.8         82.4
+Floor: Cement or Stone (%)                        75.9         86.7         91.5         93.2         95.5
+All Materials: Cement or Stone (%)                52.9         60.8         68.4         71.7         80.3
+Separate Kitchen (%)                              49.9         56.0         62.6         66.0         75.2
+Flat (%)                                             .         22.7         24.4         39.4         31.3
+Dwelling Size (sq ft)                            392.7        395.4        429.9        422.0        496.7
+People per room                                    2.3          1.9          1.6          1.2          1.1
+Area in sq ft per person                         104.4        111.4        125.9        123.8        155.4
+Water: Improved Source (%)                        89.0         93.2         91.8         89.0         82.1
+Sanitation: Improved Source (%)                   53.4         63.2         71.8         84.1         92.5
+Sanitation: Exclusive Flush (%)                   53.4         63.2         71.8         76.5         82.0
+----------------------------------------------------------------------------------------------------------
+Observations                                    44,371       41,916       56,374       42,155       43,102
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
 
-r(198);
+.  
+. esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 3 Summary Statistics of Housing Condition in Rural India (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
 
-. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+Table 3 Summary Statistics of Housing Condition in Rural India (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.1          5.1          5.0          4.8          4.5
+Number of Rooms                                    2.7          2.8          3.1          3.4          3.7
+Wall: Cement or Stone (%)                         38.2         52.1         59.2         68.1         77.3
+Roof: Cement or Stone (%)                         19.1         32.9         39.2         43.8         55.4
+Floor: Cement or Stone (%)                        21.6         35.2         45.3         50.2         60.5
+All Materials: Cement or Stone (%)                10.5         19.8         26.9         30.4         42.0
+Separate Kitchen (%)                              35.3         39.9         45.3         47.3         52.4
+Flat (%)                                             .          4.9          3.6          7.8          3.4
+Dwelling Size (sq ft)                            445.9        411.4        451.0        431.0        501.2
+People per room                                    2.5          2.4          2.1          1.9          1.5
+Area in sq ft per person                         105.8         93.9        105.3        106.6        130.1
+Water: Improved Source (%)                        63.3         78.8         84.9         83.8         86.9
+Sanitation: Improved Source (%)                    6.0         10.7         17.3         37.6         68.7
+Sanitation: Exclusive Flush (%)                    6.0         10.7         17.3         23.2         37.1
+----------------------------------------------------------------------------------------------------------
+Observations                                    75,050       55,966       97,144       53,393       63,736
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
 
+.  
+. *By quintile for All, Urban, Rural India housing condition****
+. 
+. //ssc install egenmore //this is a package with more function with egen
+. gen mpce = hh_umce/hh_size //per capita consumer expenditure
+(1,936 missing values generated)
+
+. egen qt=xtile(mpce), n(5) by(survey)
+(1936 missing values generated)
+
+. egen qt_u =xtile(mpce) if hh_urban == 1, n(5) by(survey)
+(346803 missing values generated)
+
+. egen qt_r =xtile(mpce) if hh_urban == 0, n(5) by(survey)
+(228340 missing values generated)
+
+. 
+. 
+. foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+  2. gen `var'_1 = `var' *(qt == 1)
+  3. replace `var'_1  = . if (qt != 1)
+  4. 
+. gen `var'_5 = `var' *(qt == 5)
+  5. replace `var'_5  = . if (qt != 5)
+  6. }
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(149 missing values generated)
+(457,860 real changes made, 457,860 to missing)
+(149 missing values generated)
+(467,180 real changes made, 467,180 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(119,421 missing values generated)
+(362,430 real changes made, 362,430 to missing)
+(119,421 missing values generated)
+(368,486 real changes made, 368,486 to missing)
+(297 missing values generated)
+(457,761 real changes made, 457,761 to missing)
+(297 missing values generated)
+(467,034 real changes made, 467,034 to missing)
+(149 missing values generated)
+(457,860 real changes made, 457,860 to missing)
+(149 missing values generated)
+(467,180 real changes made, 467,180 to missing)
+(297 missing values generated)
+(457,761 real changes made, 457,761 to missing)
+(297 missing values generated)
+(467,034 real changes made, 467,034 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+(457,966 real changes made, 457,966 to missing)
+(467,317 real changes made, 467,317 to missing)
+
+. 
+. *label variables by quintile
+. label var hh_size_1  "Size of household_1"
+
+. label var in_room_1  "Number of rooms_1"
+
+. label var in_wall_permanent_1  "Wall: Cement or Stone (%)_1"
+
+. label var in_roof_permanent_1  "Roof: Cement or Stone (%)_1"
+
+. label var in_floor_permanent_1  "Floor: Cement or Stone (%)_1"
+
+. label var in_all_permanent_1  "All Materials: Cement or Stone (%)_1"
+
+. label var in_sep_kitch_1  "Separate Kitchen (%)_1"
+
+. label var in_flat_1  "Flat (%)_1"
+
+. label var in_size_1  "Dwelling Size (sq ft)_1"
+
+. label var in_ppl_room_1  "People per room_1"
+
+. label var in_ppl_area_1  "Area (sq ft per person)_1"
+
+. label var h20_improved_1  "Water: Improved Source (%)_1"
+
+. label var san_improved_1  "Sanitation: Improved Source (%)_1"
+
+. label var san_flush_private_1  "Sanitation: Exclusive Flush (%)_1"
+
+. label var hh_size_5  "Size of household_5"
+
+. label var in_room_5  "Number of rooms_5"
+
+. label var in_wall_permanent_5  "Wall: Cement or Stone (%)_5"
+
+. label var in_roof_permanent_5  "Roof: Cement or Stone (%)_5"
+
+. label var in_floor_permanent_5  "Floor: Cement or Stone (%)_5"
+
+. label var in_all_permanent_5  "All Materials: Cement or Stone (%)_5"
+
+. label var in_sep_kitch_5  "Separate Kitchen (%)_5"
+
+. label var in_flat_5  "Flat (%)_5"
+
+. label var in_size_5  "Dwelling Size (sq ft)_5"
+
+. label var in_ppl_room_5  "People per room_5"
+
+. label var in_ppl_area_5  "Area (sq ft per person)_5"
+
+. label var h20_improved_5  "Water: Improved Source (%)_5"
+
+. label var san_improved_5  "Sanitation: Improved Source (%)_5"
+
+. label var san_flush_private_5  "Sanitation: Exclusive Flush (%)_5"
+
+. 
+. keep qt* hh_size* in_* h20* san* hh_weight survey hh_urban
+
+. 
+. local var_summary hh_size_1     hh_size_5       in_floor_permanent_1    in_floor_permanent_5    in_wall_permanent_1     in_wall_permanent_5     in_floor_permanent_1    in_floor_permanent_5    in_all_permanent_1      ///
+> in_all_permanent_5      in_room_1       in_room_5       in_ppl_room_1   in_ppl_room_5   in_size_1       in_size_5       in_ppl_area_1   in_ppl_area_5   in_sep_kitch_1  in_sep_kitch_5  in_flat_1       in_flat_5       ///
+> h20_improved_1  h20_improved_5  san_improved_1  san_improved_5  san_flush_private_1     san_flush_private_5
+
+. 
+. 
+. 
+. foreach survey in $nss_round {
+  2. qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
+  3. 
+.   foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+  4.   replace `var'_1 = `var' *(qt_u == 1)
+  5.   replace `var'_1  = . if (qt_u != 1)
+  6. 
+.   replace `var'_5 = `var' *(qt_u == 5)
+  7.   replace `var'_5  = . if (qt_u != 5)
+  8.   }
+  9. qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
+ 10. 
+.   foreach var in hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private {
+ 11.   replace `var'_1 = `var' *(qt_r == 1)
+ 12.   replace `var'_1  = . if (qt_r != 1)
+ 13. 
+.   replace `var'_5 = `var' *(qt_r == 5)
+ 14.   replace `var'_5  = . if (qt_r != 5)
+ 15.   }
+ 16. qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
+ 17. }
+(553,467 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(529,315 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(553,327 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(529,167 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(498,963 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(521,194 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(480,351 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(507,945 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(480,613 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(522,195 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(469,185 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(506,143 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(488,293 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(511,845 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(363,916 real changes made)
+(416,693 real changes made, 416,693 to missing)
+(379,449 real changes made)
+(418,671 real changes made, 418,671 to missing)
+(553,002 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(528,929 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(553,327 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(529,167 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(553,002 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(528,929 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(533,674 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(518,921 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(473,707 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(511,618 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(466,752 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(508,216 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,207 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(573,207 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(559,337 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(571,612 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,485 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(566,513 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(556,890 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(572,335 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(543,608 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(565,957 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,463 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(564,782 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(420,618 real changes made)
+(398,996 real changes made, 398,996 to missing)
+(433,520 real changes made)
+(400,269 real changes made, 400,269 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(568,019 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,408 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(548,230 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(569,052 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(545,334 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,146 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,207 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(573,207 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(530,290 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(552,156 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,497 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(535,049 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,310 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(550,542 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(508,165 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(531,058 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(522,323 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(549,614 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(399,999 real changes made)
+(416,693 real changes made, 416,693 to missing)
+(403,814 real changes made)
+(418,671 real changes made, 418,671 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(557,630 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(555,813 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(510,996 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(536,054 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(506,393 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(529,618 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,207 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(573,207 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(559,337 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(571,612 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,485 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(566,513 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(556,890 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(572,335 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(543,608 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(565,957 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,463 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(564,782 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(420,618 real changes made)
+(398,996 real changes made, 398,996 to missing)
+(433,520 real changes made)
+(400,269 real changes made, 400,269 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(568,019 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,408 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(548,230 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(569,052 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(545,334 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,146 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,207 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(573,207 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(530,290 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(552,156 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,497 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(535,049 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,310 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(550,542 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(508,165 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(531,058 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(522,323 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(549,614 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(399,999 real changes made)
+(416,693 real changes made, 416,693 to missing)
+(403,814 real changes made)
+(418,671 real changes made, 418,671 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(557,630 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(555,813 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(510,996 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(536,054 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(506,393 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(529,618 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,207 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(573,207 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(559,337 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(571,612 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,485 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(566,513 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(556,890 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(572,335 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(543,608 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(565,957 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,463 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(564,782 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(420,618 real changes made)
+(398,996 real changes made, 398,996 to missing)
+(433,520 real changes made)
+(400,269 real changes made, 400,269 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(568,019 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,408 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(548,230 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(569,052 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(545,334 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,146 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,207 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(573,207 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(530,290 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(552,156 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,497 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(535,049 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,310 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(550,542 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(508,165 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(531,058 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(522,323 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(549,614 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(399,999 real changes made)
+(416,693 real changes made, 416,693 to missing)
+(403,814 real changes made)
+(418,671 real changes made, 418,671 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(557,630 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(555,813 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(510,996 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(536,054 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(506,393 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(529,618 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,207 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(573,207 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(559,337 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(571,612 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,485 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(566,513 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(556,890 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(572,335 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(543,608 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(565,957 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,463 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(564,782 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(420,618 real changes made)
+(398,996 real changes made, 398,996 to missing)
+(433,520 real changes made)
+(400,269 real changes made, 400,269 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(568,019 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,408 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(548,230 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(569,052 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(545,334 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,146 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,207 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(573,207 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(530,290 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(552,156 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,497 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(535,049 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(516,310 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(550,542 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(508,165 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(531,058 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(522,323 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(549,614 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(399,999 real changes made)
+(416,693 real changes made, 416,693 to missing)
+(403,814 real changes made)
+(418,671 real changes made, 418,671 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(573,058 real changes made)
+(526,491 real changes made, 526,491 to missing)
+(573,058 real changes made)
+(529,167 real changes made, 529,167 to missing)
+(572,732 real changes made)
+(526,370 real changes made, 526,370 to missing)
+(572,810 real changes made)
+(529,019 real changes made, 529,019 to missing)
+(557,630 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(555,813 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(510,996 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(536,054 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(506,393 real changes made)
+(526,618 real changes made, 526,618 to missing)
+(529,618 real changes made)
+(529,315 real changes made, 529,315 to missing)
+(573,207 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(573,207 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(559,337 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(571,612 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,485 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(566,513 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(556,890 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(572,335 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(543,608 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(565,957 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(546,463 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(564,782 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(420,618 real changes made)
+(398,996 real changes made, 398,996 to missing)
+(433,520 real changes made)
+(400,269 real changes made, 400,269 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(573,058 real changes made)
+(500,409 real changes made, 500,409 to missing)
+(573,058 real changes made)
+(506,017 real changes made, 506,017 to missing)
+(572,805 real changes made)
+(500,283 real changes made, 500,283 to missing)
+(572,860 real changes made)
+(505,881 real changes made, 505,881 to missing)
+(568,019 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,408 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(548,230 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(569,052 real changes made)
+(506,155 real changes made, 506,155 to missing)
+(545,334 real changes made)
+(500,529 real changes made, 500,529 to missing)
+(568,146 real changes made)
+(506,155 real changes made, 506,155 to missing)
+
+. 
+. esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 4 Summary Statistics of Housing Condition in India by Wealth Quintile (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>           "       The wealth quintile is estimated from the monthly per capita consumer expenditure." ///
+>                   "       Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.")
+
+Table 4 Summary Statistics of Housing Condition in India by Wealth Quintile (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of household_1                                5.8          6.1          6.1          6.0          5.4
+Size of household_5                                3.5          3.9          3.7          3.5          3.5
+Floor: Cement or Stone (%)_1                      15.8         18.0         23.4         24.6         36.8
+Floor: Cement or Stone (%)_5                      83.5         62.0         74.0         80.3         88.4
+Wall: Cement or Stone (%)_1                       29.1         37.2         44.0         53.3         65.0
+Wall: Cement or Stone (%)_5                       86.9         73.4         78.1         84.9         90.4
+Floor: Cement or Stone (%)_1                      15.8         18.0         23.4         24.6         36.8
+Floor: Cement or Stone (%)_5                      83.5         62.0         74.0         80.3         88.4
+All Materials: Cement or Stone (%)_1               6.9          8.8         11.5         14.1         24.7
+All Materials: Cement or Stone (%)_5              65.7         38.2         49.7         54.6         66.7
+Number of rooms_1                                  2.5          2.4          2.7          2.7          3.1
+Number of rooms_5                                  3.4          3.5          3.9          4.4          4.7
+People per room_1                                  3.1          3.2          2.8          2.8          2.1
+People per room_5                                  1.4          1.4          1.2          1.0          0.9
+Dwelling Size (sq ft)_1                          384.7        340.3        393.5        375.0        448.0
+Dwelling Size (sq ft)_5                          499.2        526.3        555.1        518.4        619.7
+Area (sq ft per person)_1                         76.5         61.6         70.2         67.7         92.5
+Area (sq ft per person)_5                        168.2        155.8        172.5        167.6        207.1
+Separate Kitchen (%)_1                            27.8         25.5         29.2         31.5         33.5
+Separate Kitchen (%)_5                            62.5         60.7         66.0         67.1         77.3
+Flat (%)_1                                           .          2.9          2.0          3.7          1.0
+Flat (%)_5                                           .          7.4          7.2         14.8          6.9
+Water: Improved Source (%)_1                      63.3         77.8         86.8         87.6         90.5
+Water: Improved Source (%)_5                      85.9         78.3         81.2         77.9         78.5
+Sanitation: Improved Source (%)_1                  4.3          2.8          6.3         15.7         51.8
+Sanitation: Improved Source (%)_5                 64.4         26.7         37.6         66.9         86.8
+Sanitation: Exclusive Flush (%)_1                  4.3          2.8          6.3          8.6         25.4
+Sanitation: Exclusive Flush (%)_5                 64.4         26.7         37.6         45.0         55.3
+----------------------------------------------------------------------------------------------------------
+Observations                                    44,475       22,935       38,770       21,444       25,158
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The wealth quintile is estimated from the monthly per capita consumer expenditure.
+       Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.
+
+. 
+. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 5 Summary Statistics of Housing Condition in Urban India by Wealth Quintile (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>            "       The wealth quintile is estimated from the monthly per capita consumer expenditure." ///
+>                    "       Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.")
+
+Table 5 Summary Statistics of Housing Condition in Urban India by Wealth Quintile (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of household_1                                5.6          5.8          5.5          5.7          5.1
+Size of household_5                                3.3          3.2          3.1          3.1          2.6
+Floor: Cement or Stone (%)_1                      50.4         59.5         71.7         69.1         84.8
+Floor: Cement or Stone (%)_5                      96.2         99.4         99.1         99.6         99.6
+Wall: Cement or Stone (%)_1                       59.2         70.0         77.8         79.0         88.6
+Wall: Cement or Stone (%)_5                       95.8         98.9         99.0         99.3         99.0
+Floor: Cement or Stone (%)_1                      50.4         59.5         71.7         69.1         84.8
+Floor: Cement or Stone (%)_5                      96.2         99.4         99.1         99.6         99.6
+All Materials: Cement or Stone (%)_1              26.9         33.1         43.2         42.5         61.9
+All Materials: Cement or Stone (%)_5              83.6         93.0         90.6         93.4         93.4
+Number of rooms_1                                  2.3          2.6          2.7          3.0          3.5
+Number of rooms_5                                  3.4          4.6          4.4          5.3          4.5
+People per room_1                                  3.2          3.0          2.6          2.5          1.8
+People per room_5                                  1.2          0.8          0.8          0.6          0.7
+Dwelling Size (sq ft)_1                          332.7        309.5        327.9        317.1        414.9
+Dwelling Size (sq ft)_5                          493.2        630.9        565.9        563.7        537.7
+Area (sq ft per person)_1                         72.5         68.8         75.1         61.7         93.3
+Area (sq ft per person)_5                        171.3        221.8        208.5        205.5        231.0
+Separate Kitchen (%)_1                            33.3         31.8         37.7         34.6         59.4
+Separate Kitchen (%)_5                            68.7         82.7         77.6         83.8         80.3
+Flat (%)_1                                           .          8.6         11.1         15.8         12.8
+Flat (%)_5                                           .         46.1         43.8         61.5         50.0
+Water: Improved Source (%)_1                      83.7         92.0         91.9         94.0         89.8
+Water: Improved Source (%)_5                      94.0         93.7         90.9         84.4         76.7
+Sanitation: Improved Source (%)_1                 26.8         30.8         40.6         54.3         81.5
+Sanitation: Improved Source (%)_5                 85.5         92.7         92.0         97.9         98.0
+Sanitation: Exclusive Flush (%)_1                 26.8         30.8         40.6         44.9         63.5
+Sanitation: Exclusive Flush (%)_5                 85.5         92.7         92.0         94.2         93.4
+----------------------------------------------------------------------------------------------------------
+Observations                                    18,273       16,105       22,784       16,634       16,685
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The wealth quintile is estimated from the monthly per capita consumer expenditure.
+       Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.
+
+.                    
+. esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 6 Summary Statistics of Housing Condition in Rural India by Wealth Quintile (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>            "       The wealth quintile is estimated from the monthly per capita consumer expenditure." ///
+>                    "       Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.")
+
+Table 6 Summary Statistics of Housing Condition in Rural India by Wealth Quintile (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of household_1                                5.8          6.1          6.1          6.0          5.4
+Size of household_5                                4.0          3.9          3.7          3.5          3.5
+Floor: Cement or Stone (%)_1                      11.7         18.0         23.4         24.6         36.8
+Floor: Cement or Stone (%)_5                      44.7         62.0         74.0         80.3         88.4
+Wall: Cement or Stone (%)_1                       25.3         37.2         44.0         53.3         65.0
+Wall: Cement or Stone (%)_5                       62.0         73.4         78.1         84.9         90.4
+Floor: Cement or Stone (%)_1                      11.7         18.0         23.4         24.6         36.8
+Floor: Cement or Stone (%)_5                      44.7         62.0         74.0         80.3         88.4
+All Materials: Cement or Stone (%)_1               4.5          8.8         11.5         14.1         24.7
+All Materials: Cement or Stone (%)_5              25.5         38.2         49.7         54.6         66.7
+Number of rooms_1                                  2.5          2.4          2.7          2.7          3.1
+Number of rooms_5                                  3.3          3.5          3.9          4.4          4.7
+People per room_1                                  3.1          3.2          2.8          2.8          2.1
+People per room_5                                  1.6          1.4          1.2          1.0          0.9
+Dwelling Size (sq ft)_1                          387.8        340.3        393.5        375.0        448.0
+Dwelling Size (sq ft)_5                          544.9        526.3        555.1        518.4        619.7
+Area (sq ft per person)_1                         77.2         61.6         70.2         67.7         92.5
+Area (sq ft per person)_5                        167.0        155.8        172.5        167.6        207.1
+Separate Kitchen (%)_1                            27.1         25.5         29.2         31.5         33.5
+Separate Kitchen (%)_5                            49.2         60.7         66.0         67.1         77.3
+Flat (%)_1                                           .          2.9          2.0          3.7          1.0
+Flat (%)_5                                           .          7.4          7.2         14.8          6.9
+Water: Improved Source (%)_1                      60.7         77.8         86.8         87.6         90.5
+Water: Improved Source (%)_5                      67.1         78.3         81.2         77.9         78.5
+Sanitation: Improved Source (%)_1                  1.8          2.8          6.3         15.7         51.8
+Sanitation: Improved Source (%)_5                 19.2         26.7         37.6         66.9         86.8
+Sanitation: Exclusive Flush (%)_1                  1.8          2.8          6.3          8.6         25.4
+Sanitation: Exclusive Flush (%)_5                 19.2         26.7         37.6         45.0         55.3
+----------------------------------------------------------------------------------------------------------
+Observations                                    31,423       22,935       38,770       21,444       25,158
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The wealth quintile is estimated from the monthly per capita consumer expenditure.
+       Variables end with _1 represent the statistics for the first quintile, _5 for the fifth quintile.
+
+. 
 . log close
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
   log type:  text
- closed on:   8 Dec 2020, 08:05:30
------------------------------------------------------------------------------------------------------------------------------------------------------
+ closed on:  10 Dec 2020, 20:49:58
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

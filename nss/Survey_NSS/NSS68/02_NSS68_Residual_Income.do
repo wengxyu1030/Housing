@@ -4,6 +4,7 @@
 *** Prepared by Aline Weng
 *** Date:12/08/2020
 ***************************
+
 clear 
 set more off 
 
@@ -85,7 +86,7 @@ save "${r_output}\ria_1.dta",replace
 
    *find the median non_housing consumption by state by scenario
    keep if total_rent > 0 & !mi(total_rent) //using households that paid rent for budget standard
-   forvalues i = 1/3{
+   forvalues i = 1/3 {
    use "${r_output}\ria_1.dta",clear
    
    keep if delta_pline_`i' == 1 
@@ -136,13 +137,14 @@ esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
  addnote("Notes: Households weighted by survey weights." ///
  "       The analysis is using the Residual Income Approach." ///
  "       The affordable_1 is estimated using renters' non-housing expenses drawn from India's urban national poverty threshold by state as the budget standard." ///
- "       The affordable_2 and affordable_3 are estimated utilizing the similar approach but with the double and triple poverty thresholds."
+ "       The affordable_2 and affordable_3 are estimated utilizing the similar approach but with the double and triple poverty thresholds." ///
  "       Renters are identified as households paying positive rent." )
 
 table mpce_qt [aw = hhwt],c(mean affordable_1 mean affordable_2 mean affordable_3)
 
 * distribution of owner and renter consumption expenditure in urban area 
 gen mpce_mrp_ln = ln(mpce_mrp)
+
 twoway kdensity mpce_mrp_ln [aw = hhwt] if total_rent > 0 & !mi(total_rent) || kdensity mpce_mrp_ln [aw = hhwt] if (total_rent == 0 | mi(total_rent)), ///
 legend(order(1 "Owner" 2 "Renter")) title("Table 2. Kdensity of Log Monthly per capita Consumer Expenditure (MPCE) for India Urban Household (2012)", size(tiny)) xtitle("Log MPCE") ytitle("Kdensity")
  
