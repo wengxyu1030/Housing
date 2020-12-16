@@ -114,6 +114,8 @@ drop _merge
 	forvalues i = 1/3 {
     gen affordable_`i' = (exp_non_housing_pp > exp_non_housing_pp_line_`i')*100
     tab affordable_`i' [aw = hhwt]
+	
+	gen unaffordable_`i' = (affordable_`i' == 0)*100
     }
 	
 save "${r_output}\ria_final.dta",replace
@@ -125,7 +127,7 @@ use "${r_output}\ria_final.dta",clear
 
 * the affordability by quintile. 
 xtile mpce_qt = mpce_mrp [aw = hhwt] , n(5)
-global var_tab_1 "affordable_1 affordable_2 affordable_3"
+global var_tab_1 "unaffordable_1 unaffordable_2 unaffordable_3"
 
 qui eststo total : estpost summarize $var_tab_1 [aw = hhwt],de
 forvalues i = 1/5 {
@@ -133,12 +135,14 @@ qui eststo q`i' : estpost summarize $var_tab_1 [aw = hhwt] if mpce_qt == `i',de
 }
 esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
- title("Table 1. Share of Households Living in Affordable Houses by Consumption Expenditure Quintile in Urban India (2012)") varwidth(40) ///
- addnote("Notes: Households weighted by survey weights." ///
+ title("Table 1. Percent of Households with Unaffordable Housing Consumption by Expenditure Quintile in Urban India (2012)") varwidth(40) ///
+ addnote("Notes: The data source is NSS 68th Round Household Consumer Expenditure."
+ "       Households weighted by survey weights." ///
  "       The analysis is using the Residual Income Approach." ///
  "       The affordable_1 is estimated using renters' non-housing expenses drawn from India's urban national poverty threshold by state as the budget standard." ///
  "       The affordable_2 and affordable_3 are estimated utilizing the similar approach but with the double and triple poverty thresholds." ///
- "       Renters are identified as households paying positive rent." )
+ "       Renters are identified as households paying positive rent." ///
+ "       The owner non-housing consumer expenditure is overestimated as the mortgage payment data is not collected nor included in the housing expenditure.")
 
 table mpce_qt [aw = hhwt],c(mean affordable_1 mean affordable_2 mean affordable_3)
 
