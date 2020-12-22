@@ -294,3 +294,150 @@ end of do-file
 
 r(100);
 
+. do "C:\Users\wb500886\AppData\Local\Temp\STD2954_000000.tmp"
+
+. ****************************************************************************
+. * Description: Generate table for housing condition for all nss
+. * Date: Dec. 12, 2020
+. * Version 2.0
+. * Last Editor: Aline 
+. ****************************************************************************
+. 
+. ****************************************************************************
+. clear 
+
+. clear matrix
+
+. ****************************************************************************
+. 
+. ****************************************************************************
+. * Determine Whose Machine is running the code and set the global directory
+. ****************************************************************************
+. if "`c(username)'" == "wb308830" local pc = 0
+
+. if "`c(username)'" != "wb308830" local pc = 1
+
+. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\
+> NSS 65\" //please correct accordingly
+
+. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_a
+> ll\nss_data\"
+
+. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey
+> _all\Housing_git\nss\Survey_NSS\housing_condition"
+
+. 
+. di "$root"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\
+
+. global r_input "${root}\Raw Data & Dictionaries"
+
+. di "${r_input}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\\Raw Data & Dict
+> ionaries
+
+. global r_output "${root}\housing_condition"
+
+. di "${r_output}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\\housing_conditi
+> on
+
+. 
+. *Define the survey rounds. 
+. global nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
+
+. 
+. //log using "${script}\NSS_table_housing_condition.log",replace
+. set linesize 255
+
+. 
+. ****************************************************************************
+. * Load data
+. ****************************************************************************
+. use "${root}\NSS49\Data Output Files\NSS49_housing_condition.dta",clear
+
+. 
+. foreach survey in NSS58 NSS65 NSS69 NSS76 {
+  2. append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
+  3. }
+(note: variable B3_q2 was byte in the using data, but will be str2 now)
+(note: variable B3_q5 was str1 in the using data, but will be byte now)
+(note: variable B3_q6 was double in the using data, but will be str1 now)
+(note: variable B3_q10 was int in the using data, but will be str1 now)
+(note: variable B3_q11 was int in the using data, but will be str1 now)
+(note: variable B3_q12 was str1 in the using data, but will be byte now)
+(note: variable B3_q7 was str1, now str5 to accommodate using data's values)
+(note: variable B3_q8 was str1, now str3 to accommodate using data's values)
+(note: variable B6_q3 was byte, now int to accommodate using data's values)
+(note: variable B6_q4 was int, now long to accommodate using data's values)
+(note: variable B6_q6 was byte, now long to accommodate using data's values)
+(note: variable B6_q13 was byte, now int to accommodate using data's values)
+(note: variable B6_q14 was byte, now int to accommodate using data's values)
+(note: variable B6_q15 was byte, now int to accommodate using data's values)
+(label hh_urbanl already defined)
+(label hh_tnl already defined)
+(note: variable B3_q2 was byte in the using data, but will be str2 now)
+(note: variable B3_q5 was str5 in the using data, but will be byte now)
+(note: variable B3_q12 was str1 in the using data, but will be byte now)
+(note: variable B3_q14 was long in the using data, but will be str1 now)
+(note: variable B3_q15 was int in the using data, but will be str2 now)
+(note: variable B3_q16 was int in the using data, but will be str1 now)
+(note: variable B4_q5 was byte in the using data, but will be str1 now)
+(note: variable B3_q6 was str1, now str3 to accommodate using data's values)
+(note: variable B3_q10 was str1, now str2 to accommodate using data's values)
+(note: variable B3_q17 was byte, now long to accommodate using data's values)
+(note: variable B3_q18 was byte, now int to accommodate using data's values)
+(note: variable B6_q5 was byte, now int to accommodate using data's values)
+(note: variable B6_q7 was byte, now int to accommodate using data's values)
+(note: variable B6_q8 was byte, now int to accommodate using data's values)
+(note: variable B6_q17 was byte, now int to accommodate using data's values)
+(label hh_urbanl already defined)
+(label hh_tnl already defined)
+(label hh_tnl already defined)
+(label hh_urbanl already defined)
+(note: variable id was str16, now str29 to accommodate using data's values)
+(note: variable hh_weight was float, now double to accommodate using data's
+       values)
+(label water already defined)
+(label hh_urbanl already defined)
+(label hh_tnl already defined)
+
+. 
+. drop h20_temp h20_distance h20_exclusive h20b_pip_exl h20b_pip_shr h20b_grd_exl h20b_grd_shr h20b_other h20_cooking ///
+> san_source san_distance
+
+. 
+. save "${r_output}\NSS_housing_condition.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\\housing_condition\NSS_housing_condition.dta saved
+
+. 
+. ****************************************************************************
+. * Generate the time series table of housing conditions
+. ****************************************************************************
+. use "${r_output}\NSS_housing_condition.dta",clear
+
+. 
+. local var_summary hh_size* in_* h20* san* 
+
+. 
+. *All, Urban, Rural India housing condition****
+. 
+. foreach survey in $nss_round {
+  2. qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
+  3. qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
+  4. qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
+  5. }
+--Break--
+r(1);
+
+end of do-file
+
+--Break--
+r(1);
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS68\02_NSS68_Residual_Income_Affordability.log
+  log type:  text
+ closed on:  16 Dec 2020, 09:15:37
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------

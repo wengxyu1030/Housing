@@ -55,9 +55,9 @@ local var_summary hh_size* in_* h20* san*
 *All, Urban, Rural India housing condition****
 
 foreach survey in $nss_round {
-qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
-qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
-qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
+  qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
+  qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
+  qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
 }
 
 esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
@@ -76,11 +76,17 @@ esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.1fc))) label 
  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
  
 *By quintile for All, Urban, Rural India housing condition****
+xtile qt = hh_umce [aw = hh_weight] if survey == "NSS49", nq(5) 
 
-//ssc install egenmore //this is a package with more function with egen
-gen mpce = hh_umce //per capita consumer expenditure
-egen qt=xtile(mpce), n(5) by(survey)
+foreach survey in NSS58 NSS65 NSS69 NSS76 {
+  xtile temp_qt_`survey' = hh_umce [aw = hh_weight] if survey == "`survey'", nq(5) 
+  qui replace qt = temp_qt_`survey' if survey == "`survey'" 
+}
 
+drop temp*
+
+//ssc install egenmore //this is a package with more function with egen (by option)
+//ssc inst _gwtmean  //the package for weighted mean with by option
 local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
  
 foreach var in `var_list' {
@@ -92,26 +98,44 @@ qui replace `var'_5  = . if (qt != 5)
 }
 
 *label variables by quintile
+local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
 foreach var in `var_list' {
- forvalues i = 1(4)5 {
+  forvalues i = 1(4)5 {
      local label_old: var label `var'
      local label = " Q" + "`i'" + ": `label_old'" 
      label var `var'_`i' "`label'"
  }
 }
 
+save "${r_output}/test",replace
+
 *produce delta between q1 and q5 for each variable
+use "${r_output}/test",clear
+
+//keep qt* hh_size* in_* h20* san* hh_weight survey hh_urban
+
+//collapse (mean) hh_size* in_* h20* san* [aw = hh_weight], by(survey hh_urban)  
+
+local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
 foreach var in `var_list' {
-  qui egen `var'_qt_year_mean = mean(`var'),by(survey)
-  qui gen `var'_dt = (`var'_5 - `var'_1)/`var'_1
+   foreach survey in $nss_round  {
+    forvalues i = 1(4)5 {
+      qui egen `var'_qt`i'_`survey'_mean = mean(`var') if qt == `i' & survey == "`survey'"  
+     }
+    qui gen `var'_`survey'_dt = (`var'_qt5_`survey'_mean  - `var'_qt1_`survey'_mean)/`var'_qt1_`survey'_mean if `survey' == "`survey'"
+   }
+  }
   
   local label_old: var label `var'
   local label = "Q1-Q5 Delta" + ": `label_old'" 
   label var `var'_dt "`label'"
 }
 
+
 *produce table
-//keep qt* hh_size* in_* h20* san* hh_weight survey hh_urban
+
 drop *_1 *_5
 
 /*local var_summary hh_size_1	hh_size_5	in_floor_permanent_1	in_floor_permanent_5	in_wall_permanent_1	in_wall_permanent_5	in_floor_permanent_1	in_floor_permanent_5	in_all_permanent_1	///
