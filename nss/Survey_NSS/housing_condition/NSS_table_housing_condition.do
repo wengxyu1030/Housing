@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Generate table for housing condition for all nss
-* Date: Dec. 30, 2020
-* Version 3.0
+* Date: Jan. 7, 2020
+* Version 4.0
 * Last Editor: Aline 
 ****************************************************************************
 
@@ -36,7 +36,7 @@ set linesize 255
 use "${root}\NSS49\Data Output Files\NSS49_housing_condition.dta",clear
 
 foreach survey in NSS58 NSS65 NSS69 NSS76 {
-append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
+qui append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
 }
 
 drop h20_temp h20_distance h20_exclusive h20b_pip_exl h20b_pip_shr h20b_grd_exl h20b_grd_shr h20b_other h20_cooking ///
@@ -102,7 +102,7 @@ save "${r_output}\NSS_housing_condition_final.dta",replace
 use "${r_output}\NSS_housing_condition_final.dta",replace
 
 *All, Urban, Rural India housing condition****
-local var_summary hh_size* in_* h20* san* 
+local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
 local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
 foreach survey in `nss_round' {
   qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
@@ -182,7 +182,7 @@ eststo `var'
 }
 
 esttab `var_list' , nose not label b("%9.2f")	r2 /// fmt( %9.0gc %9.0gc %9.2f)) ///
-title("Regression of Housing Condition Equality between Q1 and Q5 on Year (Urban India)") ///
+title("Regression of Housing Condition Equality between Q1 and Q5 on Year (All India)") ///
 addnotes("Note: Regressions dependent variables are the delta of housing condition indicator measures" ///
          "      between quintile 5 and 1.")	
 

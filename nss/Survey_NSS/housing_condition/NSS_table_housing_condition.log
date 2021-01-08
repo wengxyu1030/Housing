@@ -1,9 +1,8 @@
----------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condi
-> tion.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
   log type:  text
- opened on:   3 Jan 2021, 03:28:56
+ opened on:   8 Jan 2021, 06:43:46
 
 . set linesize 255
 
@@ -16,48 +15,8 @@
 
 . 
 . foreach survey in NSS58 NSS65 NSS69 NSS76 {
-  2. append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
+  2. qui append using "${root}/`survey'/Data Output Files/`survey'_housing_condition.dta",force
   3. }
-(note: variable B3_q2 was byte in the using data, but will be str2 now)
-(note: variable B3_q5 was str1 in the using data, but will be byte now)
-(note: variable B3_q6 was double in the using data, but will be str1 now)
-(note: variable B3_q10 was int in the using data, but will be str1 now)
-(note: variable B3_q11 was int in the using data, but will be str1 now)
-(note: variable B3_q12 was str1 in the using data, but will be byte now)
-(note: variable B3_q7 was str1, now str5 to accommodate using data's values)
-(note: variable B3_q8 was str1, now str3 to accommodate using data's values)
-(note: variable B6_q3 was byte, now int to accommodate using data's values)
-(note: variable B6_q4 was int, now long to accommodate using data's values)
-(note: variable B6_q6 was byte, now long to accommodate using data's values)
-(note: variable B6_q13 was byte, now int to accommodate using data's values)
-(note: variable B6_q14 was byte, now int to accommodate using data's values)
-(note: variable B6_q15 was byte, now int to accommodate using data's values)
-(label hh_urbanl already defined)
-(label hh_tnl already defined)
-(note: variable B3_q2 was byte in the using data, but will be str2 now)
-(note: variable B3_q5 was str5 in the using data, but will be byte now)
-(note: variable B3_q12 was str1 in the using data, but will be byte now)
-(note: variable B3_q14 was long in the using data, but will be str1 now)
-(note: variable B3_q15 was int in the using data, but will be str2 now)
-(note: variable B3_q16 was int in the using data, but will be str1 now)
-(note: variable B4_q5 was byte in the using data, but will be str1 now)
-(note: variable B3_q6 was str1, now str3 to accommodate using data's values)
-(note: variable B3_q10 was str1, now str2 to accommodate using data's values)
-(note: variable B3_q17 was byte, now long to accommodate using data's values)
-(note: variable B3_q18 was byte, now int to accommodate using data's values)
-(note: variable B6_q5 was byte, now int to accommodate using data's values)
-(note: variable B6_q7 was byte, now int to accommodate using data's values)
-(note: variable B6_q8 was byte, now int to accommodate using data's values)
-(note: variable B6_q17 was byte, now int to accommodate using data's values)
-(label hh_urbanl already defined)
-(label hh_tnl already defined)
-(label hh_tnl already defined)
-(label hh_urbanl already defined)
-(note: variable id was str16, now str29 to accommodate using data's values)
-(note: variable hh_weight was float, now double to accommodate using data's values)
-(label water already defined)
-(label hh_urbanl already defined)
-(label hh_tnl already defined)
 
 . 
 . drop h20_temp h20_distance h20_exclusive h20b_pip_exl h20b_pip_shr h20b_grd_exl h20b_grd_shr h20b_other h20_cooking ///
@@ -138,7 +97,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\\housing_con
 
 . 
 . *All, Urban, Rural India housing condition****
-. local var_summary hh_size* in_* h20* san* 
+. local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
 
 . local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
 
@@ -160,19 +119,6 @@ Table 1 Summary Statistics of Housing Condition in India (mean)
                                                   1993         2002         2009         2012         2018
 ----------------------------------------------------------------------------------------------------------
 Size of Household                                  5.0          5.0          4.8          4.5          4.3
-hh_size_1                                          2.9          2.9          3.0          2.9          2.5
-hh_size_5                                          7.0          6.6          6.1          5.5          5.3
-Delta  Q5 & Q1: Size of Household                  1.4          1.3          1.0          0.9          1.1
-hh_size_1_NSS49_mean                               2.9            .            .            .            .
-hh_size_5_NSS49_mean                               7.0            .            .            .            .
-hh_size_1_NSS58_mean                                 .          2.9            .            .            .
-hh_size_5_NSS58_mean                                 .          6.6            .            .            .
-hh_size_1_NSS65_mean                                 .            .          3.0            .            .
-hh_size_5_NSS65_mean                                 .            .          6.1            .            .
-hh_size_1_NSS69_mean                                 .            .            .          2.9            .
-hh_size_5_NSS69_mean                                 .            .            .          5.5            .
-hh_size_1_NSS76_mean                                 .            .            .            .          2.5
-hh_size_5_NSS76_mean                                 .            .            .            .          5.3
 Number of Rooms                                    2.8          2.9          3.2          3.7          3.9
 Wall: Cement or Stone (%)                         48.8         62.2         68.9         76.1         83.5
 Roof: Cement or Stone (%)                         29.2         41.7         48.7         53.3         64.6
@@ -183,178 +129,9 @@ Flat (%)                                             .          9.9          9.7
 Dwelling Size (sq ft)                            432.0        406.9        444.8        428.1        499.6
 People per room                                    2.4          2.3          1.9          1.7          1.4
 Area in sq ft per person                         105.4         98.8        111.4        112.1        138.7
-in_room_1                                          2.0          1.9          2.2          2.3          2.7
-in_room_5                                          4.0          4.6          4.9          5.6          5.3
-in_wall_permanent_1                               34.9         45.7         54.1         60.3         70.3
-in_wall_permanent_5                               76.5         88.1         90.3         95.3         96.0
-in_roof_permanent_1                               19.0         27.8         33.8         37.1         48.1
-in_roof_permanent_5                               56.2         69.8         75.6         81.1         85.7
-in_floor_permanent_1                              23.1         33.4         41.8         42.3         54.2
-in_floor_permanent_5                              64.8         81.4         86.6         93.4         94.4
-in_all_permanent_1                                12.9         18.6         23.3         25.1         36.4
-in_all_permanent_5                                47.5         62.9         70.8         77.8         82.1
-in_sep_kitch_1                                    24.3         24.0         29.5         30.6         35.6
-in_sep_kitch_5                                    63.2         74.9         79.8         84.0         86.6
-in_flat_1                                            .          7.9          7.7         12.6          7.6
-in_flat_5                                            .         18.3         19.3         33.4         26.3
-in_size_1                                        303.8        253.6        289.0        273.8        337.0
-in_size_5                                        636.7        643.5        685.8        638.2        673.8
-in_ppl_room_1                                      1.9          1.9          1.7          1.6          1.2
-in_ppl_room_5                                      2.4          1.9          1.6          1.2          1.2
-in_ppl_area_1                                    142.3        118.4        125.3        120.2        165.4
-in_ppl_area_5                                    104.1        117.6        136.3        139.7        149.7
-Delta  Q5 & Q1: Number of Rooms                    1.0          1.4          1.3          1.4          1.0
-in_room_1_NSS49_mean                               2.0            .            .            .            .
-in_room_5_NSS49_mean                               4.0            .            .            .            .
-in_room_1_NSS58_mean                                 .          1.9            .            .            .
-in_room_5_NSS58_mean                                 .          4.6            .            .            .
-in_room_1_NSS65_mean                                 .            .          2.2            .            .
-in_room_5_NSS65_mean                                 .            .          4.9            .            .
-in_room_1_NSS69_mean                                 .            .            .          2.3            .
-in_room_5_NSS69_mean                                 .            .            .          5.6            .
-in_room_1_NSS76_mean                                 .            .            .            .          2.7
-in_room_5_NSS76_mean                                 .            .            .            .          5.3
-Delta  Q5 & Q1: Wall: Cement or Stone (%           1.2          0.9          0.7          0.6          0.4
-in_wall_permanent_1_NSS49_mean                    34.9            .            .            .            .
-in_wall_permanent_5_NSS49_mean                    76.5            .            .            .            .
-in_wall_permanent_1_NSS58_mean                       .         45.7            .            .            .
-in_wall_permanent_5_NSS58_mean                       .         88.1            .            .            .
-in_wall_permanent_1_NSS65_mean                       .            .         54.1            .            .
-in_wall_permanent_5_NSS65_mean                       .            .         90.3            .            .
-in_wall_permanent_1_NSS69_mean                       .            .            .         60.3            .
-in_wall_permanent_5_NSS69_mean                       .            .            .         95.3            .
-in_wall_permanent_1_NSS76_mean                       .            .            .            .         70.3
-in_wall_permanent_5_NSS76_mean                       .            .            .            .         96.0
-Delta  Q5 & Q1: Roof: Cement or Stone (%           2.0          1.5          1.2          1.2          0.8
-in_roof_permanent_1_NSS49_mean                    19.0            .            .            .            .
-in_roof_permanent_5_NSS49_mean                    56.2            .            .            .            .
-in_roof_permanent_1_NSS58_mean                       .         27.8            .            .            .
-in_roof_permanent_5_NSS58_mean                       .         69.8            .            .            .
-in_roof_permanent_1_NSS65_mean                       .            .         33.8            .            .
-in_roof_permanent_5_NSS65_mean                       .            .         75.6            .            .
-in_roof_permanent_1_NSS69_mean                       .            .            .         37.1            .
-in_roof_permanent_5_NSS69_mean                       .            .            .         81.1            .
-in_roof_permanent_1_NSS76_mean                       .            .            .            .         48.1
-in_roof_permanent_5_NSS76_mean                       .            .            .            .         85.7
-Delta  Q5 & Q1: Floor: Cement or Stone (           1.8          1.4          1.1          1.2          0.7
-in_floor_permanent_1_NSS49_mean                   23.1            .            .            .            .
-in_floor_permanent_5_NSS49_mean                   64.8            .            .            .            .
-in_floor_permanent_1_NSS58_mean                      .         33.4            .            .            .
-in_floor_permanent_5_NSS58_mean                      .         81.4            .            .            .
-in_floor_permanent_1_NSS65_mean                      .            .         41.8            .            .
-in_floor_permanent_5_NSS65_mean                      .            .         86.6            .            .
-in_floor_permanent_1_NSS69_mean                      .            .            .         42.3            .
-in_floor_permanent_5_NSS69_mean                      .            .            .         93.4            .
-in_floor_permanent_1_NSS76_mean                      .            .            .            .         54.2
-in_floor_permanent_5_NSS76_mean                      .            .            .            .         94.4
-Delta  Q5 & Q1: All Materials: Cement or           2.7          2.4          2.0          2.1          1.3
-in_all_permanent_1_NSS49_mean                     12.9            .            .            .            .
-in_all_permanent_5_NSS49_mean                     47.5            .            .            .            .
-in_all_permanent_1_NSS58_mean                        .         18.6            .            .            .
-in_all_permanent_5_NSS58_mean                        .         62.9            .            .            .
-in_all_permanent_1_NSS65_mean                        .            .         23.3            .            .
-in_all_permanent_5_NSS65_mean                        .            .         70.8            .            .
-in_all_permanent_1_NSS69_mean                        .            .            .         25.1            .
-in_all_permanent_5_NSS69_mean                        .            .            .         77.8            .
-in_all_permanent_1_NSS76_mean                        .            .            .            .         36.4
-in_all_permanent_5_NSS76_mean                        .            .            .            .         82.1
-Delta  Q5 & Q1: Separate Kitchen (%)               1.6          2.1          1.7          1.7          1.4
-in_sep_kitch_1_NSS49_mean                         24.3            .            .            .            .
-in_sep_kitch_5_NSS49_mean                         63.2            .            .            .            .
-in_sep_kitch_1_NSS58_mean                            .         24.0            .            .            .
-in_sep_kitch_5_NSS58_mean                            .         74.9            .            .            .
-in_sep_kitch_1_NSS65_mean                            .            .         29.5            .            .
-in_sep_kitch_5_NSS65_mean                            .            .         79.8            .            .
-in_sep_kitch_1_NSS69_mean                            .            .            .         30.6            .
-in_sep_kitch_5_NSS69_mean                            .            .            .         84.0            .
-in_sep_kitch_1_NSS76_mean                            .            .            .            .         35.6
-in_sep_kitch_5_NSS76_mean                            .            .            .            .         86.6
-Delta  Q5 & Q1: Flat (%)                             .          1.3          1.5          1.7          2.5
-in_flat_1_NSS49_mean                                 .            .            .            .            .
-in_flat_5_NSS49_mean                                 .            .            .            .            .
-in_flat_1_NSS58_mean                                 .          7.9            .            .            .
-in_flat_5_NSS58_mean                                 .         18.3            .            .            .
-in_flat_1_NSS65_mean                                 .            .          7.7            .            .
-in_flat_5_NSS65_mean                                 .            .         19.3            .            .
-in_flat_1_NSS69_mean                                 .            .            .         12.6            .
-in_flat_5_NSS69_mean                                 .            .            .         33.4            .
-in_flat_1_NSS76_mean                                 .            .            .            .          7.6
-in_flat_5_NSS76_mean                                 .            .            .            .         26.3
-Delta  Q5 & Q1: Dwelling Size (sq ft)              1.1          1.5          1.4          1.3          1.0
-in_size_1_NSS49_mean                             303.8            .            .            .            .
-in_size_5_NSS49_mean                             636.7            .            .            .            .
-in_size_1_NSS58_mean                                 .        253.6            .            .            .
-in_size_5_NSS58_mean                                 .        643.5            .            .            .
-in_size_1_NSS65_mean                                 .            .        289.0            .            .
-in_size_5_NSS65_mean                                 .            .        685.8            .            .
-in_size_1_NSS69_mean                                 .            .            .        273.8            .
-in_size_5_NSS69_mean                                 .            .            .        638.2            .
-in_size_1_NSS76_mean                                 .            .            .            .        337.0
-in_size_5_NSS76_mean                                 .            .            .            .        673.8
-Delta  Q5 & Q1: People per room                    0.3         -0.0         -0.1         -0.3         -0.0
-in_ppl_room_1_NSS49_mean                           1.9            .            .            .            .
-in_ppl_room_5_NSS49_mean                           2.4            .            .            .            .
-in_ppl_room_1_NSS58_mean                             .          1.9            .            .            .
-in_ppl_room_5_NSS58_mean                             .          1.9            .            .            .
-in_ppl_room_1_NSS65_mean                             .            .          1.7            .            .
-in_ppl_room_5_NSS65_mean                             .            .          1.6            .            .
-in_ppl_room_1_NSS69_mean                             .            .            .          1.6            .
-in_ppl_room_5_NSS69_mean                             .            .            .          1.2            .
-in_ppl_room_1_NSS76_mean                             .            .            .            .          1.2
-in_ppl_room_5_NSS76_mean                             .            .            .            .          1.2
-Delta  Q5 & Q1: Area in sq ft per person          -0.3         -0.0          0.1          0.2         -0.1
-in_ppl_area_1_NSS49_mean                         142.3            .            .            .            .
-in_ppl_area_5_NSS49_mean                         104.1            .            .            .            .
-in_ppl_area_1_NSS58_mean                             .        118.4            .            .            .
-in_ppl_area_5_NSS58_mean                             .        117.6            .            .            .
-in_ppl_area_1_NSS65_mean                             .            .        125.3            .            .
-in_ppl_area_5_NSS65_mean                             .            .        136.3            .            .
-in_ppl_area_1_NSS69_mean                             .            .            .        120.2            .
-in_ppl_area_5_NSS69_mean                             .            .            .        139.7            .
-in_ppl_area_1_NSS76_mean                             .            .            .            .        165.4
-in_ppl_area_5_NSS76_mean                             .            .            .            .        149.7
 Water: Improved Source (%)                        70.0         82.9         86.9         85.4         85.3
-h20_improved_1                                    66.4         81.6         87.3         86.7         88.0
-h20_improved_5                                    79.2         88.1         88.1         85.1         81.6
-Delta  Q5 & Q1: Water: Improved Source (           0.2          0.1          0.0         -0.0         -0.1
-h20_improved_1_NSS49_mean                         66.4            .            .            .            .
-h20_improved_5_NSS49_mean                         79.2            .            .            .            .
-h20_improved_1_NSS58_mean                            .         81.6            .            .            .
-h20_improved_5_NSS58_mean                            .         88.1            .            .            .
-h20_improved_1_NSS65_mean                            .            .         87.3            .            .
-h20_improved_5_NSS65_mean                            .            .         88.1            .            .
-h20_improved_1_NSS69_mean                            .            .            .         86.7            .
-h20_improved_5_NSS69_mean                            .            .            .         85.1            .
-h20_improved_1_NSS76_mean                            .            .            .            .         88.0
-h20_improved_5_NSS76_mean                            .            .            .            .         81.6
 Sanitation: Improved Source (%)                   18.4         25.5         33.4         52.3         76.8
 Sanitation: Exclusive Flush (%)                   18.4         25.5         33.4         40.1         52.4
-san_improved_1                                     9.8         13.0         18.5         29.2         61.6
-san_improved_5                                    44.6         57.2         65.7         86.9         93.4
-san_flush_private_1                                9.8         13.0         18.5         21.2         36.0
-san_flush_private_5                               44.6         57.2         65.7         75.6         78.6
-Delta  Q5 & Q1: Sanitation: Improved Sou           3.5          3.4          2.5          2.0          0.5
-san_improved_1_NSS49_mean                          9.8            .            .            .            .
-san_improved_5_NSS49_mean                         44.6            .            .            .            .
-san_improved_1_NSS58_mean                            .         13.0            .            .            .
-san_improved_5_NSS58_mean                            .         57.2            .            .            .
-san_improved_1_NSS65_mean                            .            .         18.5            .            .
-san_improved_5_NSS65_mean                            .            .         65.7            .            .
-san_improved_1_NSS69_mean                            .            .            .         29.2            .
-san_improved_5_NSS69_mean                            .            .            .         86.9            .
-san_improved_1_NSS76_mean                            .            .            .            .         61.6
-san_improved_5_NSS76_mean                            .            .            .            .         93.4
-Delta  Q5 & Q1: Sanitation: Exclusive Fl           3.5          3.4          2.5          2.6          1.2
-san_flush_private_1_NSS49_mean                     9.8            .            .            .            .
-san_flush_private_5_NSS49_mean                    44.6            .            .            .            .
-san_flush_private_1_NSS58_mean                       .         13.0            .            .            .
-san_flush_private_5_NSS58_mean                       .         57.2            .            .            .
-san_flush_private_1_NSS65_mean                       .            .         18.5            .            .
-san_flush_private_5_NSS65_mean                       .            .         65.7            .            .
-san_flush_private_1_NSS69_mean                       .            .            .         21.2            .
-san_flush_private_5_NSS69_mean                       .            .            .         75.6            .
-san_flush_private_1_NSS76_mean                       .            .            .            .         36.0
-san_flush_private_5_NSS76_mean                       .            .            .            .         78.6
 ----------------------------------------------------------------------------------------------------------
 Observations                                   119,421       97,882      153,518       95,548      106,838
 ----------------------------------------------------------------------------------------------------------
@@ -372,19 +149,6 @@ Table 2 Summary Statistics of Housing Condition in Urban India (mean)
                                                   1993         2002         2009         2012         2018
 ----------------------------------------------------------------------------------------------------------
 Size of Household                                  4.6          4.5          4.2          4.1          3.9
-hh_size_1                                          2.3          1.8          2.0          1.7          1.6
-hh_size_5                                          5.9          5.6          5.2          5.0          4.6
-Delta  Q5 & Q1: Size of Household                  1.4          1.3          1.0          0.9          1.1
-hh_size_1_NSS49_mean                               2.9            .            .            .            .
-hh_size_5_NSS49_mean                               7.0            .            .            .            .
-hh_size_1_NSS58_mean                                 .          2.9            .            .            .
-hh_size_5_NSS58_mean                                 .          6.6            .            .            .
-hh_size_1_NSS65_mean                                 .            .          3.0            .            .
-hh_size_5_NSS65_mean                                 .            .          6.1            .            .
-hh_size_1_NSS69_mean                                 .            .            .          2.9            .
-hh_size_5_NSS69_mean                                 .            .            .          5.5            .
-hh_size_1_NSS76_mean                                 .            .            .            .          2.5
-hh_size_5_NSS76_mean                                 .            .            .            .          5.3
 Number of Rooms                                    2.8          3.2          3.6          4.3          4.3
 Wall: Cement or Stone (%)                         78.8         87.9         91.8         93.4         95.4
 Roof: Cement or Stone (%)                         57.8         64.1         71.3         73.8         82.4
@@ -395,178 +159,9 @@ Flat (%)                                             .         22.7         24.4
 Dwelling Size (sq ft)                            392.7        395.4        429.9        422.0        496.7
 People per room                                    2.3          1.9          1.6          1.2          1.1
 Area in sq ft per person                         104.4        111.4        125.9        123.8        155.4
-in_room_1                                          1.8          1.8          2.1          2.5          2.5
-in_room_5                                          3.8          4.4          4.8          5.5          5.1
-in_wall_permanent_1                               68.7         78.4         83.7         86.7         91.3
-in_wall_permanent_5                               92.0         96.5         98.1         98.1         98.0
-in_roof_permanent_1                               48.7         51.7         59.1         61.4         72.2
-in_roof_permanent_5                               75.1         80.6         86.0         87.6         89.9
-in_floor_permanent_1                              64.1         75.9         83.7         84.5         90.5
-in_floor_permanent_5                              91.3         96.5         98.0         98.6         98.7
-in_all_permanent_1                                42.6         47.7         55.3         58.4         69.5
-in_all_permanent_5                                71.9         78.9         84.6         86.4         88.4
-in_sep_kitch_1                                    23.2         17.4         28.8         27.1         36.9
-in_sep_kitch_5                                    73.2         81.2         85.4         87.6         89.9
-in_flat_1                                            .         17.8         23.1         36.6         27.7
-in_flat_5                                            .         28.5         31.3         45.6         36.9
-in_size_1                                        242.4        220.5        232.6        190.1        239.6
-in_size_5                                        543.5        564.3        612.1        589.9        612.3
-in_ppl_room_1                                      1.6          1.3          1.2          0.9          0.8
-in_ppl_room_5                                      2.2          1.7          1.4          1.1          1.1
-in_ppl_area_1                                    148.0        163.6        153.8        131.7        182.0
-in_ppl_area_5                                    106.5        122.3        143.2        143.3        155.2
-Delta  Q5 & Q1: Number of Rooms                    1.0          1.4          1.3          1.4          1.0
-in_room_1_NSS49_mean                               2.0            .            .            .            .
-in_room_5_NSS49_mean                               4.0            .            .            .            .
-in_room_1_NSS58_mean                                 .          1.9            .            .            .
-in_room_5_NSS58_mean                                 .          4.6            .            .            .
-in_room_1_NSS65_mean                                 .            .          2.2            .            .
-in_room_5_NSS65_mean                                 .            .          4.9            .            .
-in_room_1_NSS69_mean                                 .            .            .          2.3            .
-in_room_5_NSS69_mean                                 .            .            .          5.6            .
-in_room_1_NSS76_mean                                 .            .            .            .          2.7
-in_room_5_NSS76_mean                                 .            .            .            .          5.3
-Delta  Q5 & Q1: Wall: Cement or Stone (%           1.2          0.9          0.7          0.6          0.4
-in_wall_permanent_1_NSS49_mean                    34.9            .            .            .            .
-in_wall_permanent_5_NSS49_mean                    76.5            .            .            .            .
-in_wall_permanent_1_NSS58_mean                       .         45.7            .            .            .
-in_wall_permanent_5_NSS58_mean                       .         88.1            .            .            .
-in_wall_permanent_1_NSS65_mean                       .            .         54.1            .            .
-in_wall_permanent_5_NSS65_mean                       .            .         90.3            .            .
-in_wall_permanent_1_NSS69_mean                       .            .            .         60.3            .
-in_wall_permanent_5_NSS69_mean                       .            .            .         95.3            .
-in_wall_permanent_1_NSS76_mean                       .            .            .            .         70.3
-in_wall_permanent_5_NSS76_mean                       .            .            .            .         96.0
-Delta  Q5 & Q1: Roof: Cement or Stone (%           2.0          1.5          1.2          1.2          0.8
-in_roof_permanent_1_NSS49_mean                    19.0            .            .            .            .
-in_roof_permanent_5_NSS49_mean                    56.2            .            .            .            .
-in_roof_permanent_1_NSS58_mean                       .         27.8            .            .            .
-in_roof_permanent_5_NSS58_mean                       .         69.8            .            .            .
-in_roof_permanent_1_NSS65_mean                       .            .         33.8            .            .
-in_roof_permanent_5_NSS65_mean                       .            .         75.6            .            .
-in_roof_permanent_1_NSS69_mean                       .            .            .         37.1            .
-in_roof_permanent_5_NSS69_mean                       .            .            .         81.1            .
-in_roof_permanent_1_NSS76_mean                       .            .            .            .         48.1
-in_roof_permanent_5_NSS76_mean                       .            .            .            .         85.7
-Delta  Q5 & Q1: Floor: Cement or Stone (           1.8          1.4          1.1          1.2          0.7
-in_floor_permanent_1_NSS49_mean                   23.1            .            .            .            .
-in_floor_permanent_5_NSS49_mean                   64.8            .            .            .            .
-in_floor_permanent_1_NSS58_mean                      .         33.4            .            .            .
-in_floor_permanent_5_NSS58_mean                      .         81.4            .            .            .
-in_floor_permanent_1_NSS65_mean                      .            .         41.8            .            .
-in_floor_permanent_5_NSS65_mean                      .            .         86.6            .            .
-in_floor_permanent_1_NSS69_mean                      .            .            .         42.3            .
-in_floor_permanent_5_NSS69_mean                      .            .            .         93.4            .
-in_floor_permanent_1_NSS76_mean                      .            .            .            .         54.2
-in_floor_permanent_5_NSS76_mean                      .            .            .            .         94.4
-Delta  Q5 & Q1: All Materials: Cement or           2.7          2.4          2.0          2.1          1.3
-in_all_permanent_1_NSS49_mean                     12.9            .            .            .            .
-in_all_permanent_5_NSS49_mean                     47.5            .            .            .            .
-in_all_permanent_1_NSS58_mean                        .         18.6            .            .            .
-in_all_permanent_5_NSS58_mean                        .         62.9            .            .            .
-in_all_permanent_1_NSS65_mean                        .            .         23.3            .            .
-in_all_permanent_5_NSS65_mean                        .            .         70.8            .            .
-in_all_permanent_1_NSS69_mean                        .            .            .         25.1            .
-in_all_permanent_5_NSS69_mean                        .            .            .         77.8            .
-in_all_permanent_1_NSS76_mean                        .            .            .            .         36.4
-in_all_permanent_5_NSS76_mean                        .            .            .            .         82.1
-Delta  Q5 & Q1: Separate Kitchen (%)               1.6          2.1          1.7          1.7          1.4
-in_sep_kitch_1_NSS49_mean                         24.3            .            .            .            .
-in_sep_kitch_5_NSS49_mean                         63.2            .            .            .            .
-in_sep_kitch_1_NSS58_mean                            .         24.0            .            .            .
-in_sep_kitch_5_NSS58_mean                            .         74.9            .            .            .
-in_sep_kitch_1_NSS65_mean                            .            .         29.5            .            .
-in_sep_kitch_5_NSS65_mean                            .            .         79.8            .            .
-in_sep_kitch_1_NSS69_mean                            .            .            .         30.6            .
-in_sep_kitch_5_NSS69_mean                            .            .            .         84.0            .
-in_sep_kitch_1_NSS76_mean                            .            .            .            .         35.6
-in_sep_kitch_5_NSS76_mean                            .            .            .            .         86.6
-Delta  Q5 & Q1: Flat (%)                             .          1.3          1.5          1.7          2.5
-in_flat_1_NSS49_mean                                 .            .            .            .            .
-in_flat_5_NSS49_mean                                 .            .            .            .            .
-in_flat_1_NSS58_mean                                 .          7.9            .            .            .
-in_flat_5_NSS58_mean                                 .         18.3            .            .            .
-in_flat_1_NSS65_mean                                 .            .          7.7            .            .
-in_flat_5_NSS65_mean                                 .            .         19.3            .            .
-in_flat_1_NSS69_mean                                 .            .            .         12.6            .
-in_flat_5_NSS69_mean                                 .            .            .         33.4            .
-in_flat_1_NSS76_mean                                 .            .            .            .          7.6
-in_flat_5_NSS76_mean                                 .            .            .            .         26.3
-Delta  Q5 & Q1: Dwelling Size (sq ft)              1.1          1.5          1.4          1.3          1.0
-in_size_1_NSS49_mean                             303.8            .            .            .            .
-in_size_5_NSS49_mean                             636.7            .            .            .            .
-in_size_1_NSS58_mean                                 .        253.6            .            .            .
-in_size_5_NSS58_mean                                 .        643.5            .            .            .
-in_size_1_NSS65_mean                                 .            .        289.0            .            .
-in_size_5_NSS65_mean                                 .            .        685.8            .            .
-in_size_1_NSS69_mean                                 .            .            .        273.8            .
-in_size_5_NSS69_mean                                 .            .            .        638.2            .
-in_size_1_NSS76_mean                                 .            .            .            .        337.0
-in_size_5_NSS76_mean                                 .            .            .            .        673.8
-Delta  Q5 & Q1: People per room                    0.3         -0.0         -0.1         -0.3         -0.0
-in_ppl_room_1_NSS49_mean                           1.9            .            .            .            .
-in_ppl_room_5_NSS49_mean                           2.4            .            .            .            .
-in_ppl_room_1_NSS58_mean                             .          1.9            .            .            .
-in_ppl_room_5_NSS58_mean                             .          1.9            .            .            .
-in_ppl_room_1_NSS65_mean                             .            .          1.7            .            .
-in_ppl_room_5_NSS65_mean                             .            .          1.6            .            .
-in_ppl_room_1_NSS69_mean                             .            .            .          1.6            .
-in_ppl_room_5_NSS69_mean                             .            .            .          1.2            .
-in_ppl_room_1_NSS76_mean                             .            .            .            .          1.2
-in_ppl_room_5_NSS76_mean                             .            .            .            .          1.2
-Delta  Q5 & Q1: Area in sq ft per person          -0.3         -0.0          0.1          0.2         -0.1
-in_ppl_area_1_NSS49_mean                         142.3            .            .            .            .
-in_ppl_area_5_NSS49_mean                         104.1            .            .            .            .
-in_ppl_area_1_NSS58_mean                             .        118.4            .            .            .
-in_ppl_area_5_NSS58_mean                             .        117.6            .            .            .
-in_ppl_area_1_NSS65_mean                             .            .        125.3            .            .
-in_ppl_area_5_NSS65_mean                             .            .        136.3            .            .
-in_ppl_area_1_NSS69_mean                             .            .            .        120.2            .
-in_ppl_area_5_NSS69_mean                             .            .            .        139.7            .
-in_ppl_area_1_NSS76_mean                             .            .            .            .        165.4
-in_ppl_area_5_NSS76_mean                             .            .            .            .        149.7
 Water: Improved Source (%)                        89.0         93.2         91.8         89.0         82.1
-h20_improved_1                                    86.9         93.2         90.5         92.4         83.5
-h20_improved_5                                    92.5         94.6         92.6         88.6         81.5
-Delta  Q5 & Q1: Water: Improved Source (           0.2          0.1          0.0         -0.0         -0.1
-h20_improved_1_NSS49_mean                         66.4            .            .            .            .
-h20_improved_5_NSS49_mean                         79.2            .            .            .            .
-h20_improved_1_NSS58_mean                            .         81.6            .            .            .
-h20_improved_5_NSS58_mean                            .         88.1            .            .            .
-h20_improved_1_NSS65_mean                            .            .         87.3            .            .
-h20_improved_5_NSS65_mean                            .            .         88.1            .            .
-h20_improved_1_NSS69_mean                            .            .            .         86.7            .
-h20_improved_5_NSS69_mean                            .            .            .         85.1            .
-h20_improved_1_NSS76_mean                            .            .            .            .         88.0
-h20_improved_5_NSS76_mean                            .            .            .            .         81.6
 Sanitation: Improved Source (%)                   53.4         63.2         71.8         84.1         92.5
 Sanitation: Exclusive Flush (%)                   53.4         63.2         71.8         76.5         82.0
-san_improved_1                                    41.4         47.9         54.5         71.1         85.7
-san_improved_5                                    73.1         80.0         86.6         93.7         96.2
-san_flush_private_1                               41.4         47.9         54.5         64.1         74.7
-san_flush_private_5                               73.1         80.0         86.6         88.2         88.8
-Delta  Q5 & Q1: Sanitation: Improved Sou           3.5          3.4          2.5          2.0          0.5
-san_improved_1_NSS49_mean                          9.8            .            .            .            .
-san_improved_5_NSS49_mean                         44.6            .            .            .            .
-san_improved_1_NSS58_mean                            .         13.0            .            .            .
-san_improved_5_NSS58_mean                            .         57.2            .            .            .
-san_improved_1_NSS65_mean                            .            .         18.5            .            .
-san_improved_5_NSS65_mean                            .            .         65.7            .            .
-san_improved_1_NSS69_mean                            .            .            .         29.2            .
-san_improved_5_NSS69_mean                            .            .            .         86.9            .
-san_improved_1_NSS76_mean                            .            .            .            .         61.6
-san_improved_5_NSS76_mean                            .            .            .            .         93.4
-Delta  Q5 & Q1: Sanitation: Exclusive Fl           3.5          3.4          2.5          2.6          1.2
-san_flush_private_1_NSS49_mean                     9.8            .            .            .            .
-san_flush_private_5_NSS49_mean                    44.6            .            .            .            .
-san_flush_private_1_NSS58_mean                       .         13.0            .            .            .
-san_flush_private_5_NSS58_mean                       .         57.2            .            .            .
-san_flush_private_1_NSS65_mean                       .            .         18.5            .            .
-san_flush_private_5_NSS65_mean                       .            .         65.7            .            .
-san_flush_private_1_NSS69_mean                       .            .            .         21.2            .
-san_flush_private_5_NSS69_mean                       .            .            .         75.6            .
-san_flush_private_1_NSS76_mean                       .            .            .            .         36.0
-san_flush_private_5_NSS76_mean                       .            .            .            .         78.6
 ----------------------------------------------------------------------------------------------------------
 Observations                                    44,371       41,916       56,374       42,155       43,102
 ----------------------------------------------------------------------------------------------------------
@@ -584,19 +179,6 @@ Table 3 Summary Statistics of Housing Condition in Rural India (mean)
                                                   1993         2002         2009         2012         2018
 ----------------------------------------------------------------------------------------------------------
 Size of Household                                  5.1          5.1          5.0          4.8          4.5
-hh_size_1                                          3.0          3.1          3.3          3.2          2.8
-hh_size_5                                          8.2          8.0          7.4          6.6          6.7
-Delta  Q5 & Q1: Size of Household                  1.4          1.3          1.0          0.9          1.1
-hh_size_1_NSS49_mean                               2.9            .            .            .            .
-hh_size_5_NSS49_mean                               7.0            .            .            .            .
-hh_size_1_NSS58_mean                                 .          2.9            .            .            .
-hh_size_5_NSS58_mean                                 .          6.6            .            .            .
-hh_size_1_NSS65_mean                                 .            .          3.0            .            .
-hh_size_5_NSS65_mean                                 .            .          6.1            .            .
-hh_size_1_NSS69_mean                                 .            .            .          2.9            .
-hh_size_5_NSS69_mean                                 .            .            .          5.5            .
-hh_size_1_NSS76_mean                                 .            .            .            .          2.5
-hh_size_5_NSS76_mean                                 .            .            .            .          5.3
 Number of Rooms                                    2.7          2.8          3.1          3.4          3.7
 Wall: Cement or Stone (%)                         38.2         52.1         59.2         68.1         77.3
 Roof: Cement or Stone (%)                         19.1         32.9         39.2         43.8         55.4
@@ -607,178 +189,9 @@ Flat (%)                                             .          4.9          3.6
 Dwelling Size (sq ft)                            445.9        411.4        451.0        431.0        501.2
 People per room                                    2.5          2.4          2.1          1.9          1.5
 Area in sq ft per person                         105.8         93.9        105.3        106.6        130.1
-in_room_1                                          2.0          1.9          2.2          2.3          2.7
-in_room_5                                          4.3          4.9          5.1          5.7          5.7
-in_wall_permanent_1                               27.9         38.8         47.1         55.0         65.5
-in_wall_permanent_5                               61.3         76.6         79.9         90.1         91.9
-in_roof_permanent_1                               13.0         22.7         27.8         32.3         42.7
-in_roof_permanent_5                               37.5         55.0         61.9         69.4         76.8
-in_floor_permanent_1                              14.7         24.3         31.8         33.9         46.0
-in_floor_permanent_5                              38.7         60.6         71.3         83.9         85.5
-in_all_permanent_1                                 6.8         12.4         15.7         18.4         29.0
-in_all_permanent_5                                23.4         40.9         52.4         62.3         68.7
-in_sep_kitch_1                                    24.5         25.4         29.6         31.3         35.4
-in_sep_kitch_5                                    53.4         66.2         72.2         77.4         79.7
-in_flat_1                                            .          5.8          4.0          7.8          3.1
-in_flat_5                                            .          4.4          3.5         11.3          3.9
-in_size_1                                        316.5        260.6        302.5        290.5        358.9
-in_size_5                                        728.9        752.4        783.9        726.2        803.8
-in_ppl_room_1                                      1.9          2.0          1.9          1.8          1.3
-in_ppl_room_5                                      2.6          2.2          1.8          1.4          1.4
-in_ppl_area_1                                    141.1        108.9        118.5        117.9        161.7
-in_ppl_area_5                                    101.7        111.1        127.1        133.2        138.1
-Delta  Q5 & Q1: Number of Rooms                    1.0          1.4          1.3          1.4          1.0
-in_room_1_NSS49_mean                               2.0            .            .            .            .
-in_room_5_NSS49_mean                               4.0            .            .            .            .
-in_room_1_NSS58_mean                                 .          1.9            .            .            .
-in_room_5_NSS58_mean                                 .          4.6            .            .            .
-in_room_1_NSS65_mean                                 .            .          2.2            .            .
-in_room_5_NSS65_mean                                 .            .          4.9            .            .
-in_room_1_NSS69_mean                                 .            .            .          2.3            .
-in_room_5_NSS69_mean                                 .            .            .          5.6            .
-in_room_1_NSS76_mean                                 .            .            .            .          2.7
-in_room_5_NSS76_mean                                 .            .            .            .          5.3
-Delta  Q5 & Q1: Wall: Cement or Stone (%           1.2          0.9          0.7          0.6          0.4
-in_wall_permanent_1_NSS49_mean                    34.9            .            .            .            .
-in_wall_permanent_5_NSS49_mean                    76.5            .            .            .            .
-in_wall_permanent_1_NSS58_mean                       .         45.7            .            .            .
-in_wall_permanent_5_NSS58_mean                       .         88.1            .            .            .
-in_wall_permanent_1_NSS65_mean                       .            .         54.1            .            .
-in_wall_permanent_5_NSS65_mean                       .            .         90.3            .            .
-in_wall_permanent_1_NSS69_mean                       .            .            .         60.3            .
-in_wall_permanent_5_NSS69_mean                       .            .            .         95.3            .
-in_wall_permanent_1_NSS76_mean                       .            .            .            .         70.3
-in_wall_permanent_5_NSS76_mean                       .            .            .            .         96.0
-Delta  Q5 & Q1: Roof: Cement or Stone (%           2.0          1.5          1.2          1.2          0.8
-in_roof_permanent_1_NSS49_mean                    19.0            .            .            .            .
-in_roof_permanent_5_NSS49_mean                    56.2            .            .            .            .
-in_roof_permanent_1_NSS58_mean                       .         27.8            .            .            .
-in_roof_permanent_5_NSS58_mean                       .         69.8            .            .            .
-in_roof_permanent_1_NSS65_mean                       .            .         33.8            .            .
-in_roof_permanent_5_NSS65_mean                       .            .         75.6            .            .
-in_roof_permanent_1_NSS69_mean                       .            .            .         37.1            .
-in_roof_permanent_5_NSS69_mean                       .            .            .         81.1            .
-in_roof_permanent_1_NSS76_mean                       .            .            .            .         48.1
-in_roof_permanent_5_NSS76_mean                       .            .            .            .         85.7
-Delta  Q5 & Q1: Floor: Cement or Stone (           1.8          1.4          1.1          1.2          0.7
-in_floor_permanent_1_NSS49_mean                   23.1            .            .            .            .
-in_floor_permanent_5_NSS49_mean                   64.8            .            .            .            .
-in_floor_permanent_1_NSS58_mean                      .         33.4            .            .            .
-in_floor_permanent_5_NSS58_mean                      .         81.4            .            .            .
-in_floor_permanent_1_NSS65_mean                      .            .         41.8            .            .
-in_floor_permanent_5_NSS65_mean                      .            .         86.6            .            .
-in_floor_permanent_1_NSS69_mean                      .            .            .         42.3            .
-in_floor_permanent_5_NSS69_mean                      .            .            .         93.4            .
-in_floor_permanent_1_NSS76_mean                      .            .            .            .         54.2
-in_floor_permanent_5_NSS76_mean                      .            .            .            .         94.4
-Delta  Q5 & Q1: All Materials: Cement or           2.7          2.4          2.0          2.1          1.3
-in_all_permanent_1_NSS49_mean                     12.9            .            .            .            .
-in_all_permanent_5_NSS49_mean                     47.5            .            .            .            .
-in_all_permanent_1_NSS58_mean                        .         18.6            .            .            .
-in_all_permanent_5_NSS58_mean                        .         62.9            .            .            .
-in_all_permanent_1_NSS65_mean                        .            .         23.3            .            .
-in_all_permanent_5_NSS65_mean                        .            .         70.8            .            .
-in_all_permanent_1_NSS69_mean                        .            .            .         25.1            .
-in_all_permanent_5_NSS69_mean                        .            .            .         77.8            .
-in_all_permanent_1_NSS76_mean                        .            .            .            .         36.4
-in_all_permanent_5_NSS76_mean                        .            .            .            .         82.1
-Delta  Q5 & Q1: Separate Kitchen (%)               1.6          2.1          1.7          1.7          1.4
-in_sep_kitch_1_NSS49_mean                         24.3            .            .            .            .
-in_sep_kitch_5_NSS49_mean                         63.2            .            .            .            .
-in_sep_kitch_1_NSS58_mean                            .         24.0            .            .            .
-in_sep_kitch_5_NSS58_mean                            .         74.9            .            .            .
-in_sep_kitch_1_NSS65_mean                            .            .         29.5            .            .
-in_sep_kitch_5_NSS65_mean                            .            .         79.8            .            .
-in_sep_kitch_1_NSS69_mean                            .            .            .         30.6            .
-in_sep_kitch_5_NSS69_mean                            .            .            .         84.0            .
-in_sep_kitch_1_NSS76_mean                            .            .            .            .         35.6
-in_sep_kitch_5_NSS76_mean                            .            .            .            .         86.6
-Delta  Q5 & Q1: Flat (%)                             .          1.3          1.5          1.7          2.5
-in_flat_1_NSS49_mean                                 .            .            .            .            .
-in_flat_5_NSS49_mean                                 .            .            .            .            .
-in_flat_1_NSS58_mean                                 .          7.9            .            .            .
-in_flat_5_NSS58_mean                                 .         18.3            .            .            .
-in_flat_1_NSS65_mean                                 .            .          7.7            .            .
-in_flat_5_NSS65_mean                                 .            .         19.3            .            .
-in_flat_1_NSS69_mean                                 .            .            .         12.6            .
-in_flat_5_NSS69_mean                                 .            .            .         33.4            .
-in_flat_1_NSS76_mean                                 .            .            .            .          7.6
-in_flat_5_NSS76_mean                                 .            .            .            .         26.3
-Delta  Q5 & Q1: Dwelling Size (sq ft)              1.1          1.5          1.4          1.3          1.0
-in_size_1_NSS49_mean                             303.8            .            .            .            .
-in_size_5_NSS49_mean                             636.7            .            .            .            .
-in_size_1_NSS58_mean                                 .        253.6            .            .            .
-in_size_5_NSS58_mean                                 .        643.5            .            .            .
-in_size_1_NSS65_mean                                 .            .        289.0            .            .
-in_size_5_NSS65_mean                                 .            .        685.8            .            .
-in_size_1_NSS69_mean                                 .            .            .        273.8            .
-in_size_5_NSS69_mean                                 .            .            .        638.2            .
-in_size_1_NSS76_mean                                 .            .            .            .        337.0
-in_size_5_NSS76_mean                                 .            .            .            .        673.8
-Delta  Q5 & Q1: People per room                    0.3         -0.0         -0.1         -0.3         -0.0
-in_ppl_room_1_NSS49_mean                           1.9            .            .            .            .
-in_ppl_room_5_NSS49_mean                           2.4            .            .            .            .
-in_ppl_room_1_NSS58_mean                             .          1.9            .            .            .
-in_ppl_room_5_NSS58_mean                             .          1.9            .            .            .
-in_ppl_room_1_NSS65_mean                             .            .          1.7            .            .
-in_ppl_room_5_NSS65_mean                             .            .          1.6            .            .
-in_ppl_room_1_NSS69_mean                             .            .            .          1.6            .
-in_ppl_room_5_NSS69_mean                             .            .            .          1.2            .
-in_ppl_room_1_NSS76_mean                             .            .            .            .          1.2
-in_ppl_room_5_NSS76_mean                             .            .            .            .          1.2
-Delta  Q5 & Q1: Area in sq ft per person          -0.3         -0.0          0.1          0.2         -0.1
-in_ppl_area_1_NSS49_mean                         142.3            .            .            .            .
-in_ppl_area_5_NSS49_mean                         104.1            .            .            .            .
-in_ppl_area_1_NSS58_mean                             .        118.4            .            .            .
-in_ppl_area_5_NSS58_mean                             .        117.6            .            .            .
-in_ppl_area_1_NSS65_mean                             .            .        125.3            .            .
-in_ppl_area_5_NSS65_mean                             .            .        136.3            .            .
-in_ppl_area_1_NSS69_mean                             .            .            .        120.2            .
-in_ppl_area_5_NSS69_mean                             .            .            .        139.7            .
-in_ppl_area_1_NSS76_mean                             .            .            .            .        165.4
-in_ppl_area_5_NSS76_mean                             .            .            .            .        149.7
 Water: Improved Source (%)                        63.3         78.8         84.9         83.8         86.9
-h20_improved_1                                    62.2         79.2         86.6         85.5         89.0
-h20_improved_5                                    66.0         79.1         82.1         78.6         81.9
-Delta  Q5 & Q1: Water: Improved Source (           0.2          0.1          0.0         -0.0         -0.1
-h20_improved_1_NSS49_mean                         66.4            .            .            .            .
-h20_improved_5_NSS49_mean                         79.2            .            .            .            .
-h20_improved_1_NSS58_mean                            .         81.6            .            .            .
-h20_improved_5_NSS58_mean                            .         88.1            .            .            .
-h20_improved_1_NSS65_mean                            .            .         87.3            .            .
-h20_improved_5_NSS65_mean                            .            .         88.1            .            .
-h20_improved_1_NSS69_mean                            .            .            .         86.7            .
-h20_improved_5_NSS69_mean                            .            .            .         85.1            .
-h20_improved_1_NSS76_mean                            .            .            .            .         88.0
-h20_improved_5_NSS76_mean                            .            .            .            .         81.6
 Sanitation: Improved Source (%)                    6.0         10.7         17.3         37.6         68.7
 Sanitation: Exclusive Flush (%)                    6.0         10.7         17.3         23.2         37.1
-san_improved_1                                     3.4          5.6          9.9         20.9         56.1
-san_improved_5                                    16.5         26.0         37.8         74.6         87.6
-san_flush_private_1                                3.4          5.6          9.9         12.7         27.3
-san_flush_private_5                               16.5         26.0         37.8         52.6         57.1
-Delta  Q5 & Q1: Sanitation: Improved Sou           3.5          3.4          2.5          2.0          0.5
-san_improved_1_NSS49_mean                          9.8            .            .            .            .
-san_improved_5_NSS49_mean                         44.6            .            .            .            .
-san_improved_1_NSS58_mean                            .         13.0            .            .            .
-san_improved_5_NSS58_mean                            .         57.2            .            .            .
-san_improved_1_NSS65_mean                            .            .         18.5            .            .
-san_improved_5_NSS65_mean                            .            .         65.7            .            .
-san_improved_1_NSS69_mean                            .            .            .         29.2            .
-san_improved_5_NSS69_mean                            .            .            .         86.9            .
-san_improved_1_NSS76_mean                            .            .            .            .         61.6
-san_improved_5_NSS76_mean                            .            .            .            .         93.4
-Delta  Q5 & Q1: Sanitation: Exclusive Fl           3.5          3.4          2.5          2.6          1.2
-san_flush_private_1_NSS49_mean                     9.8            .            .            .            .
-san_flush_private_5_NSS49_mean                    44.6            .            .            .            .
-san_flush_private_1_NSS58_mean                       .         13.0            .            .            .
-san_flush_private_5_NSS58_mean                       .         57.2            .            .            .
-san_flush_private_1_NSS65_mean                       .            .         18.5            .            .
-san_flush_private_5_NSS65_mean                       .            .         65.7            .            .
-san_flush_private_1_NSS69_mean                       .            .            .         21.2            .
-san_flush_private_5_NSS69_mean                       .            .            .         75.6            .
-san_flush_private_1_NSS76_mean                       .            .            .            .         36.0
-san_flush_private_5_NSS76_mean                       .            .            .            .         78.6
 ----------------------------------------------------------------------------------------------------------
 Observations                                    75,050       55,966       97,144       53,393       63,736
 ----------------------------------------------------------------------------------------------------------
@@ -915,11 +328,11 @@ Notes: The value is missing if the information was not surveyed in the NSS round
 
 . 
 . esttab `var_list' , nose not label b("%9.2f")   r2 /// fmt( %9.0gc %9.0gc %9.2f)) ///
-> title("Regression of Housing Condition Equality between Q1 and Q5 on Year (Urban India)") ///
+> title("Regression of Housing Condition Equality between Q1 and Q5 on Year (All India)") ///
 > addnotes("Note: Regressions dependent variables are the delta of housing condition indicator measures" ///
 >          "      between quintile 5 and 1.")     
 
-Regression of Housing Condition Equality between Q1 and Q5 on Year (Urban India)
+Regression of Housing Condition Equality between Q1 and Q5 on Year (All India)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
                               (1)             (2)             (3)             (4)             (5)             (6)             (7)             (8)             (9)   
                      dt_in_wall~t    dt_in_roof~t    dt_in_floo~t    dt_in_all_~t    dt_in_sep_~h      dt_in_flat    dt_h20_imp~d    dt_san_imp~d    dt_san_flu~e   
@@ -973,5 +386,5 @@ Absorbed variable: ind                          No. of categories =          9
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\NSS_table_housing_condition.log
   log type:  text
- closed on:   3 Jan 2021, 03:50:31
+ closed on:   8 Jan 2021, 06:55:49
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
