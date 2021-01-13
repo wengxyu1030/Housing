@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Generate tables for homeowners, liability, and housing mortgage. 
-* Date: Nov 16, 2020
-* Version 3.1
+* Date: Jan 12, 2021
+* Version 4
 * Last Editor: Aline
 ****************************************************************************
 
@@ -41,6 +41,7 @@ gen total_debt_pos = total_debt if total_debt > 0
 
 *home ownership
 gen own_home = (building_dwelling > 0)*100
+replace own_home = 0 if mi(building_dwelling)
 
 *urban hosuehold unit
 replace urban = urban*100
@@ -59,6 +60,10 @@ table qtl [aw = hhwgt], c(med wealth) format(%15.0fc)
 //not restrcting the sample to positive asset or liability.
 
 qui eststo total : estpost summarize $var_tab [aw = hhwgt] ,de
+qui eststo urban : estpost summarize $var_tab [aw = hhwgt] if urban == 100,de
+qui eststo mega : estpost summarize $var_tab [aw = hhwgt] if mega_dc == 1,de
+qui eststo rural : estpost summarize $var_tab [aw = hhwgt] if urban == 0,de
+
 forvalues i = 1/5 {
 qui eststo q`i' : estpost summarize $var_tab [aw = hhwgt] if qtl == `i',de
 }
@@ -80,17 +85,19 @@ label var head_age "Household Head Age"
 label var head_female "Female Household Head (%)"
 
 *household feature
-esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
- mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
+esttab total urban mega rural q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
+ mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
  title("Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)") ///
  addnotes("Notes: Wealth is defined as total assests net total debt." ///
-          "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling")
+          "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling." ///
+		  "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
 
-esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
- mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
+esttab total urban mega rural q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
+ mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
  title("Table 0.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)") ///
  addnotes("Notes: Wealth is defined as total assests net total debt." ///
-          "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling")
+          "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling" ///
+		  "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
  
 ****************************************************************************
 * Housing mortgage loan features
@@ -243,12 +250,12 @@ forvalues i=1/2  {
 gen total_mrtg_`i' = (total_mrtg_`i'_dm > 0)*100 //h. How many (%) of these had a mortgage during the survey period. 
 }
 
-*label the key variables //Primary Residential Real Estate 
+*label the key variables //Primary Residential Real Estate (PRRE)
 label var real_estate_dwelling "Total PRRE Value"
 label var land_resid "Land PRRE Value"
 label var land_re_share "Share of Land PRRE Value in Total PRRE Value (%)"
 label var building_dwelling "Building PRRE Value"
-label var building_dwelling_area "Size of Builing of PREE"
+label var building_dwelling_area "Size of Builing of PRRE"
 label var dwell_sqft "PRRE Value in INR / Sq Ft (Sq ft is of building value)"
 label var asset "Total Assets"
 label var real_estate_dwelling_share "PRRE Value in Total Assets (%)"
@@ -259,10 +266,6 @@ label var total_mrtg_2 "Mortgage Holders_2 (%)"
 *create the table 
 global var_tab_1 "real_estate_dwelling land_resid land_re_share building_dwelling building_dwelling_area dwell_sqft real_estate_dwelling_share urban hhsize head_female head_age total_mrtg_1 total_mrtg_2"
 
-gen homeowner = (building_dwelling > 0 )*100
-
-//mdesc $var_tab_1  //check missing values 
-
 foreach var in $var_tab_1  {
 replace `var' = . if building_dwelling == 0 | mi(building_dwelling) //only focus on home owner.
 }
@@ -270,27 +273,34 @@ replace `var' = . if building_dwelling == 0 | mi(building_dwelling) //only focus
 mdesc $var_tab_1 //check missing valuee
 
 gen owner = (building_dwelling > 0 & !mi(building_dwelling))*100
+replace owner = 0 if mi(building_dwelling)
+
 //tab owner //obvservations with none of the value mssing. 
 label var owner "Home Ownership (%)"
 
 qui eststo total : estpost summarize $var_tab_1 owner [aw = hhwgt],de
+qui eststo urban : estpost summarize $var_tab_1 owner [aw = hhwgt] if sector == 2,de
+qui eststo mega : estpost summarize $var_tab_1 owner [aw = hhwgt] if mega_dc == 1,de
+qui eststo rural : estpost summarize $var_tab_1 owner [aw = hhwgt] if sector == 1,de
 forvalues i = 1/5 {
 qui eststo q`i' : estpost summarize $var_tab_1 owner [aw = hhwgt] if qtl == `i',de
 }
 
-esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
- mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
+esttab total urban mega rural q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
+ mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
  title("Table 1.1 Summary Statistics of Homeowners by Wealth Quintile(mean)") varwidth(40) ///
  addnote("Notes: Households weighted by survey weights." ///
  "       Homeowners are households own residential building used as dwelling by household members." ///
- "       Real estate includes dwelling and urban and rural land used as residential area.")
+ "       Real estate includes dwelling and urban and rural land used as residential area." ///
+ "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
 
-esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) ///
- mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
+esttab total urban mega rural q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) ///
+ mtitles("All" "Urban" "Mega City" "Rural"  "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
  title("Table 1.2 Summary Statistics of Homeowners by Wealth Quintile (med)") varwidth(40) ///
  addnote("Notes: Households weighted by survey weights." ///
  "       Homeowners are households own residential building used as dwelling by household members." ///
- "       Real estate includes dwelling and urban and rural land used as residential area.")
+ "       Real estate includes dwelling and urban and rural land used as residential area." ///
+ "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
 
 
 ***********************************************

@@ -1,6 +1,6 @@
 ****************************************************************************
 * Description: Import NSS70 from Raw Files and save dta to Output Folder
-* Date: Nov 11, 2020
+* Date: Jan 12, 2020
 * Version 2
 * Last Editor: Aline
 ****************************************************************************
@@ -24,6 +24,7 @@ di "${r_input}"
 global r_output "${root}\Data Output Files"
 
 ****************************************************************************
+
 *gen date of survey 
 use "${r_input}\Visit 1_Block 1&2_Identification of sample household and particulars of field operations.dta",clear
 gen month = real(substr(Survey_Date,3,2))
@@ -32,7 +33,14 @@ gen year = 2013 //there's 2017 and 2019 should be mistake
 gen date_survey = ym(year,month)
 format date_survey %tmMCY
 
-keep HHID date_survey
+rename State_District st_dc_70
+merge m:1 st_dc_70 using "${r_input}\mega_st_dc_70.dta"
+drop if _merge == 2
+
+gen mega_dc = (_merge == 3)
+label var mega_dc "district with more than million population"
+
+keep HHID date_survey mega_dc
 save "${r_output}\b2",replace
 
 
@@ -48,6 +56,7 @@ gen pwgt = hhwgt * hhsize
 
 destring(sector), replace
 gen urban = sector - 1
+
 keep HHID hhwgt pwgt hhsize sector urban Weight_SS Weight_SC
 save "${r_output}\b3",replace
 
@@ -363,6 +372,10 @@ sum wealth,de
 gen double wealth_ln = ln(wealth) //1% negative 
 
 xtile qtl = wealth [aw = hhwgt],n(5)
+
+*identify districts that located in mega U.A. (URBAN AGGLOMERATIONS) more than ie6 population
+replace mega_dc = 0 if urban == 0
+
 *house keeping
 mdesc *
 

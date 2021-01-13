@@ -1,8 +1,8 @@
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS70\03_NSS70_Table of Means.log
   log type:  text
- opened on:  20 Nov 2020, 04:23:45
+ opened on:  13 Jan 2021, 02:48:21
 
 . set linesize 255
 
@@ -28,6 +28,9 @@
 . 
 . *home ownership
 . gen own_home = (building_dwelling > 0)*100
+
+. replace own_home = 0 if mi(building_dwelling)
+(0 real changes made)
 
 . 
 . *urban hosuehold unit
@@ -64,6 +67,13 @@ of wealth |     med(wealth)
 . 
 . qui eststo total : estpost summarize $var_tab [aw = hhwgt] ,de
 
+. qui eststo urban : estpost summarize $var_tab [aw = hhwgt] if urban == 100,de
+
+. qui eststo mega : estpost summarize $var_tab [aw = hhwgt] if mega_dc == 1,de
+
+. qui eststo rural : estpost summarize $var_tab [aw = hhwgt] if urban == 0,de
+
+. 
 . forvalues i = 1/5 {
   2. qui eststo q`i' : estpost summarize $var_tab [aw = hhwgt] if qtl == `i',de
   3. }
@@ -97,62 +107,66 @@ of wealth |     med(wealth)
 
 . 
 . *household feature
-. esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
+. esttab total urban mega rural q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
+>  mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
 >  title("Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)") ///
 >  addnotes("Notes: Wealth is defined as total assests net total debt." ///
->           "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling")
+>           "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling." ///
+>                   "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
 
 Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)
-----------------------------------------------------------------------------------------------------------------------
-                                                  (1)          (2)          (3)          (4)          (5)          (6)
-                                                  All           Q1           Q2           Q3           Q4           Q5
-----------------------------------------------------------------------------------------------------------------------
-Average HH. Assets                          1,500,276       65,721      203,237      469,666    1,043,375    5,720,419
-Average Assets for HHs. Owning Assets       1,534,103       73,861      203,237      469,666    1,043,375    5,720,419
-Own Asset (%)                                      98           89          100          100          100          100
-Average HH. Debt                               49,879       44,889       15,400       22,172       43,782      123,169
-Average Debt for Indebted HHs.                179,990      201,538       60,585       80,078      140,310      385,122
-In Debt (%)                                        28           22           25           28           31           32
-Dwelling Ownership (%)                             81           41           88           90           93           93
-Urban Household (%)                                35           45           19           25           33           52
-Household Size                                      4            3            4            5            5            5
-Female Household Head (%)                          14           20           15           13           12           10
-Household Head Age                                 46           38           45           46           49           52
-----------------------------------------------------------------------------------------------------------------------
-Observations                                  110,800       17,520       20,700       22,102       24,049       26,429
-----------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                  (1)          (2)          (3)          (4)          (5)          (6)          (7)          (8)          (9)
+                                                  All        Urban    Mega City        Rural           Q1           Q2           Q3           Q4           Q5
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Average HH. Assets                          1,500,276    2,352,252    2,946,496    1,043,210       65,721      203,237      469,666    1,043,375    5,720,419
+Average Assets for HHs. Owning Assets       1,534,103    2,450,850    3,067,345    1,056,198       73,861      203,237      469,666    1,043,375    5,720,419
+Own Asset (%)                                      98           96           96           99           89          100          100          100          100
+Average HH. Debt                               49,879       83,174      102,846       32,018       44,889       15,400       22,172       43,782      123,169
+Average Debt for Indebted HHs.                179,990      384,293      461,844      103,389      201,538       60,585       80,078      140,310      385,122
+In Debt (%)                                        28           22           22           31           22           25           28           31           32
+Dwelling Ownership (%)                             81           59           55           93           41           88           90           93           93
+Urban Household (%)                                35          100          100            0           45           19           25           33           52
+Household Size                                      4            4            4            5            3            4            5            5            5
+Female Household Head (%)                          14           14           14           14           20           15           13           12           10
+Household Head Age                                 46           45           45           47           38           45           46           49           52
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Observations                                  110,800       48,665       16,042       62,135       17,520       20,700       22,102       24,049       26,429
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 Notes: Wealth is defined as total assests net total debt.
-       HHs. with asset on residential building that used as dwelling is defined as owning dwelling
+       HHs. with asset on residential building that used as dwelling is defined as owning dwelling.
+       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).
 
 . 
-. esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
+. esttab total urban mega rural q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
+>  mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
 >  title("Table 0.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)") ///
 >  addnotes("Notes: Wealth is defined as total assests net total debt." ///
->           "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling")
+>           "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling" ///
+>                   "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
 
 Table 0.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)
-----------------------------------------------------------------------------------------------------------------------
-                                                  (1)          (2)          (3)          (4)          (5)          (6)
-                                                  All           Q1           Q2           Q3           Q4           Q5
-----------------------------------------------------------------------------------------------------------------------
-Average HH. Assets                            459,330       43,250      195,000      452,400      989,000    3,164,190
-Average Assets for HHs. Owning Assets         478,150       50,000      195,000      452,400      989,000    3,164,190
-Own Asset (%)                                     100          100          100          100          100          100
-Average HH. Debt                                    0            0            0            0            0            0
-Average Debt for Indebted HHs.                 52,000       49,375       26,750       36,000       55,000      150,000
-In Debt (%)                                         0            0            0            0            0            0
-Dwelling Ownership (%)                            100            0          100          100          100          100
-Urban Household (%)                                 0            0            0            0            0          100
-Household Size                                      4            3            4            4            5            5
-Female Household Head (%)                           0            0            0            0            0            0
-Household Head Age                                 45           35           42           45           48           51
-----------------------------------------------------------------------------------------------------------------------
-Observations                                  110,800       17,520       20,700       22,102       24,049       26,429
-----------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                  (1)          (2)          (3)          (4)          (5)          (6)          (7)          (8)          (9)
+                                                  All        Urban    Mega City        Rural           Q1           Q2           Q3           Q4           Q5
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Average HH. Assets                            459,330      641,500      747,000      411,830       43,250      195,000      452,400      989,000    3,164,190
+Average Assets for HHs. Owning Assets         478,150      705,700      848,552      420,000       50,000      195,000      452,400      989,000    3,164,190
+Own Asset (%)                                     100          100          100          100          100          100          100          100          100
+Average HH. Debt                                    0            0            0            0            0            0            0            0            0
+Average Debt for Indebted HHs.                 52,000      110,000      139,000       42,330       49,375       26,750       36,000       55,000      150,000
+In Debt (%)                                         0            0            0            0            0            0            0            0            0
+Dwelling Ownership (%)                            100          100          100          100            0          100          100          100          100
+Urban Household (%)                                 0          100          100            0            0            0            0            0          100
+Household Size                                      4            4            4            4            3            4            4            5            5
+Female Household Head (%)                           0            0            0            0            0            0            0            0            0
+Household Head Age                                 45           45           45           45           35           42           45           48           51
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Observations                                  110,800       48,665       16,042       62,135       17,520       20,700       22,102       24,049       26,429
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 Notes: Wealth is defined as total assests net total debt.
        HHs. with asset on residential building that used as dwelling is defined as owning dwelling
+       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).
 
 .  
 . ****************************************************************************
@@ -504,7 +518,7 @@ variable building_dwelling_area was int now float
   3. }
 
 . 
-. *label the key variables //Primary Residential Real Estate 
+. *label the key variables //Primary Residential Real Estate (PRRE)
 . label var real_estate_dwelling "Total PRRE Value"
 
 . label var land_resid "Land PRRE Value"
@@ -513,7 +527,7 @@ variable building_dwelling_area was int now float
 
 . label var building_dwelling "Building PRRE Value"
 
-. label var building_dwelling_area "Size of Builing of PREE"
+. label var building_dwelling_area "Size of Builing of PRRE"
 
 . label var dwell_sqft "PRRE Value in INR / Sq Ft (Sq ft is of building value)"
 
@@ -530,11 +544,6 @@ variable building_dwelling_area was int now float
 . *create the table 
 . global var_tab_1 "real_estate_dwelling land_resid land_re_share building_dwelling building_dwelling_area dwell_sqft real_estate_dwelling_share urban hhsize head_female head_age total_mrtg_1 total_mrtg_2"
 
-. 
-. gen homeowner = (building_dwelling > 0 )*100
-
-. 
-. //mdesc $var_tab_1  //check missing values 
 . 
 . foreach var in $var_tab_1  {
   2. replace `var' = . if building_dwelling == 0 | mi(building_dwelling) //only focus on home owner.
@@ -576,83 +585,97 @@ variable building_dwelling_area was int now float
 . 
 . gen owner = (building_dwelling > 0 & !mi(building_dwelling))*100
 
+. replace owner = 0 if mi(building_dwelling)
+(0 real changes made)
+
+. 
 . //tab owner //obvservations with none of the value mssing. 
 . label var owner "Home Ownership (%)"
 
 . 
 . qui eststo total : estpost summarize $var_tab_1 owner [aw = hhwgt],de
 
+. qui eststo urban : estpost summarize $var_tab_1 owner [aw = hhwgt] if sector == 2,de
+
+. qui eststo mega : estpost summarize $var_tab_1 owner [aw = hhwgt] if mega_dc == 1,de
+
+. qui eststo rural : estpost summarize $var_tab_1 owner [aw = hhwgt] if sector == 1,de
+
 . forvalues i = 1/5 {
   2. qui eststo q`i' : estpost summarize $var_tab_1 owner [aw = hhwgt] if qtl == `i',de
   3. }
 
 . 
-. esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
+. esttab total urban mega rural q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) ///
+>  mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
 >  title("Table 1.1 Summary Statistics of Homeowners by Wealth Quintile(mean)") varwidth(40) ///
 >  addnote("Notes: Households weighted by survey weights." ///
 >  "       Homeowners are households own residential building used as dwelling by household members." ///
->  "       Real estate includes dwelling and urban and rural land used as residential area.")
+>  "       Real estate includes dwelling and urban and rural land used as residential area." ///
+>  "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
 
 Table 1.1 Summary Statistics of Homeowners by Wealth Quintile(mean)
-----------------------------------------------------------------------------------------------------------------------
-                                                  (1)          (2)          (3)          (4)          (5)          (6)
-                                                  All           Q1           Q2           Q3           Q4           Q5
-----------------------------------------------------------------------------------------------------------------------
-Total PRRE Value                              889,216       76,635      137,158      262,623      539,234    2,904,116
-Land PRRE Value                               349,122       28,805       52,175       99,177      216,955    1,140,934
-Share of Land PRRE Value in Total PRRE V           38           38           37           36           37           41
-Building PRRE Value                           540,094       47,830       84,983      163,446      322,279    1,763,181
-Size of Builing of PREE                           720          371          503          647          786        1,081
-PRRE Value in INR / Sq Ft (Sq ft is of b       73,660       16,796       25,087       37,896       68,291      183,970
-PRRE Value in Total Assets (%)                     58           77           69           57           52           49
-Urban Household (%)                                25            6           11           18           29           50
-Household Size                                      5            4            4            5            5            5
-Female Household Head (%)                          13           17           16           13           12           10
-Household Head Age                                 48           43           45           47           49           52
-Mortgage Holders_1 (%)                              3            1            1            1            3            7
-Mortgage Holders_2 (%)                              4            2            1            2            4            8
-Home Ownership (%)                                 81           41           88           90           93           93
-----------------------------------------------------------------------------------------------------------------------
-Observations                                  110,800       17,520       20,700       22,102       24,049       26,429
-----------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                  (1)          (2)          (3)          (4)          (5)          (6)          (7)          (8)          (9)
+                                                  All        Urban    Mega City        Rural           Q1           Q2           Q3           Q4           Q5
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total PRRE Value                              889,216    2,539,663    3,648,315      331,763       76,635      137,158      262,623      539,234    2,904,116
+Land PRRE Value                               349,122      998,732    1,184,653      129,710       28,805       52,175       99,177      216,955    1,140,934
+Share of Land PRRE Value in Total PRRE V           38           45           43           35           38           37           36           37           41
+Building PRRE Value                           540,094    1,540,931    2,463,661      202,053       47,830       84,983      163,446      322,279    1,763,181
+Size of Builing of PRRE                           720          784          760          698          371          503          647          786        1,081
+PRRE Value in INR / Sq Ft (Sq ft is of b       73,660      188,415      297,040       34,889       16,796       25,087       37,896       68,291      183,970
+PRRE Value in Total Assets (%)                     58           77           80           52           77           69           57           52           49
+Urban Household (%)                                25          100          100            0            6           11           18           29           50
+Household Size                                      5            5            4            5            4            4            5            5            5
+Female Household Head (%)                          13           13           14           13           17           16           13           12           10
+Household Head Age                                 48           50           50           47           43           45           47           49           52
+Mortgage Holders_1 (%)                              3            7            9            1            1            1            1            3            7
+Mortgage Holders_2 (%)                              4            8           11            2            2            1            2            4            8
+Home Ownership (%)                                 81           59           55           93           41           88           90           93           93
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Observations                                  110,800       48,665       16,042       62,135       17,520       20,700       22,102       24,049       26,429
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 Notes: Households weighted by survey weights.
        Homeowners are households own residential building used as dwelling by household members.
        Real estate includes dwelling and urban and rural land used as residential area.
+       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).
 
 . 
-. esttab total q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) ///
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
+. esttab total urban mega rural q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) ///
+>  mtitles("All" "Urban" "Mega City" "Rural"  "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
 >  title("Table 1.2 Summary Statistics of Homeowners by Wealth Quintile (med)") varwidth(40) ///
 >  addnote("Notes: Households weighted by survey weights." ///
 >  "       Homeowners are households own residential building used as dwelling by household members." ///
->  "       Real estate includes dwelling and urban and rural land used as residential area.")
+>  "       Real estate includes dwelling and urban and rural land used as residential area." ///
+>  "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
 
 Table 1.2 Summary Statistics of Homeowners by Wealth Quintile (med)
-----------------------------------------------------------------------------------------------------------------------
-                                                  (1)          (2)          (3)          (4)          (5)          (6)
-                                                  All           Q1           Q2           Q3           Q4           Q5
-----------------------------------------------------------------------------------------------------------------------
-Total PRRE Value                              250,000       55,000      125,000      245,000      462,192    1,451,790
-Land PRRE Value                                70,000       20,000       40,000       60,000      120,000      400,000
-Share of Land PRRE Value in Total PRRE V           36           38           35           33           35           40
-Building PRRE Value                           150,000       30,000       75,000      150,000      250,000      660,000
-Size of Builing of PREE                           538          269          398          495          624          893
-PRRE Value in INR / Sq Ft (Sq ft is of b       30,305       10,723       18,967       27,881       41,305       74,349
-PRRE Value in Total Assets (%)                     60           83           74           55           46           44
-Urban Household (%)                                 0            0            0            0            0            0
-Household Size                                      4            4            4            4            5            5
-Female Household Head (%)                           0            0            0            0            0            0
-Household Head Age                                 46           40           43           45           48           52
-Mortgage Holders_1 (%)                              0            0            0            0            0            0
-Mortgage Holders_2 (%)                              0            0            0            0            0            0
-Home Ownership (%)                                100            0          100          100          100          100
-----------------------------------------------------------------------------------------------------------------------
-Observations                                  110,800       17,520       20,700       22,102       24,049       26,429
-----------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                  (1)          (2)          (3)          (4)          (5)          (6)          (7)          (8)          (9)
+                                                  All        Urban    Mega City        Rural           Q1           Q2           Q3           Q4           Q5
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total PRRE Value                              250,000    1,000,000    1,400,000      185,000       55,000      125,000      245,000      462,192    1,451,790
+Land PRRE Value                                70,000      334,800      400,000       50,000       20,000       40,000       60,000      120,000      400,000
+Share of Land PRRE Value in Total PRRE V           36           47           47           33           38           35           33           35           40
+Building PRRE Value                           150,000      450,000      700,000      110,000       30,000       75,000      150,000      250,000      660,000
+Size of Builing of PRRE                           538          592          592          516          269          398          495          624          893
+PRRE Value in INR / Sq Ft (Sq ft is of b       30,305       77,447      103,263       23,234       10,723       18,967       27,881       41,305       74,349
+PRRE Value in Total Assets (%)                     60           86           88           49           83           74           55           46           44
+Urban Household (%)                                 0          100          100            0            0            0            0            0            0
+Household Size                                      4            4            4            4            4            4            4            5            5
+Female Household Head (%)                           0            0            0            0            0            0            0            0            0
+Household Head Age                                 46           50           50           45           40           43           45           48           52
+Mortgage Holders_1 (%)                              0            0            0            0            0            0            0            0            0
+Mortgage Holders_2 (%)                              0            0            0            0            0            0            0            0            0
+Home Ownership (%)                                100          100          100          100            0          100          100          100          100
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Observations                                  110,800       48,665       16,042       62,135       17,520       20,700       22,102       24,049       26,429
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 Notes: Households weighted by survey weights.
        Homeowners are households own residential building used as dwelling by household members.
        Real estate includes dwelling and urban and rural land used as residential area.
+       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).
 
 . 
 . 
@@ -1298,5 +1321,5 @@ mrtg_2_bor~t |          3    291068.7      183885   85796.04   440726.7
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS70\03_NSS70_Table of Means.log
   log type:  text
- closed on:  20 Nov 2020, 04:24:47
+ closed on:  13 Jan 2021, 02:49:47
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
