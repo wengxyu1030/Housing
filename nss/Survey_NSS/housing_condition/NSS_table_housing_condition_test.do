@@ -234,27 +234,17 @@ replace year = 2018 if survey == "NSS76"
 
 keep year d*
 
-*by variable the time trend of housing quality equality
+*by variable the time trend of housing quality equality (only regression on mean is done, med is not done yet. )
 estimates clear
 local var_list in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat h20_improved san_improved san_flush_private
 
 foreach var in `var_list' {
-qui reg d_mn_`var' year
+qui reg d_`var'_mn year
 eststo `var'
 }
 
 esttab `var_list' , nose not label b("%9.2f")	r2 /// fmt( %9.0gc %9.0gc %9.2f)) ///
-title("Regression of Housing Condition Equality between Q1 and Q5 on Year (All India, mean)") ///
-addnotes("Note: Regressions dependent variables are the delta of housing condition indicator measures" ///
-         "      between quintile 5 and 1.")	
-		 
-foreach var in `var_list' {
-qui reg d_md_`var' year
-eststo `var'
-}
-
-esttab `var_list' , nose not label b("%9.2f")	r2 /// fmt( %9.0gc %9.0gc %9.2f)) ///
-title("Regression of Housing Condition Equality between Q1 and Q5 on Year (All India, median)") ///
+title("Regression of Housing Condition Equality between Q1 and Q5 on Year (All India)") ///
 addnotes("Note: Regressions dependent variables are the delta of housing condition indicator measures" ///
          "      between quintile 5 and 1.")	
 

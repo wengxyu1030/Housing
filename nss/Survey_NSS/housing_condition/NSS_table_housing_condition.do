@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Generate table for housing condition for all nss
-* Date: Jan. 7, 2020
-* Version 4.0
+* Date: Jan. 13, 2021
+* Version 4.1
 * Last Editor: Aline 
 ****************************************************************************
 
@@ -77,22 +77,39 @@ foreach var in `var_list' {
 }
 
 foreach var in `var_list' {
-qui gen `var'_dt = .
+ foreach stat in mn md {
+   qui gen `var'_d_`stat' = .
+ }
+ 
  foreach survey in `nss_round' {
   forvalues i = 1(4)5 {
-   qui asgen `var'_`i'_`survey'_mean = `var'_`i' if survey == "`survey'",w(hh_weight)     
+   //calculate the weighted mean
+   qui asgen `var'_`i'_`survey'_mn = `var'_`i' if survey == "`survey'",w(hh_weight)  
+   
+   //calculate the weighted median
+   qui gen `var'_`i'_`survey'_md = . if survey == "`survey'"
+   qui summarize `var'_`i' [aw = hh_weight] if survey == "`survey'",de
+   qui replace `var'_`i'_`survey'_md = r(p50) if survey == "`survey'"
   }
-  qui gen temp_`var'_`survey'_dt = (`var'_5_`survey'_mean  - `var'_1_`survey'_mean)/`var'_1_`survey'_mean 
-  qui replace `var'_dt = temp_`var'_`survey'_dt if survey == "`survey'"
+  
+  foreach stat in mn md {
+   qui gen tp_`var'_`survey'_d_`stat' = (`var'_5_`survey'_`stat'  - `var'_1_`survey'_`stat')/`var'_1_`survey'_`stat'
+   qui replace `var'_d_`stat'  = tp_`var'_`survey'_d_`stat'  if survey == "`survey'"
+  }
  }
 }
 
+local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
 foreach var in `var_list' {
  local label_old: var label `var'
  local label = " Delta 	Q5 & Q1" + ": `label_old'" 
- label var `var'_dt "`label'"
+ 
+ foreach stat in mn md {
+  label var `var'_d_`stat' "`label'"
+ }
 }
 
+drop tp*
 save "${r_output}\NSS_housing_condition_final.dta",replace
 
 ********************
@@ -105,63 +122,108 @@ use "${r_output}\NSS_housing_condition_final.dta",replace
 local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
 local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
 foreach survey in `nss_round' {
-  qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
-  qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
-  qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
+  qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'",de
+  qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1,de
+  qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0,de
 }
 
 esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0fc)) /// 
- title("Table 1 Summary Statistics of Housing Condition in India (mean)") ///
+ title("Table 1.1 Summary Statistics of Housing Condition in India (mean)") ///
+ addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+ 
+esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+ mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0fc)) /// 
+ title("Table 1.2 Summary Statistics of Housing Condition in India (med)") ///
  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
 
 esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
- title("Table 2 Summary Statistics of Housing Condition in Urban India (mean)") ///
+ title("Table 2.1 Summary Statistics of Housing Condition in Urban India (mean)") ///
+ addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+ 
+esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+ mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+ title("Table 2.2 Summary Statistics of Housing Condition in Urban India (med)") ///
  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
  
 esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
- title("Table 3 Summary Statistics of Housing Condition in Rural India (mean)") ///
+ title("Table 3.1 Summary Statistics of Housing Condition in Rural India (mean)") ///
+ addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+ 
+esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+ mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+ title("Table 3.2 Summary Statistics of Housing Condition in Rural India (med)") ///
  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
 
 *All housing condition and quntile delta*****
-drop temp* *_mean *_1 *_5
+drop *_1 *_5
 
 foreach var in `var_list' {
 clonevar `var'_mean = `var'
 }
 
-local var_summary *mean *dt
+//table of means
+local var_summary_mn *_mean *_d_mn
 local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
 foreach survey in `nss_round' {
-qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'"
+qui eststo `survey': quietly estpost summarize `var_summary_mn'  [aw=hh_weight] if survey == "`survey'"
 }
 
 esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
- title("Table 4 Summary Statistics of Housing Condition in India, Delta between Consumption Quintile 1 and 5 (mean)") ///
+ title("Table 4.1 Summary Statistics of Housing Condition in India, Delta between Consumption Quintile 1 and 5 (mean)") ///
  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
           "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
 		  "       The delta is the between the statistics for the fifth quintile and the first quintile.")
 
+//table of medians. 
+local var_summary_md *_mean *_d_md
+local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
+foreach survey in `nss_round' {
+qui eststo `survey': quietly estpost summarize `var_summary_md' [aw=hh_weight] if survey == "`survey'",de
+}
 
+esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+ mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+ title("Table 4.2 Summary Statistics of Housing Condition in India, Delta between Consumption Quintile 1 and 5 (med)") ///
+ addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+          "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
+		  "       The delta is the between the statistics for the fifth quintile and the first quintile.")
+		  
 ***converging trend of housing condition for q1 and q5 (All)***
 use "${r_output}\NSS_housing_condition_final.dta",replace
-collapse (mean) *_mean,by(survey)   
+collapse (mean) *_mn *_md,by(survey)   
 
 local var_list in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat h20_improved san_improved san_flush_private
 local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
 
 foreach var in `var_list' {
-qui gen dt_`var' = . 
+qui gen d_mn_`var' = . 
+qui gen d_md_`var' = . 
+
  foreach survey in `nss_round' {
- qui gen temp_`var'_`survey'_dt = `var'_5_`survey'_mean - `var'_1_`survey'_mean //calculate the percentage delta
- qui replace dt_`var' = temp_`var'_`survey'_dt if survey == "`survey'"
+  foreach stat in mn md {
+  qui gen tp_`var'_`survey'_d_`stat' = `var'_5_`survey'_`stat' - `var'_1_`survey'_`stat' //calculate the percentage delta
+  qui replace d_`stat'_`var' = tp_`var'_`survey'_d_`stat' if survey == "`survey'"
+  }
  }
 }
 
-drop temp*
+foreach var in `var_list' {
+qui gen d_mn_tn_`var' = . 
+qui gen d_md_tn_`var' = . 
+
+ foreach survey in `nss_round' {
+  foreach stat in mn md {
+  qui gen tp_tn_`var'_`survey'_d_`stat' = `var'_5_`survey'_`stat' - `var'_1_`survey'_`stat' //calculate the percentage delta
+  qui replace d_`stat'_`var' = tp_`var'_`survey'_d_`stat' if survey == "`survey'"
+  }
+ }
+}
+
+drop tp*
 
 gen year = .
 replace year = 1993 if survey == "NSS49"
@@ -170,14 +232,16 @@ replace year = 2009 if survey == "NSS65"
 replace year = 2012 if survey == "NSS69"
 replace year = 2018 if survey == "NSS76"
 
-keep year dt*
+keep year d*
 
-*by variable the time trend of housing quality equality
+save "${r_output}\test",replace
+
+*by variable the time trend of housing quality equality (only regression on mean is done, med is not yet. )
 estimates clear
 local var_list in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat h20_improved san_improved san_flush_private
 
 foreach var in `var_list' {
-qui reg dt_`var' year
+qui reg d_`var'_mn year
 eststo `var'
 }
 
@@ -187,8 +251,9 @@ addnotes("Note: Regressions dependent variables are the delta of housing conditi
          "      between quintile 5 and 1.")	
 
 *reshape to get general trend with variable as fixed effect
-reshape long dt_,i(year) j(ind) string
-
-areg dt_ year, absorb(ind) vce(cluster ind)
+use "${r_output}\test",clear
+reshape long d_mn d_md,i(year) j(ind) string
+areg d_mn year, absorb(ind) vce(cluster ind)
+areg d_md year, absorb(ind) vce(cluster ind)
 
 log close
