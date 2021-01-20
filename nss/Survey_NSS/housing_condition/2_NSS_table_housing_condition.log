@@ -1,0 +1,759 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\2_NSS_table_housing_condition.log
+  log type:  text
+ opened on:  20 Jan 2021, 08:01:10
+
+. set linesize 255
+
+. 
+. 
+. ********************
+. *produce the table**
+. ********************
+. 
+. **prepare the master data
+. use "${r_output}\NSS_housing_condition.dta",clear
+
+. local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
+. keep  `var_list' hh_weight hh_urban survey 
+
+. merge m:1 survey using "${r_output}\NSS_housing_condition_final_dt.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           573,207  (_merge==3)
+    -----------------------------------------
+
+. keep `var_list' *_d_1_mn *_d_2_mn *_d_3_mn *_d_1_md *_d_2_md *_d_3_md hh_weight hh_urban survey year
+
+. 
+. //label the delta
+. foreach var in `var_list' {
+  2.  local label_old: var label `var'
+  3.  local label = " Delta  Q5 & Q1" + ": `label_old'" 
+  4.  
+.  foreach stat in mn md {
+  5.   forvalues q = 1(1)3 {
+  6.   label var `var'_d_`q'_`stat' "`label'"
+  7.   }
+  8.  }
+  9. }
+
+. 
+. save "${r_output}\NSS_housing_condition_final.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\\housing_condition\NSS_housing_condition_final.dta saved
+
+. 
+. use "${r_output}\NSS_housing_condition_final.dta",clear
+
+. 
+. 
+. *All, Urban, Rural India housing condition****
+. local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
+. local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
+
+. 
+. foreach survey in `nss_round' {
+  2.   qui eststo `survey': quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'",de
+  3.   qui eststo `survey'_u: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1,de
+  4.   qui eststo `survey'_r: quietly estpost summarize `var_summary'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0,de
+  5. }
+
+. 
+. esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0fc)) /// 
+>  title("Table 1.1 Summary Statistics of Housing Condition in India (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+
+Table 1.1 Summary Statistics of Housing Condition in India (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.0          5.0          4.8          4.5          4.3
+Number of Rooms                                    2.8          2.9          3.2          3.7          3.9
+Wall: Cement or Stone (%)                         48.8         62.2         68.9         76.1         83.5
+Roof: Cement or Stone (%)                         29.2         41.7         48.7         53.3         64.6
+Floor: Cement or Stone (%)                        35.8         49.8         59.0         63.8         72.5
+All Materials: Cement or Stone (%)                21.6         31.4         39.2         43.4         55.1
+Separate Kitchen (%)                              39.1         44.4         50.4         53.3         60.2
+Flat (%)                                             .          9.9          9.7         17.8         12.9
+Dwelling Size (sq ft)                            432.0        406.9        444.8        428.1        499.6
+Room per person                                    0.7          0.7          0.8          1.0          1.1
+Area in sq ft per person                         105.4         98.8        111.4        112.1        138.7
+Water: Improved Source (%)                        70.0         82.9         86.9         85.4         85.3
+Sanitation: Improved Source (%)                   18.4         25.5         33.4         52.3         76.8
+Sanitation: Exclusive Flush (%)                   18.4         25.5         33.4         40.1         52.4
+----------------------------------------------------------------------------------------------------------
+Observations                                   119,421       97,882      153,518       95,548      106,838
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+
+.  
+. esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0fc)) /// 
+>  title("Table 1.2 Summary Statistics of Housing Condition in India (med)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+
+Table 1.2 Summary Statistics of Housing Condition in India (med)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.0          5.0          5.0          4.0          4.0
+Number of Rooms                                    2.0          2.0          3.0          3.0          4.0
+Wall: Cement or Stone (%)                          0.0        100.0        100.0        100.0        100.0
+Roof: Cement or Stone (%)                          0.0          0.0          0.0        100.0        100.0
+Floor: Cement or Stone (%)                         0.0          0.0        100.0        100.0        100.0
+All Materials: Cement or Stone (%)                 0.0          0.0          0.0          0.0        100.0
+Separate Kitchen (%)                               0.0          0.0        100.0        100.0        100.0
+Flat (%)                                             .          0.0          0.0          0.0          0.0
+Dwelling Size (sq ft)                            333.7        315.0        360.0        354.0        430.0
+Room per person                                    0.5          0.5          0.7          0.8          1.0
+Area in sq ft per person                          75.3         71.0         83.3         84.8        106.7
+Water: Improved Source (%)                       100.0        100.0        100.0        100.0        100.0
+Sanitation: Improved Source (%)                    0.0          0.0          0.0        100.0        100.0
+Sanitation: Exclusive Flush (%)                    0.0          0.0          0.0          0.0        100.0
+----------------------------------------------------------------------------------------------------------
+Observations                                   119,421       97,882      153,518       95,548      106,838
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+
+. 
+. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 2.1 Summary Statistics of Housing Condition in Urban India (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+
+Table 2.1 Summary Statistics of Housing Condition in Urban India (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  4.6          4.5          4.2          4.1          3.9
+Number of Rooms                                    2.8          3.2          3.6          4.3          4.3
+Wall: Cement or Stone (%)                         78.8         87.9         91.8         93.4         95.4
+Roof: Cement or Stone (%)                         57.8         64.1         71.3         73.8         82.4
+Floor: Cement or Stone (%)                        75.9         86.7         91.5         93.2         95.5
+All Materials: Cement or Stone (%)                52.9         60.8         68.4         71.7         80.3
+Separate Kitchen (%)                              49.9         56.0         62.6         66.0         75.2
+Flat (%)                                             .         22.7         24.4         39.4         31.3
+Dwelling Size (sq ft)                            392.7        395.4        429.9        422.0        496.7
+Room per person                                    0.8          0.9          1.1          1.4          1.4
+Area in sq ft per person                         104.4        111.4        125.9        123.8        155.4
+Water: Improved Source (%)                        89.0         93.2         91.8         89.0         82.1
+Sanitation: Improved Source (%)                   53.4         63.2         71.8         84.1         92.5
+Sanitation: Exclusive Flush (%)                   53.4         63.2         71.8         76.5         82.0
+----------------------------------------------------------------------------------------------------------
+Observations                                    44,371       41,916       56,374       42,155       43,102
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+
+.  
+. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 2.2 Summary Statistics of Housing Condition in Urban India (med)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+
+Table 2.2 Summary Statistics of Housing Condition in Urban India (med)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  4.0          4.0          4.0          4.0          4.0
+Number of Rooms                                    2.0          3.0          3.0          4.0          4.0
+Wall: Cement or Stone (%)                        100.0        100.0        100.0        100.0        100.0
+Roof: Cement or Stone (%)                        100.0        100.0        100.0        100.0        100.0
+Floor: Cement or Stone (%)                       100.0        100.0        100.0        100.0        100.0
+All Materials: Cement or Stone (%)               100.0        100.0        100.0        100.0        100.0
+Separate Kitchen (%)                               0.0        100.0        100.0        100.0        100.0
+Flat (%)                                             .          0.0          0.0          0.0          0.0
+Dwelling Size (sq ft)                            301.4        300.0        340.0        350.0        420.0
+Room per person                                    0.6          0.7          1.0          1.0          1.0
+Area in sq ft per person                          72.7         75.0         90.0         93.0        116.5
+Water: Improved Source (%)                       100.0        100.0        100.0        100.0        100.0
+Sanitation: Improved Source (%)                  100.0        100.0        100.0        100.0        100.0
+Sanitation: Exclusive Flush (%)                  100.0        100.0        100.0        100.0        100.0
+----------------------------------------------------------------------------------------------------------
+Observations                                    44,371       41,916       56,374       42,155       43,102
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+
+.  
+. esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 3.1 Summary Statistics of Housing Condition in Rural India (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+
+Table 3.1 Summary Statistics of Housing Condition in Rural India (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.1          5.1          5.0          4.8          4.5
+Number of Rooms                                    2.7          2.8          3.1          3.4          3.7
+Wall: Cement or Stone (%)                         38.2         52.1         59.2         68.1         77.3
+Roof: Cement or Stone (%)                         19.1         32.9         39.2         43.8         55.4
+Floor: Cement or Stone (%)                        21.6         35.2         45.3         50.2         60.5
+All Materials: Cement or Stone (%)                10.5         19.8         26.9         30.4         42.0
+Separate Kitchen (%)                              35.3         39.9         45.3         47.3         52.4
+Flat (%)                                             .          4.9          3.6          7.8          3.4
+Dwelling Size (sq ft)                            445.9        411.4        451.0        431.0        501.2
+Room per person                                    0.7          0.7          0.7          0.9          1.0
+Area in sq ft per person                         105.8         93.9        105.3        106.6        130.1
+Water: Improved Source (%)                        63.3         78.8         84.9         83.8         86.9
+Sanitation: Improved Source (%)                    6.0         10.7         17.3         37.6         68.7
+Sanitation: Exclusive Flush (%)                    6.0         10.7         17.3         23.2         37.1
+----------------------------------------------------------------------------------------------------------
+Observations                                    75,050       55,966       97,144       53,393       63,736
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+
+.  
+. esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 3.2 Summary Statistics of Housing Condition in Rural India (med)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round")
+
+Table 3.2 Summary Statistics of Housing Condition in Rural India (med)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.0          5.0          5.0          4.0          4.0
+Number of Rooms                                    2.0          2.0          3.0          3.0          3.0
+Wall: Cement or Stone (%)                          0.0        100.0        100.0        100.0        100.0
+Roof: Cement or Stone (%)                          0.0          0.0          0.0          0.0        100.0
+Floor: Cement or Stone (%)                         0.0          0.0          0.0        100.0        100.0
+All Materials: Cement or Stone (%)                 0.0          0.0          0.0          0.0          0.0
+Separate Kitchen (%)                               0.0          0.0          0.0          0.0        100.0
+Flat (%)                                             .          0.0          0.0          0.0          0.0
+Dwelling Size (sq ft)                            344.4        320.0        364.0        358.0        436.0
+Room per person                                    0.5          0.5          0.6          0.7          0.8
+Area in sq ft per person                          77.5         70.0         80.0         81.7        102.9
+Water: Improved Source (%)                       100.0        100.0        100.0        100.0        100.0
+Sanitation: Improved Source (%)                    0.0          0.0          0.0          0.0        100.0
+Sanitation: Exclusive Flush (%)                    0.0          0.0          0.0          0.0          0.0
+----------------------------------------------------------------------------------------------------------
+Observations                                    75,050       55,966       97,144       53,393       63,736
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+
+. 
+. *All housing condition and quntile delta*****
+. local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
+. local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
+
+. 
+. foreach var in `var_summary' {
+  2. qui clonevar `var'_stat = `var'
+  3. }
+
+. 
+. //table of means
+. local var_summary_mn *_stat *_d_1_mn //all
+
+. local var_summary_mn_u *_stat *_d_2_mn //urban 
+
+. local var_summary_mn_r *_stat *_d_3_mn //rural 
+
+. 
+. foreach survey in `nss_round' {
+  2. qui eststo `survey': quietly estpost summarize `var_summary_mn'  [aw=hh_weight] if survey == "`survey'"
+  3. qui eststo `survey'_u: quietly estpost summarize `var_summary_mn_u'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1
+  4. qui eststo `survey'_r: quietly estpost summarize `var_summary_mn_r'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0
+  5. }
+
+. 
+. esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 4.1 Summary Statistics of Housing Condition in India, Delta between Consumption Quintile 1 and 5 (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>           "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
+>                   "       The delta is the between the statistics for the fifth quintile and the first quintile.")
+
+Table 4.1 Summary Statistics of Housing Condition in India, Delta between Consumption Quintile 1 and 5 (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.0          5.0          4.8          4.5          4.3
+Number of Rooms                                    2.8          2.9          3.2          3.7          3.9
+Wall: Cement or Stone (%)                         48.8         62.2         68.9         76.1         83.5
+Roof: Cement or Stone (%)                         29.2         41.7         48.7         53.3         64.6
+Floor: Cement or Stone (%)                        35.8         49.8         59.0         63.8         72.5
+All Materials: Cement or Stone (%)                21.6         31.4         39.2         43.4         55.1
+Separate Kitchen (%)                              39.1         44.4         50.4         53.3         60.2
+Flat (%)                                             .          9.9          9.7         17.8         12.9
+Dwelling Size (sq ft)                            432.0        406.9        444.8        428.1        499.6
+Room per person                                    0.7          0.7          0.8          1.0          1.1
+Area in sq ft per person                         105.4         98.8        111.4        112.1        138.7
+Water: Improved Source (%)                        70.0         82.9         86.9         85.4         85.3
+Sanitation: Improved Source (%)                   18.4         25.5         33.4         52.3         76.8
+Sanitation: Exclusive Flush (%)                   18.4         25.5         33.4         40.1         52.4
+Delta  Q5 & Q1: Size of Household                  1.4          1.3          1.0          0.9          1.1
+Delta  Q5 & Q1: Number of Rooms                    1.0          1.4          1.3          1.4          1.0
+Delta  Q5 & Q1: Wall: Cement or Stone (%           1.2          0.9          0.7          0.6          0.4
+Delta  Q5 & Q1: Roof: Cement or Stone (%           2.0          1.5          1.2          1.2          0.8
+Delta  Q5 & Q1: Floor: Cement or Stone (           1.8          1.4          1.1          1.2          0.7
+Delta  Q5 & Q1: All Materials: Cement or           2.7          2.4          2.0          2.1          1.3
+Delta  Q5 & Q1: Separate Kitchen (%)               1.6          2.1          1.7          1.7          1.4
+Delta  Q5 & Q1: Flat (%)                             .          1.3          1.5          1.7          2.5
+Delta  Q5 & Q1: Dwelling Size (sq ft)              1.1          1.5          1.4          1.3          1.0
+Delta  Q5 & Q1: Room per person                    0.3         -0.0         -0.1         -0.3         -0.0
+Delta  Q5 & Q1: Area in sq ft per person          -0.3         -0.0          0.1          0.2         -0.1
+Delta  Q5 & Q1: Water: Improved Source (           0.2          0.1          0.0         -0.0         -0.1
+Delta  Q5 & Q1: Sanitation: Improved Sou           3.5          3.4          2.5          2.0          0.5
+Delta  Q5 & Q1: Sanitation: Exclusive Fl           3.5          3.4          2.5          2.6          1.2
+----------------------------------------------------------------------------------------------------------
+Observations                                   119,421       97,882      153,518       95,548      106,838
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The consumption quintile is the generated from the monthly per capita consumer expenditure.
+       The delta is the between the statistics for the fifth quintile and the first quintile.
+
+.                   
+. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 4.2 Summary Statistics of Housing Condition in Urban India, Delta between Consumption Quintile 1 and 5 (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>           "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
+>                   "       The delta is the between the statistics for the fifth quintile and the first quintile.")
+
+Table 4.2 Summary Statistics of Housing Condition in Urban India, Delta between Consumption Quintile 1 and 5 (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  4.6          4.5          4.2          4.1          3.9
+Number of Rooms                                    2.8          3.2          3.6          4.3          4.3
+Wall: Cement or Stone (%)                         78.8         87.9         91.8         93.4         95.4
+Roof: Cement or Stone (%)                         57.8         64.1         71.3         73.8         82.4
+Floor: Cement or Stone (%)                        75.9         86.7         91.5         93.2         95.5
+All Materials: Cement or Stone (%)                52.9         60.8         68.4         71.7         80.3
+Separate Kitchen (%)                              49.9         56.0         62.6         66.0         75.2
+Flat (%)                                             .         22.7         24.4         39.4         31.3
+Dwelling Size (sq ft)                            392.7        395.4        429.9        422.0        496.7
+Room per person                                    0.8          0.9          1.1          1.4          1.4
+Area in sq ft per person                         104.4        111.4        125.9        123.8        155.4
+Water: Improved Source (%)                        89.0         93.2         91.8         89.0         82.1
+Sanitation: Improved Source (%)                   53.4         63.2         71.8         84.1         92.5
+Sanitation: Exclusive Flush (%)                   53.4         63.2         71.8         76.5         82.0
+Delta  Q5 & Q1: Size of Household                  1.6          2.2          1.6          1.9          2.0
+Delta  Q5 & Q1: Number of Rooms                    1.1          1.5          1.3          1.2          1.0
+Delta  Q5 & Q1: Wall: Cement or Stone (%           0.3          0.2          0.2          0.1          0.1
+Delta  Q5 & Q1: Roof: Cement or Stone (%           0.5          0.6          0.5          0.4          0.2
+Delta  Q5 & Q1: Floor: Cement or Stone (           0.4          0.3          0.2          0.2          0.1
+Delta  Q5 & Q1: All Materials: Cement or           0.7          0.7          0.5          0.5          0.3
+Delta  Q5 & Q1: Separate Kitchen (%)               2.2          3.7          2.0          2.2          1.4
+Delta  Q5 & Q1: Flat (%)                             .          0.6          0.4          0.2          0.3
+Delta  Q5 & Q1: Dwelling Size (sq ft)              1.2          1.6          1.6          2.1          1.6
+Delta  Q5 & Q1: Room per person                    0.4          0.3          0.2          0.2          0.4
+Delta  Q5 & Q1: Area in sq ft per person          -0.3         -0.2         -0.1          0.1         -0.1
+Delta  Q5 & Q1: Water: Improved Source (           0.1          0.0          0.0         -0.0         -0.0
+Delta  Q5 & Q1: Sanitation: Improved Sou           0.8          0.7          0.6          0.3          0.1
+Delta  Q5 & Q1: Sanitation: Exclusive Fl           0.8          0.7          0.6          0.4          0.2
+----------------------------------------------------------------------------------------------------------
+Observations                                    44,371       41,916       56,374       42,155       43,102
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The consumption quintile is the generated from the monthly per capita consumer expenditure.
+       The delta is the between the statistics for the fifth quintile and the first quintile.
+
+. 
+. esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 4.3 Summary Statistics of Housing Condition in Rural India, Delta between Consumption Quintile 1 and 5 (mean)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>           "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
+>                   "       The delta is the between the statistics for the fifth quintile and the first quintile.")
+
+Table 4.3 Summary Statistics of Housing Condition in Rural India, Delta between Consumption Quintile 1 and 5 (mean)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.1          5.1          5.0          4.8          4.5
+Number of Rooms                                    2.7          2.8          3.1          3.4          3.7
+Wall: Cement or Stone (%)                         38.2         52.1         59.2         68.1         77.3
+Roof: Cement or Stone (%)                         19.1         32.9         39.2         43.8         55.4
+Floor: Cement or Stone (%)                        21.6         35.2         45.3         50.2         60.5
+All Materials: Cement or Stone (%)                10.5         19.8         26.9         30.4         42.0
+Separate Kitchen (%)                              35.3         39.9         45.3         47.3         52.4
+Flat (%)                                             .          4.9          3.6          7.8          3.4
+Dwelling Size (sq ft)                            445.9        411.4        451.0        431.0        501.2
+Room per person                                    0.7          0.7          0.7          0.9          1.0
+Area in sq ft per person                         105.8         93.9        105.3        106.6        130.1
+Water: Improved Source (%)                        63.3         78.8         84.9         83.8         86.9
+Sanitation: Improved Source (%)                    6.0         10.7         17.3         37.6         68.7
+Sanitation: Exclusive Flush (%)                    6.0         10.7         17.3         23.2         37.1
+Delta  Q5 & Q1: Size of Household                  1.7          1.5          1.3          1.1          1.4
+Delta  Q5 & Q1: Number of Rooms                    1.1          1.6          1.4          1.5          1.1
+Delta  Q5 & Q1: Wall: Cement or Stone (%           1.2          1.0          0.7          0.6          0.4
+Delta  Q5 & Q1: Roof: Cement or Stone (%           1.9          1.4          1.2          1.1          0.8
+Delta  Q5 & Q1: Floor: Cement or Stone (           1.6          1.5          1.2          1.5          0.9
+Delta  Q5 & Q1: All Materials: Cement or           2.5          2.3          2.3          2.4          1.4
+Delta  Q5 & Q1: Separate Kitchen (%)               1.2          1.6          1.4          1.5          1.3
+Delta  Q5 & Q1: Flat (%)                             .         -0.2         -0.1          0.5          0.3
+Delta  Q5 & Q1: Dwelling Size (sq ft)              1.3          1.9          1.6          1.5          1.2
+Delta  Q5 & Q1: Room per person                    0.3          0.1         -0.0         -0.2          0.1
+Delta  Q5 & Q1: Area in sq ft per person          -0.3          0.0          0.1          0.1         -0.1
+Delta  Q5 & Q1: Water: Improved Source (           0.1         -0.0         -0.1         -0.1         -0.1
+Delta  Q5 & Q1: Sanitation: Improved Sou           3.9          3.7          2.8          2.6          0.6
+Delta  Q5 & Q1: Sanitation: Exclusive Fl           3.9          3.7          2.8          3.2          1.1
+----------------------------------------------------------------------------------------------------------
+Observations                                    75,050       55,966       97,144       53,393       63,736
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The consumption quintile is the generated from the monthly per capita consumer expenditure.
+       The delta is the between the statistics for the fifth quintile and the first quintile.
+
+.                   
+. //table of medians. 
+. local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
+. local nss_round "NSS49 NSS58 NSS65 NSS69 NSS76" 
+
+. 
+. local var_summary_md *_stat *_d_1_md
+
+. local var_summary_md_u *_stat *_d_2_md //urban 
+
+. local var_summary_md_r *_stat *_d_3_md //rural 
+
+.  
+. foreach survey in `nss_round' {
+  2. qui eststo `survey': quietly estpost summarize `var_summary_md' [aw=hh_weight] if survey == "`survey'",de
+  3. qui eststo `survey'_u: quietly estpost summarize `var_summary_md_u'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 1,de
+  4. qui eststo `survey'_r: quietly estpost summarize `var_summary_md_r'  [aw=hh_weight] if survey == "`survey'" & hh_urban == 0,de
+  5. }
+
+. 
+. esttab NSS49 NSS58 NSS65 NSS69 NSS76, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 5.1 Summary Statistics of Housing Condition in India, Delta between Consumption Quintile 1 and 5 (med)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>           "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
+>                   "       The delta is the between the statistics for the fifth quintile and the first quintile.")
+
+Table 5.1 Summary Statistics of Housing Condition in India, Delta between Consumption Quintile 1 and 5 (med)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.0          5.0          5.0          4.0          4.0
+Number of Rooms                                    2.0          2.0          3.0          3.0          4.0
+Wall: Cement or Stone (%)                          0.0        100.0        100.0        100.0        100.0
+Roof: Cement or Stone (%)                          0.0          0.0          0.0        100.0        100.0
+Floor: Cement or Stone (%)                         0.0          0.0        100.0        100.0        100.0
+All Materials: Cement or Stone (%)                 0.0          0.0          0.0          0.0        100.0
+Separate Kitchen (%)                               0.0          0.0        100.0        100.0        100.0
+Flat (%)                                             .          0.0          0.0          0.0          0.0
+Dwelling Size (sq ft)                            333.7        315.0        360.0        354.0        430.0
+Room per person                                    0.5          0.5          0.7          0.8          1.0
+Area in sq ft per person                          75.3         71.0         83.3         84.8        106.7
+Water: Improved Source (%)                       100.0        100.0        100.0        100.0        100.0
+Sanitation: Improved Source (%)                    0.0          0.0          0.0        100.0        100.0
+Sanitation: Exclusive Flush (%)                    0.0          0.0          0.0          0.0        100.0
+Delta  Q5 & Q1: Size of Household                  2.0          1.0          1.0          0.7          1.5
+Delta  Q5 & Q1: Number of Rooms                    1.0          1.0          1.5          1.5          1.5
+Delta  Q5 & Q1: Wall: Cement or Stone (%             .            .            .          0.0          0.0
+Delta  Q5 & Q1: Roof: Cement or Stone (%             .            .            .            .            .
+Delta  Q5 & Q1: Floor: Cement or Stone (             .            .            .            .          0.0
+Delta  Q5 & Q1: All Materials: Cement or             .            .            .            .            .
+Delta  Q5 & Q1: Separate Kitchen (%)                 .            .            .            .            .
+Delta  Q5 & Q1: Flat (%)                             .            .            .            .            .
+Delta  Q5 & Q1: Dwelling Size (sq ft)              1.3          1.9          1.6          1.7          1.0
+Delta  Q5 & Q1: Room per person                    0.2         -0.1         -0.2         -0.2          0.0
+Delta  Q5 & Q1: Area in sq ft per person          -0.1          0.2          0.1          0.4         -0.1
+Delta  Q5 & Q1: Water: Improved Source (           0.0          0.0          0.0          0.0          0.0
+Delta  Q5 & Q1: Sanitation: Improved Sou             .            .            .            .          0.0
+Delta  Q5 & Q1: Sanitation: Exclusive Fl             .            .            .            .            .
+----------------------------------------------------------------------------------------------------------
+Observations                                   119,421       97,882      153,518       95,548      106,838
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The consumption quintile is the generated from the monthly per capita consumer expenditure.
+       The delta is the between the statistics for the fifth quintile and the first quintile.
+
+. 
+. esttab NSS49_u NSS58_u NSS65_u NSS69_u NSS76_u, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 5.2 Summary Statistics of Housing Condition in Urban India, Delta between Consumption Quintile 1 and 5 (med)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>           "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
+>                   "       The delta is the between the statistics for the fifth quintile and the first quintile.")
+
+Table 5.2 Summary Statistics of Housing Condition in Urban India, Delta between Consumption Quintile 1 and 5 (med)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  4.0          4.0          4.0          4.0          4.0
+Number of Rooms                                    2.0          3.0          3.0          4.0          4.0
+Wall: Cement or Stone (%)                        100.0        100.0        100.0        100.0        100.0
+Roof: Cement or Stone (%)                        100.0        100.0        100.0        100.0        100.0
+Floor: Cement or Stone (%)                       100.0        100.0        100.0        100.0        100.0
+All Materials: Cement or Stone (%)               100.0        100.0        100.0        100.0        100.0
+Separate Kitchen (%)                               0.0        100.0        100.0        100.0        100.0
+Flat (%)                                             .          0.0          0.0          0.0          0.0
+Dwelling Size (sq ft)                            301.4        300.0        340.0        350.0        420.0
+Room per person                                    0.6          0.7          1.0          1.0          1.0
+Area in sq ft per person                          72.7         75.0         90.0         93.0        116.5
+Water: Improved Source (%)                       100.0        100.0        100.0        100.0        100.0
+Sanitation: Improved Source (%)                  100.0        100.0        100.0        100.0        100.0
+Sanitation: Exclusive Flush (%)                  100.0        100.0        100.0        100.0        100.0
+Delta  Q5 & Q1: Size of Household                  4.0          4.0          1.5          1.0          4.0
+Delta  Q5 & Q1: Number of Rooms                    3.0          3.0          1.5          1.5          1.5
+Delta  Q5 & Q1: Wall: Cement or Stone (%           0.0          0.0          0.0          0.0          0.0
+Delta  Q5 & Q1: Roof: Cement or Stone (%             .            .            .            .          0.0
+Delta  Q5 & Q1: Floor: Cement or Stone (           0.0          0.0          0.0          0.0          0.0
+Delta  Q5 & Q1: All Materials: Cement or             .            .            .            .          0.0
+Delta  Q5 & Q1: Separate Kitchen (%)                 .            .            .            .            .
+Delta  Q5 & Q1: Flat (%)                             .            .            .            .            .
+Delta  Q5 & Q1: Dwelling Size (sq ft)              1.8          2.5          2.0          2.1          1.8
+Delta  Q5 & Q1: Room per person                    0.6          0.3          0.2         -0.2          1.0
+Delta  Q5 & Q1: Area in sq ft per person          -0.2          0.1          0.1          0.4         -0.1
+Delta  Q5 & Q1: Water: Improved Source (           0.0          0.0          0.0          0.0          0.0
+Delta  Q5 & Q1: Sanitation: Improved Sou             .            .            .          0.0          0.0
+Delta  Q5 & Q1: Sanitation: Exclusive Fl             .            .            .            .          0.0
+----------------------------------------------------------------------------------------------------------
+Observations                                    44,371       41,916       56,374       42,155       43,102
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The consumption quintile is the generated from the monthly per capita consumer expenditure.
+       The delta is the between the statistics for the fifth quintile and the first quintile.
+
+. 
+. esttab NSS49_r NSS58_r NSS65_r NSS69_r NSS76_r, cells(p50(fmt(%15.1fc))) label collabels(none) varwidth(41) ///
+>  mtitles("1993" "2002" "2009" "2012" "2018") stats(N, label("Observations") fmt(%15.0gc)) /// 
+>  title("Table 5.3 Summary Statistics of Housing Condition in Rural India, Delta between Consumption Quintile 1 and 5 (med)") ///
+>  addnotes("Notes: The value is missing if the information was not surveyed in the NSS round" ///
+>           "       The consumption quintile is the generated from the monthly per capita consumer expenditure." ///
+>                   "       The delta is the between the statistics for the fifth quintile and the first quintile.")
+
+Table 5.3 Summary Statistics of Housing Condition in Rural India, Delta between Consumption Quintile 1 and 5 (med)
+----------------------------------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)          (4)          (5)
+                                                  1993         2002         2009         2012         2018
+----------------------------------------------------------------------------------------------------------
+Size of Household                                  5.0          5.0          5.0          4.0          4.0
+Number of Rooms                                    2.0          2.0          3.0          3.0          3.0
+Wall: Cement or Stone (%)                          0.0        100.0        100.0        100.0        100.0
+Roof: Cement or Stone (%)                          0.0          0.0          0.0          0.0        100.0
+Floor: Cement or Stone (%)                         0.0          0.0          0.0        100.0        100.0
+All Materials: Cement or Stone (%)                 0.0          0.0          0.0          0.0          0.0
+Separate Kitchen (%)                               0.0          0.0          0.0          0.0        100.0
+Flat (%)                                             .          0.0          0.0          0.0          0.0
+Dwelling Size (sq ft)                            344.4        320.0        364.0        358.0        436.0
+Room per person                                    0.5          0.5          0.6          0.7          0.8
+Area in sq ft per person                          77.5         70.0         80.0         81.7        102.9
+Water: Improved Source (%)                       100.0        100.0        100.0        100.0        100.0
+Sanitation: Improved Source (%)                    0.0          0.0          0.0          0.0        100.0
+Sanitation: Exclusive Flush (%)                    0.0          0.0          0.0          0.0          0.0
+Delta  Q5 & Q1: Size of Household                  1.3          1.3          1.3          1.0          2.0
+Delta  Q5 & Q1: Number of Rooms                    1.0          1.5          1.5          1.5          0.7
+Delta  Q5 & Q1: Wall: Cement or Stone (%             .            .            .            .          0.0
+Delta  Q5 & Q1: Roof: Cement or Stone (%             .            .            .            .            .
+Delta  Q5 & Q1: Floor: Cement or Stone (             .            .            .            .            .
+Delta  Q5 & Q1: All Materials: Cement or             .            .            .            .            .
+Delta  Q5 & Q1: Separate Kitchen (%)                 .            .            .            .            .
+Delta  Q5 & Q1: Flat (%)                             .            .            .            .            .
+Delta  Q5 & Q1: Dwelling Size (sq ft)              1.5          2.1          1.8          1.8          1.2
+Delta  Q5 & Q1: Room per person                    0.3         -0.2          0.0         -0.2          0.2
+Delta  Q5 & Q1: Area in sq ft per person          -0.1          0.1          0.1          0.3         -0.1
+Delta  Q5 & Q1: Water: Improved Source (           0.0          0.0          0.0          0.0          0.0
+Delta  Q5 & Q1: Sanitation: Improved Sou             .            .            .            .          0.0
+Delta  Q5 & Q1: Sanitation: Exclusive Fl             .            .            .            .            .
+----------------------------------------------------------------------------------------------------------
+Observations                                    75,050       55,966       97,144       53,393       63,736
+----------------------------------------------------------------------------------------------------------
+Notes: The value is missing if the information was not surveyed in the NSS round
+       The consumption quintile is the generated from the monthly per capita consumer expenditure.
+       The delta is the between the statistics for the fifth quintile and the first quintile.
+
+. 
+. 
+. ***general trend of housing condition for q1 and q5 (All, Rural, Urban)***
+. use "${r_output}\NSS_housing_condition_final.dta",replace
+
+. gen id = _n
+
+. 
+. local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+
+. 
+. local j = 1
+
+. foreach var in `var_summary' {
+  2.  qui clonevar value_`j' = `var' //rename to numeric var name. 
+  3.  local j = `j' + 1
+  4. }
+
+. 
+. keep value_* hh_urban hh_weight survey year id
+
+. 
+. reshape long value_,i(id) j(ind) 
+(note: j = 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+
+Data                               wide   ->   long
+-----------------------------------------------------------------------------
+Number of obs.                   573207   -> 8.0e+06
+Number of variables                  19   ->       7
+j variable (14 values)                    ->   ind
+xij variables:
+           value_1 value_2 ... value_14   ->   value_
+-----------------------------------------------------------------------------
+
+. 
+. *Gen location 
+. local if1 "< 2" //all India 
+
+. local if2 "==1" //urban
+
+. local if3 "==0" //rural
+
+. 
+. local mkt1 "All"
+
+. local mkt2 "Urban"
+
+. local mkt3 "Rural"
+
+. 
+. *regression
+. forvalues q = 1(1)3 {
+  2.  qui areg value_ year if hh_urban `if`q'' [aw=hh_weight], absorb(ind) vce(cluster ind)
+  3.  qui estadd local mkt `mkt`q''
+  4.  eststo m`q'
+  5. }
+
+. 
+.     esttab m1 m2 m3, nose not label b("%9.2f")  r2 ///
+>         stats(mkt N r2 , label(Region Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+>         title("Regression of Housing Condition on Year (mean and median)") ///
+>         addnotes("Regressions are weighted by survey weights. Regressions include housing condition indicator fixed effects.")
+
+Regression of Housing Condition on Year (mean and median)
+--------------------------------------------------------------------
+                              (1)             (2)             (3)   
+                           value_          value_          value_   
+--------------------------------------------------------------------
+year                         1.95*           1.54            2.03*  
+Constant                 -3856.78*       -3004.45        -4017.96*  
+--------------------------------------------------------------------
+Region                        All           Urban           Rural   
+Observations              7904585         3146115         4758470   
+R2                           0.55            0.52            0.57   
+--------------------------------------------------------------------
+Regressions are weighted by survey weights. Regressions include housing condition indicator fixed effects.
+* p<0.05, ** p<0.01, *** p<0.001
+
+.         
+.           
+. ***converging trend of housing condition for q1 and q5 (All, Rural, Urban)***
+. use "${r_output}\NSS_housing_condition_final_dt.dta",replace //use the dt_file instead
+
+. 
+. local var_list in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat h20_improved san_improved san_flush_private
+
+. local nss_round "49 58 65 69 76" 
+
+. 
+. 
+. foreach var in `var_list' {
+  2.  foreach survey in `nss_round' {
+  3.    foreach stat in mn md {
+  4.    forvalues q = 1(1)3 {
+  5.    qui gen t_`var'_`survey'_d_`q'_`stat' = (`var'_5_`survey'_`q'_`stat'- `var'_1_`survey'_`q'_`stat')
+  6.    qui replace `var'_d_`q'_`stat' = t_`var'_`survey'_d_`q'_`stat'  if survey == "NSS`survey'" 
+  7.    drop t*
+  8.    }
+  9.   }
+ 10.  }
+ 11. }
+
+. 
+. local j = 0
+
+. foreach var in `var_list' {
+  2.  local j = `j' + 1
+  3.   forvalues q = 1(1)3 {
+  4.    foreach stat in mn md {
+  5.    rename `var'_d_`q'_`stat'  d_`q'_`stat'`j'
+  6.   }
+  7.  }
+  8. }
+
+. 
+. keep year d_*
+
+. 
+. ***reshape to get general trend with variable as fixed effect (All, Rural, Urban and Mean, Median, Delta)
+. reshape long d_1_md d_2_md d_3_md d_1_mn d_2_mn d_3_mn ,i(year) j(ind) 
+(note: j = 1 2 3 4 5 6 7 8 9)
+
+Data                               wide   ->   long
+-----------------------------------------------------------------------------
+Number of obs.                        5   ->      45
+Number of variables                  55   ->       8
+j variable (9 values)                     ->   ind
+xij variables:
+            d_1_md1 d_1_md2 ... d_1_md9   ->   d_1_md
+            d_2_md1 d_2_md2 ... d_2_md9   ->   d_2_md
+            d_3_md1 d_3_md2 ... d_3_md9   ->   d_3_md
+            d_1_mn1 d_1_mn2 ... d_1_mn9   ->   d_1_mn
+            d_2_mn1 d_2_mn2 ... d_2_mn9   ->   d_2_mn
+            d_3_mn1 d_3_mn2 ... d_3_mn9   ->   d_3_mn
+-----------------------------------------------------------------------------
+
+. 
+. local mkt1 "All"
+
+. local mkt2 "Urban"
+
+. local mkt3 "Rural"
+
+. 
+. foreach stat in mn md {
+  2. forvalues q = 1(1)3 {
+  3.  qui areg d_`q'_`stat' year, absorb(ind) vce(cluster ind)
+  4.  qui estadd local mkt `mkt`q''_`stat'
+  5.  eststo d`q'_`stat'
+  6. }
+  7. }
+
+. 
+.         esttab d1_mn d2_mn d3_mn d1_md d2_md d3_md, nose not label b("%9.2f")   r2 ///
+>         stats(mkt N r2 , label(Region Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+>         title("Regression of Housing Condition Equality between Q1 and Q5 on Year (mean and median)") ///
+>         addnotes("Regressions are weighted by survey weights. Regressions include housing condition indicator fixed effects.")
+
+Regression of Housing Condition Equality between Q1 and Q5 on Year (mean and median)
+--------------------------------------------------------------------------------------------------------------------
+                              (1)             (2)             (3)             (4)             (5)             (6)   
+                           d_1_mn          d_2_mn          d_3_mn          d_1_md          d_2_md          d_3_md   
+--------------------------------------------------------------------------------------------------------------------
+year                         0.13           -0.37*           0.47            0.08           -1.61            1.67   
+Constant                  -223.90          774.75*        -914.00         -104.75         3283.62*       -3311.56   
+--------------------------------------------------------------------------------------------------------------------
+Region                     All_mn        Urban_mn        Rural_mn          All_md        Urban_md        Rural_md   
+Observations                   45              45              45              44              44              44   
+R2                           0.87            0.92            0.85            0.53            0.74            0.56   
+--------------------------------------------------------------------------------------------------------------------
+Regressions are weighted by survey weights. Regressions include housing condition indicator fixed effects.
+* p<0.05, ** p<0.01, *** p<0.001
+
+.         
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\2_NSS_table_housing_condition.log
+  log type:  text
+ closed on:  20 Jan 2021, 08:07:56
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
