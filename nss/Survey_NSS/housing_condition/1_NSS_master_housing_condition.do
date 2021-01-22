@@ -25,8 +25,6 @@ di "${r_input}"
 global r_output "${root}\housing_condition"
 di "${r_output}"
 
-
-
 ****************************************************************************
 * Load data
 ****************************************************************************
@@ -78,14 +76,12 @@ foreach var in `var_list' {
  }
 }
 
-
 *gen the stats by survey, quntile, and location
 
 // location 
 local if1 "< 2" //All india 
 local if2 "==1" //urban
 local if3 "==0" //Rural 
-
 
 //calculate the weighted mean and not-weighted median (though manual, still costing more than 10 min.)
  foreach var in `var_list' {
@@ -111,7 +107,6 @@ foreach survey in `nss_round' {
   }
  }
 }
-
 
 local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
 local nss_round "49 58 65 69 76" 
