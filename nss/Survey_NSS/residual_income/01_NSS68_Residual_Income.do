@@ -2,7 +2,7 @@
 *** AFH 
 *** NSS68-Residual Income Approach (2012)
 *** Prepared by Aline Weng
-*** Date:1/22/2021
+*** Date:1/24/2021
 ***************************
 
 clear 
@@ -62,7 +62,7 @@ gen hh_size = B3_v01
 	gen double total_exp_housing_pp = exp_housing/hh_size 
 	
     *Identify renters
-	gen renter = (total_rent > 0 & !mi(total_rent))
+	gen renter = (total_rent > 0 & !mi(total_rent)) & B3_v18 == 2 //rent is positive and tenure status is hire. 
 
 ******************************************************************************
 *Step 2: Estimate the non-housing expenditure for household at national pline
@@ -71,9 +71,6 @@ rename ID hhid
 merge 1:1 hhid using "${r_input}\poverty68.dta"
 keep if _merge == 3
 drop _merge
-
-   gen urban = (B1_v05 == 2) 
-   keep if urban == 1 //only focusing on urban households
    
    *different budget scenario: pline, double pline, triple pline.    
    forvalues i = 1/3 {
@@ -89,6 +86,10 @@ drop _merge
    
    *take log of expenditure
    gen mpce_mrp_ln = ln(mpce_mrp)
+   
+   *keep urban household only
+   gen urban = (B1_v05 == 2) 
+   keep if urban == 1 //only focusing on urban households
    
 save "${r_output}\ria_1.dta",replace
 
@@ -116,9 +117,7 @@ use "${r_output}\ria_1.dta",replace
 gen state_r = state 
 
 drop if renter != 1 //only focusing on renters. 
-reg exp_non_housing_pp mpce_mrp i.state
-
-qui xi : reg exp_non_housing_pp mpce_mrp i.state
+xi: reg exp_non_housing_pp mpce_mrp i.state, noconstant
 
 //estimate the non-housing expenditure budget standard (non-housing expenditure poverty line)
 use "${r_output}\temp.dta",clear
@@ -164,21 +163,21 @@ save "${r_output}\ria_final.dta",replace
 * distribution of owner and renter consumption expenditure in urban area: renters are in higher quintiles. 
 use "${r_output}\ria_1.dta",clear //with both renter and owner. 
 
-
 twoway kdensity mpce_mrp_ln [aw = hhwt] if renter == 1 || kdensity mpce_mrp_ln [aw = hhwt] if renter == 0, ///
 legend(order(1 "Renter" 2 "Owner")) title("Table 2. Kdensity of Log Monthly per capita Consumer Expenditure (MPCE) for India Urban Household (2012)", size(tiny)) xtitle("Log MPCE") ytitle("Kdensity")
 
 gen tn = (state == 33)
  
-table renter, c(mean mpce_mrp median mpce_mrp) format(%9.2f)
-table mpce_qt, c(mean renter) format(%9.2f)
+table renter, c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
+table mpce_qt, c(mean renter) format(%9.2f) row
 
-table renter if tn == 1, c(mean mpce_mrp median mpce_mrp) format(%9.2f)
-table mpce_qt_tn if tn == 1, c(mean renter) format(%9.2f)
+table renter if tn == 1, c(mean mpce_mrp median mpce_mrp) format(%9.2f)row
+table mpce_qt_tn if tn == 1, c(mean renter) format(%9.2f) row
 
 *affordability and the share of housing expenditure to total expenditure (RIA and Ratio Approach)
 use "${r_output}\ria_final.dta",replace
 
+//total expenditure on housing/total expenditure 
 gen h_t_exp_mn = total_exp_housing_pp/mpce_mrp*100 
 label var h_t_exp_mn "Mean of Housing Exp. / Total Exp. (%)"
 
@@ -193,7 +192,12 @@ label var `var' "Med.of Housing Exp. / Total Exp. (%)"
 label var `var'_tn "Med.of Housing Exp. / Total Exp. (%)" 
 }
 
-global var_tab_1 "h_t_exp_mn unaffordable_1 unaffordable_2 unaffordable_3"
+//poverty rate (national)
+replace poor = poor*100
+label var poor "Poverty Rate (%)"
+
+//table of affordability by quintile
+global var_tab_1 "h_t_exp_mn unaffordable_1 unaffordable_2 unaffordable_3 poor"
 
 qui eststo total : estpost summarize h_t_exp_r_md_all $var_tab_1 [aw = hhwt],de
 replace h_t_exp_r_md_all = h_t_exp_r_md_q 

@@ -1,8 +1,8 @@
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\02_NSS61_Residual_Income_Affordability.log
   log type:  text
- opened on:  22 Jan 2021, 05:41:00
+ opened on:  25 Jan 2021, 07:21:41
 
 . set linesize 255
 
@@ -21,6 +21,16 @@
         from using                        121  (_merge==2)
 
     matched                         2,378,390  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge m:1 HHID using "${r_input}\Block 3 Part 2_Household Characteristics.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                         2,378,511  (_merge==3)
     -----------------------------------------
 
 . drop _merge
@@ -85,7 +95,7 @@
 
 .         
 .     *Identify renters
-.         gen renter = (total_rent > 0 & !mi(total_rent))
+.         gen renter = (total_rent > 0 & !mi(total_rent)) & B3_q16 == "2" //rent is positive and tenure status is hire. 
 
 . 
 . ******************************************************************************
@@ -106,12 +116,6 @@
 
 . drop _merge
 
-. 
-.    gen urban = (sector == 2) 
-
-.    keep if urban == 1 //only focusing on urban households
-(79,298 observations deleted)
-
 .    
 .    *different budget scenario: pline, double pline, triple pline.    
 .    forvalues i = 1/3 {
@@ -131,6 +135,13 @@
 .    
 .    *take log of expenditure
 .    gen mpce_mrp_ln = ln(mpce_mrp)
+
+.    
+.    *only focusing on urban households
+.    gen urban = (sector == 2) 
+
+.    keep if urban == 1
+(79,298 observations deleted)
 
 .    
 . save "${r_output}\ria_1.dta",replace
@@ -198,63 +209,58 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data O
 
 . 
 . drop if renter != 1 //only focusing on renters. 
-(30,757 observations deleted)
-
-. reg exp_non_housing_pp mpce_mrp i.state
-
-      Source |       SS           df       MS      Number of obs   =    14,589
--------------+----------------------------------   F(35, 14553)    =   8279.16
-       Model |  1.4790e+10        35   422569339   Prob > F        =    0.0000
-    Residual |   742786951    14,553  51040.1258   R-squared       =    0.9522
--------------+----------------------------------   Adj R-squared   =    0.9521
-       Total |  1.5533e+10    14,588  1064759.65   Root MSE        =    225.92
-
----------------------------------------------------------------------------------------
-   exp_non_housing_pp |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
-----------------------+----------------------------------------------------------------
-             mpce_mrp |   .8033692   .0015358   523.11   0.000     .8003589    .8063795
-                      |
-                state |
-    Himachal Pradesh  |  -55.76673   24.51174    -2.28   0.023    -103.8129   -7.720596
-              Punjab  |   -63.0184   20.59419    -3.06   0.002    -103.3856   -22.65119
-          Chandigarh  |  -234.9013   25.38514    -9.25   0.000    -284.6594   -185.1432
-         Uttaranchal  |    -42.451   21.82402    -1.95   0.052    -85.22884    .3268447
-             Haryana  |  -62.89814   21.82398    -2.88   0.004    -105.6759   -20.12036
-               Delhi  |  -250.2565   20.87945   -11.99   0.000    -291.1829   -209.3301
-           Rajasthan  |  -53.69986   21.20109    -2.53   0.011    -95.25668   -12.14304
-       Uttar Pradesh  |  -36.24057   19.33378    -1.87   0.061    -74.13724    1.656088
-               Bihar  |  -36.78726   20.88268    -1.76   0.078    -77.71996     4.14544
-              Sikkim  |  -121.5623   26.87188    -4.52   0.000    -174.2346   -68.89002
-   Arunachal Pradesh  |   1.856477   24.84851     0.07   0.940    -46.84976    50.56271
-            Nagaland  |  -25.30933   26.20979    -0.97   0.334    -76.68384    26.06519
-             Manipur  |  -59.30956   31.32774    -1.89   0.058    -120.7159    2.096789
-             Mizoram  |  -44.08508   22.13598    -1.99   0.046    -87.47441   -.6957467
-             Tripura  |  -96.01814   26.49771    -3.62   0.000     -147.957   -44.07926
-           Meghalaya  |   -97.8606   24.06544    -4.07   0.000    -145.0319   -50.68928
-               Assam  |  -6.247833   20.09207    -0.31   0.756    -45.63085    33.13518
-         West Bengal  |  -14.35877   18.84773    -0.76   0.446    -51.30271    22.58517
-           Jharkhand  |  -18.13258   21.24314    -0.85   0.393    -59.77183    23.50667
-              Orissa  |  -40.35904   20.62474    -1.96   0.050    -80.78615    .0680788
-         Chhatisgarh  |  -11.71287   22.10678    -0.53   0.596    -55.04496    31.61922
-      Madhya Pradesh  |  -26.01007   20.21159    -1.29   0.198    -65.62734    13.60721
-             Gujarat  |  -22.98795   19.77112    -1.16   0.245    -61.74185    15.76595
-         Daman & Diu  |  -102.0261   50.23168    -2.03   0.042    -200.4866   -3.565621
-Dadra & Nagar Haveli  |  -204.8363   35.80457    -5.72   0.000    -275.0178   -134.6548
-         Maharashtra  |  -6.107636   18.04047    -0.34   0.735    -41.46924    29.25397
-      Andhra Pradesh  |  -76.48066   18.49901    -4.13   0.000    -112.7411   -40.22025
-           Karnataka  |  -124.3219   18.82466    -6.60   0.000    -161.2206   -87.42321
-                 Goa  |  -81.55344     33.925    -2.40   0.016    -148.0507   -15.05614
-         Lakshadweep  |   18.85319   46.07915     0.41   0.682     -71.4678    109.1742
-              Kerala  |  -7.369021   22.41686    -0.33   0.742    -51.30891    36.57086
-           Tamilnadu  |  -93.48849   18.16959    -5.15   0.000    -129.1032    -57.8738
-         Pondicherry  |  -25.60835   23.76482    -1.08   0.281    -72.19042    20.97371
-   Andaman & Nicober  |   13.29804   22.74165     0.58   0.559    -31.27848    57.87456
-                      |
-                _cons |   7.073542   17.47373     0.40   0.686    -27.17718    41.32427
----------------------------------------------------------------------------------------
+(32,664 observations deleted)
 
 . 
-. qui xi : reg exp_non_housing_pp mpce_mrp i.state
+. xi: reg exp_non_housing_pp mpce_mrp i.state, noconstant
+i.state           _Istate_1-35        (naturally coded; _Istate_1 omitted)
+
+      Source |       SS           df       MS      Number of obs   =    12,682
+-------------+----------------------------------   F(35, 12647)    =  15195.31
+       Model |  2.6843e+10        35   766942144   Prob > F        =    0.0000
+    Residual |   638322950    12,647   50472.282   R-squared       =    0.9768
+-------------+----------------------------------   Adj R-squared   =    0.9767
+       Total |  2.7481e+10    12,682     2166953   Root MSE        =    224.66
+
+------------------------------------------------------------------------------
+exp_non_ho~p |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    mpce_mrp |   .7915454   .0016476   480.44   0.000      .788316    .7947749
+   _Istate_2 |  -22.15553   17.80926    -1.24   0.214    -57.06437    12.75331
+   _Istate_3 |  -52.54077   11.78831    -4.46   0.000    -75.64765    -29.4339
+   _Istate_4 |  -202.0225   18.91186   -10.68   0.000    -239.0926   -164.9524
+   _Istate_5 |  -29.17205   14.30679    -2.04   0.041    -57.21553   -1.128562
+   _Istate_6 |  -42.35648   13.53227    -3.13   0.002    -68.88178   -15.83119
+   _Istate_7 |  -243.7902   12.36681   -19.71   0.000    -268.0311   -219.5494
+   _Istate_8 |  -32.36437    12.6422    -2.56   0.010    -57.14501   -7.583734
+   _Istate_9 |  -22.92918   9.235526    -2.48   0.013    -41.03222   -4.826153
+  _Istate_10 |  -38.77422   13.33496    -2.91   0.004    -64.91277   -12.63567
+  _Istate_11 |  -100.8537   20.62639    -4.89   0.000    -141.2846   -60.42287
+  _Istate_12 |   -36.5547   24.01201    -1.52   0.128    -83.62188    10.51249
+  _Istate_13 |  -8.139607   21.49186    -0.38   0.705    -50.26691     33.9877
+  _Istate_14 |  -33.14604   31.80932    -1.04   0.297    -95.49714    29.20505
+  _Istate_15 |  -25.32914   14.76795    -1.72   0.086    -54.27656    3.618274
+  _Istate_16 |  -69.24202   20.32576    -3.41   0.001    -109.0836   -29.40045
+  _Istate_17 |  -78.01223   17.10298    -4.56   0.000    -111.5367   -44.48779
+  _Istate_18 |  -40.33302   13.47678    -2.99   0.003    -66.74955   -13.91648
+  _Istate_19 |  -7.471996    8.27984    -0.90   0.367    -23.70174    8.757746
+  _Istate_20 |  -5.688597   13.57846    -0.42   0.675    -32.30444    20.92725
+  _Istate_21 |  -40.11086   12.50711    -3.21   0.001    -64.62669   -15.59503
+  _Istate_22 |  -5.822369   15.99529    -0.36   0.716    -37.17557    25.53083
+  _Istate_23 |  -12.43493   11.00209    -1.13   0.258    -34.00071    9.130837
+  _Istate_24 |  -15.18806   10.46316    -1.45   0.147    -35.69743    5.321313
+  _Istate_25 |  -75.26927    48.1133    -1.56   0.118    -169.5786    19.04009
+  _Istate_26 |  -177.0282   31.28847    -5.66   0.000    -238.3583   -115.6981
+  _Istate_27 |  -18.54562   6.582192    -2.82   0.005    -31.44772    -5.64353
+  _Istate_28 |  -55.80431   6.794934    -8.21   0.000    -69.12341   -42.48521
+  _Istate_29 |  -103.9841   7.752009   -13.41   0.000    -119.1792   -88.78902
+  _Istate_30 |  -56.24955   29.35175    -1.92   0.055    -113.7834     1.28433
+  _Istate_31 |   29.09451   45.02572     0.65   0.518    -59.16272    117.3517
+  _Istate_32 |   9.229275   14.90983     0.62   0.536    -19.99626    38.45481
+  _Istate_33 |  -71.73946   5.884789   -12.19   0.000    -83.27453   -60.20438
+  _Istate_34 |  -16.06588   16.92881    -0.95   0.343    -49.24891    17.11715
+  _Istate_35 |  -13.20022   16.93535    -0.78   0.436    -46.39608    19.99564
+------------------------------------------------------------------------------
 
 . 
 . //estimate the non-housing expenditure budget standard (non-housing expenditure poverty line)
@@ -305,7 +311,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data O
 . drop _merge  
 
 . drop if renter != 1 //only focusing on renters. 
-(30,757 observations deleted)
+(32,664 observations deleted)
 
 . 
 .         *find the affordable housings
@@ -319,26 +325,26 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data O
 affordable_ |
           1 |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          0 | 1,312.3841        9.00        9.00
-        100 | 13,276.616       91.00      100.00
+          0 | 1,140.3563        8.99        8.99
+        100 | 11,541.644       91.01      100.00
 ------------+-----------------------------------
-      Total |     14,589      100.00
+      Total |     12,682      100.00
 
 affordable_ |
           2 |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          0 | 7,100.3401       48.67       48.67
-        100 | 7,488.6599       51.33      100.00
+          0 | 6,361.3987       50.16       50.16
+        100 | 6,320.6013       49.84      100.00
 ------------+-----------------------------------
-      Total |     14,589      100.00
+      Total |     12,682      100.00
 
 affordable_ |
           3 |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          0 | 10,726.802       73.53       73.53
-        100 | 3,862.1981       26.47      100.00
+          0 | 9,500.9819       74.92       74.92
+        100 | 3,181.0181       25.08      100.00
 ------------+-----------------------------------
-      Total |     14,589      100.00
+      Total |     12,682      100.00
 
 . 
 . // hosue keeping
@@ -372,16 +378,18 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data O
 . gen tn = (state == 33)
 
 .  
-. table renter, c(mean mpce_mrp median mpce_mrp) format(%9.2f)
+. table renter, c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
 
 ------------------------------------------
    renter | mean(mpce_mrp)   med(mpce_mrp)
 ----------+-------------------------------
-        0 |        1047.41          770.97
-        1 |        1460.47         1109.94
+        0 |        1082.45          790.84
+        1 |        1432.33         1089.63
+          | 
+    Total |        1180.30          862.45
 ------------------------------------------
 
-. table mpce_qt, c(mean renter) format(%9.2f)
+. table mpce_qt, c(mean renter) format(%9.2f) row
 
 ------------------------
 5         |
@@ -389,24 +397,28 @@ quantiles |
 of        |
 mpce_mrp  | mean(renter)
 ----------+-------------
-        1 |         0.19
-        2 |         0.29
-        3 |         0.33
-        4 |         0.39
-        5 |         0.48
+        1 |         0.10
+        2 |         0.18
+        3 |         0.24
+        4 |         0.28
+        5 |         0.36
+          | 
+    Total |         0.28
 ------------------------
 
 . 
-. table renter if tn == 1, c(mean mpce_mrp median mpce_mrp) format(%9.2f)
+. table renter if tn == 1, c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
 
 ------------------------------------------
    renter | mean(mpce_mrp)   med(mpce_mrp)
 ----------+-------------------------------
-        0 |        1104.88          750.87
-        1 |        1352.68          984.96
+        0 |        1108.23          751.15
+        1 |        1349.19          984.75
+          | 
+    Total |        1207.24          832.97
 ------------------------------------------
 
-. table mpce_qt_tn if tn == 1, c(mean renter) format(%9.2f)
+. table mpce_qt_tn if tn == 1, c(mean renter) format(%9.2f) row
 
 ------------------------
 5         |
@@ -414,11 +426,13 @@ quantiles |
 of        |
 mpce_mrp  | mean(renter)
 ----------+-------------
-        1 |         0.32
-        2 |         0.40
-        3 |         0.46
-        4 |         0.45
-        5 |         0.51
+        1 |         0.21
+        2 |         0.36
+        3 |         0.40
+        4 |         0.43
+        5 |         0.48
+          | 
+    Total |         0.41
 ------------------------
 
 . 
@@ -426,6 +440,7 @@ mpce_mrp  | mean(renter)
 . use "${r_output}\ria_final.dta",replace
 
 . 
+. //housing expenditure/total expenditure
 . gen h_t_exp_mn = total_exp_housing_pp/mpce_mrp*100 
 
 . label var h_t_exp_mn "Mean of Housing Exp. / Total Exp. (%)"
@@ -437,10 +452,10 @@ mpce_mrp  | mean(renter)
 
 . 
 . egen h_t_exp_r_md_q_tn = median(h_t_exp_mn) if state == 33,by(mpce_qt_tn)
-(12880 missing values generated)
+(10982 missing values generated)
 
 . egen h_t_exp_r_md_all_tn = median(h_t_exp_mn) if state == 33
-(12880 missing values generated)
+(10982 missing values generated)
 
 . 
 . foreach var in h_t_exp_r_md_all {
@@ -449,19 +464,27 @@ mpce_mrp  | mean(renter)
   4. }
 
 . 
-. global var_tab_1 "h_t_exp_mn unaffordable_1 unaffordable_2 unaffordable_3"
+. //poverty rate (national)
+. replace poor = poor*100
+(2,153 real changes made)
+
+. label var poor "Poverty Rate (%)"
+
+. 
+. //affordability tabel by quintile
+. global var_tab_1 "h_t_exp_mn unaffordable_1 unaffordable_2 unaffordable_3 poor"
 
 . 
 . qui eststo total : estpost summarize h_t_exp_r_md_all $var_tab_1 [aw = hhwt],de
 
 . replace h_t_exp_r_md_all = h_t_exp_r_md_q 
-(14,589 real changes made)
+(12,682 real changes made)
 
 . 
 . qui eststo total_tn : estpost summarize h_t_exp_r_md_all_tn $var_tab_1 [aw = hhwt] if state == 33,de
 
 . replace h_t_exp_r_md_all_tn = h_t_exp_r_md_q_tn
-(1,709 real changes made)
+(1,700 real changes made)
 
 . 
 . forvalues i = 1/5 {
@@ -487,13 +510,14 @@ Table 1. Percent of Renter Households with Unaffordable Housing Expenditure by E
                                                   (1)          (2)          (3)          (4)          (5)          (6)
                                                   All           Q1           Q2           Q3           Q4           Q5
 ----------------------------------------------------------------------------------------------------------------------
-Med.of Housing Exp. / Total Exp. (%)             22.7         23.1         23.9         23.1         22.3         21.5
-Mean of Housing Exp. / Total Exp. (%)            24.0         23.5         24.6         24.6         23.9         23.4
-Hs. in Unaffordable Housing 1pline                9.0         73.4         11.2          0.2          0.0          0.0
-Hs. in Unaffordable Housing 2pline               48.7        100.0        100.0         86.5         18.5          0.4
-Hs. in Unaffordable Housing 3pline               73.5        100.0        100.0        100.0         91.9         14.6
+Med.of Housing Exp. / Total Exp. (%)             24.0         23.4         24.2         24.6         24.3         23.5
+Mean of Housing Exp. / Total Exp. (%)            25.1         24.7         24.3         24.2         25.5         25.1
+Hs. in Unaffordable Housing 1pline                9.0        100.0         86.6         26.2          2.0          0.0
+Hs. in Unaffordable Housing 2pline               50.2        100.0        100.0        100.0         97.9         17.0
+Hs. in Unaffordable Housing 3pline               74.9        100.0        100.0        100.0        100.0         57.8
+Poverty Rate (%)                                 10.0        100.0         99.8         34.2          0.1          0.0
 ----------------------------------------------------------------------------------------------------------------------
-Observations                                   14,589        2,352        2,588        2,596        3,065        3,988
+Observations                                   12,682          322        1,042        1,736        2,801        6,781
 ----------------------------------------------------------------------------------------------------------------------
 Notes: The data source is NSS 68th Round Household Consumer Expenditure.
        Households weighted by survey weights.
@@ -521,13 +545,14 @@ Table 2. Percent of Renter Households with Unaffordable Housing Expenditure by E
                                                   (1)          (2)          (3)          (4)          (5)          (6)
                                                   All           Q1           Q2           Q3           Q4           Q5
 ----------------------------------------------------------------------------------------------------------------------
-Med.of Housing Exp. / Total Exp. (%)             26.4         27.7         26.7         26.0         26.0         24.8
-Mean of Housing Exp. / Total Exp. (%)            27.5         26.1         27.9         27.4         28.4         27.1
-Hs. in Unaffordable Housing 1pline                6.6         49.0          3.6          0.0          0.0          0.0
-Hs. in Unaffordable Housing 2pline               49.6        100.0        100.0         82.9         12.3          0.1
-Hs. in Unaffordable Housing 3pline               73.7        100.0        100.0        100.0         85.6         12.8
+Med.of Housing Exp. / Total Exp. (%)             26.4         28.5         27.7         26.5         26.3         25.7
+Mean of Housing Exp. / Total Exp. (%)            27.6         25.7         26.7         27.6         27.5         27.8
+Hs. in Unaffordable Housing 1pline                7.3        100.0         56.9          5.0          0.2          0.0
+Hs. in Unaffordable Housing 2pline               49.8        100.0        100.0        100.0         85.4          5.5
+Hs. in Unaffordable Housing 3pline               73.7        100.0        100.0        100.0        100.0         46.4
+Poverty Rate (%)                                 10.0        100.0        100.0          1.8          0.0          0.0
 ----------------------------------------------------------------------------------------------------------------------
-Observations                                    1,709          415          288          275          315          416
+Observations                                    1,700           80          269          287          343          721
 ----------------------------------------------------------------------------------------------------------------------
 Notes: The data source is NSS 68th Round Household Consumer Expenditure.
        Households weighted by survey weights.
@@ -546,9 +571,9 @@ Notes: The data source is NSS 68th Round Household Consumer Expenditure.
 
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
-     pline_1 |      1,709      559.77           0     559.77     559.77
-     pline_2 |      1,709     1119.54           0    1119.54    1119.54
-     pline_3 |      1,709     1679.31           0    1679.31    1679.31
+     pline_1 |      1,700      559.77           0     559.77     559.77
+     pline_2 |      1,700     1119.54           0    1119.54    1119.54
+     pline_3 |      1,700     1679.31           0    1679.31    1679.31
 
 . 
 . forvalues i = 1/3 {
@@ -570,5 +595,5 @@ Notes: The data source is NSS 68th Round Household Consumer Expenditure.
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\02_NSS61_Residual_Income_Affordability.log
   log type:  text
- closed on:  22 Jan 2021, 05:42:19
+ closed on:  25 Jan 2021, 07:22:23
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
