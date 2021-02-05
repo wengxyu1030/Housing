@@ -1,8 +1,8 @@
------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\01_NSS61_Poverty_Line.log
   log type:  text
- opened on:   5 Feb 2021, 08:24:40
+ opened on:   5 Feb 2021, 08:34:34
 
 . set linesize 255
 
@@ -44,8 +44,13 @@
 . 
 .     *estimate housing related expenditure:
 .           
-.           *Rent (10: code = 529, 30 days recall period)
+.           *Rent house rent, garage rent(10: code = 529, 30 days recall period)
 .           gen double rent = B10_q4*(B10_q1 == "520")
+(121 missing values generated)
+
+.           
+.           *Rent all
+.           gen double rent_all = B10_q4*(B10_q1 == "529")
 (121 missing values generated)
 
 .           
@@ -55,7 +60,7 @@
 
 .           
 .           *Collapse at household level for water ant rent
-.           foreach var in rent convy { 
+.           foreach var in rent rent_all convy { 
   2.           egen double total_`var' = sum(`var'), by(HHID)
   3.           } 
 
@@ -112,3 +117,278 @@
 
 . 
 . merge 1:m HHID using "${r_input}\Block 5_Monthly consumption of food, pan, tobacco and intoxicants.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                            76
+        from master                        76  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                         5,741,182  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. 
+.       *Cereal (5: 129, 30 days recall period)
+.           gen double cereal = B5_q6*(B5_q1 == "129")
+(77 missing values generated)
+
+.           egen double total_cereal = sum(cereal), by(HHID)
+
+.           bys HHID: keep if _n == 1
+(5,616,614 observations deleted)
+
+.           
+. rename HHID hhid
+
+. merge 1:1 hhid using "${r_input}\NSS_61_Poverty_For_Aline.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           124,644  (_merge==3)
+    -----------------------------------------
+
+. keep if _merge == 3
+(0 observations deleted)
+
+. drop _merge
+
+. 
+.         *Total rent and coveyance expenditure (all rent)
+.         egen double exp_rc = rowtotal(total_rent total_convy) //using rent_all instead of just house rent to keep consistency with the poverty measure
+
+. 
+.         *Total rent and coveyance expenditure (house, garage rent only)
+.         egen double exp_rc_all = rowtotal(total_rent_all total_convy) 
+
+. 
+.     *Rent and coveyance consumption per capita
+.         gen double exp_rc_pp = exp_rc/hh_size 
+
+.         gen double exp_rc_al_pp = exp_rc_all/hh_size 
+
+.         
+.         *Light and Fuel exp. per capita
+.         gen double exp_fl_pp = total_fuel/hh_size 
+
+.         
+.         *Cereal exp. per capita
+.         gen double exp_cl_pp = total_cereal/hh_size 
+
+.         
+.         *Durable goods exp. per capita
+.         gen double exp_dg_pp = total_durable/hh_size 
+
+.         
+.     *Identify renters
+.         gen renter = (total_rent > 0 & !mi(total_rent)) & B3_q16 == "2" //rent is positive and tenure status is hire. 
+
+. 
+. 
+. ***********************************************************************************
+. *Step 2: Identify the urban MPCE class and the budget share of rent conveyance exp
+. ***********************************************************************************
+. 
+. /*
+> Try to identify the window of MPCE class that used to constructed the rent component of the 
+> poverty line. 
+> */
+. 
+. *Urban MPCE Classes (decile)
+. keep if sector == 2 //keep only urban households. 
+(79,298 observations deleted)
+
+. 
+. foreach i in 10 100 {
+  2. xtile mpce_`i' = mpce_mrp [aw = pwt] , n(`i') //urban mpce classes
+  3. }
+
+. 
+. table mpce_100 [aw = pwt] ,c(min mpce_mrp max mpce_mrp) //579Rs is 26 percentile
+
+----------------------------------------
+100       |
+quantiles |
+of        |
+mpce_mrp  | min(mpce_mrp)  max(mpce_mrp)
+----------+-----------------------------
+        1 |        19.765       267.9171
+        2 |        267.92       300.2784
+        3 |       300.312         325.48
+        4 |      325.4817       343.9329
+        5 |      343.9929       361.8925
+        6 |      361.9029        376.764
+        7 |        376.84       389.3783
+        8 |        389.38       402.4643
+        9 |      402.4933       411.9414
+       10 |      411.9517        423.535
+       11 |      423.5533        433.335
+       12 |      433.3586        442.903
+       13 |       442.918        454.832
+       14 |      454.8733       464.8755
+       15 |       464.905         474.99
+       16 |      474.9937         485.65
+       17 |      485.6675       494.4886
+       18 |      494.5086         502.81
+       19 |        502.83        510.955
+       20 |      510.9686        519.954
+       21 |      519.9875         529.95
+       22 |           530         539.93
+       23 |      539.9672       550.9217
+       24 |       550.925        561.535
+       25 |      561.5383        571.324
+       26 |        571.35       581.3217
+       27 |       581.336        590.136
+       28 |      590.1367         599.41
+       29 |      599.4186       611.4209
+       30 |       611.425       621.1675
+       31 |      621.2025         630.65
+       32 |      630.6729       639.2271
+       33 |      639.2425       649.1825
+       34 |        649.21       658.2925
+       35 |      658.3175       665.9957
+       36 |      666.0075       677.6467
+       37 |       677.672       688.3014
+       38 |      688.3043         698.59
+       39 |      698.6116         709.22
+       40 |        709.22       720.0529
+       41 |      720.0684        730.512
+       42 |       730.542         742.23
+       43 |        742.25       754.0714
+       44 |      754.0767        766.345
+       45 |      766.3467       779.0367
+       46 |      779.0466       790.6975
+       47 |       790.716       802.2634
+       48 |       802.282        813.792
+       49 |        813.82        826.252
+       50 |      826.2775       838.6557
+       51 |       838.734       852.2446
+       52 |       852.264       866.0733
+       53 |        866.08       881.5767
+       54 |       881.614         895.79
+       55 |       895.798       910.8513
+       56 |       910.865         927.19
+       57 |      927.2115        942.776
+       58 |        942.81         958.65
+       59 |      958.6639       977.5267
+       60 |       977.535        993.598
+       61 |      993.6063       1008.985
+       62 |      1008.998       1025.707
+       63 |      1025.717       1042.672
+       64 |      1042.679       1061.635
+       65 |      1061.643        1078.73
+       66 |      1078.879       1098.514
+       67 |       1098.67       1118.827
+       68 |      1118.844       1143.152
+       69 |      1143.179       1163.336
+       70 |      1163.407       1185.777
+       71 |      1185.808       1207.832
+       72 |      1207.835        1229.66
+       73 |      1229.696        1250.98
+       74 |       1251.32        1274.21
+       75 |       1274.23        1303.39
+       76 |      1303.408       1334.052
+       77 |      1334.117       1359.057
+       78 |      1359.085        1391.59
+       79 |      1391.705        1432.07
+       80 |      1432.076        1466.64
+       81 |      1466.872       1501.402
+       82 |       1501.43        1542.11
+       83 |       1542.25       1581.382
+       84 |      1581.434        1635.13
+       85 |      1635.132        1689.96
+       86 |      1690.002       1741.945
+       87 |      1742.088       1805.882
+       88 |      1806.075       1879.417
+       89 |        1879.7       1958.837
+       90 |      1958.845        2034.42
+       91 |      2034.546        2127.34
+       92 |      2127.387       2229.417
+       93 |      2229.965       2373.883
+       94 |          2374       2511.987
+       95 |      2512.795       2699.607
+       96 |      2699.836       2946.497
+       97 |       2946.55       3260.865
+       98 |       3261.62        3745.47
+       99 |      3747.032       4788.853
+      100 |      4793.905       29156.71
+----------------------------------------
+
+. table mpce_10 [aw = pwt] ,c(min mpce_mrp max mpce_mrp) //the same class for 579Rs(20-30 percentile), however higher value of MPCE for every class compared to the method paper.
+
+----------------------------------------
+10        |
+quantiles |
+of        |
+mpce_mrp  | min(mpce_mrp)  max(mpce_mrp)
+----------+-----------------------------
+        1 |        19.765        423.535
+        2 |      423.5533        519.954
+        3 |      519.9875       621.1675
+        4 |      621.2025       720.0529
+        5 |      720.0684       838.6557
+        6 |       838.734        993.598
+        7 |      993.6063       1185.777
+        8 |      1185.808        1466.64
+        9 |      1466.872        2034.42
+       10 |      2034.546       29156.71
+----------------------------------------
+
+. 
+. *Share of the rent and conveyance, fuel, cereal. 
+. foreach var in rc rc_al fl cl dg {
+  2. gen exp_`var'_ratio = exp_`var'_pp/mpce_mrp *100 
+  3. }
+
+. 
+. table mpce_10 [aw = pwt], c(med exp_rc_al_ratio med exp_rc_ratio med exp_fl_ratio med exp_cl_ratio) //2.4， 11.6, 15.9 benchmark to rent 3.5, fuel 12.2, cereal 16.7 
+
+----------------------------------------------------------------------
+10        |
+quantiles |
+of        |
+mpce_mrp  | med(exp_rc~o)  med(exp_rc~o)  med(exp_fl~o)  med(exp_cl~o)
+----------+-----------------------------------------------------------
+        1 |      .9556804       .9393156       11.91007       22.64552
+        2 |      1.751502       1.685244       11.43766       18.28362
+        3 |      2.527704       2.440949       11.56957       15.93481
+        4 |       3.77907       3.664896       11.17817       14.57763
+        5 |      5.037502       4.861301       10.71626       12.97324
+        6 |      6.472869       6.268315       10.08763       11.27494
+        7 |      8.022295       7.919991       9.943698       9.979345
+        8 |      8.803617        8.37721       9.317051       8.583309
+        9 |      10.23269       9.706953       8.478655       6.980756
+       10 |      12.71017       11.54401       7.024995       4.388699
+----------------------------------------------------------------------
+
+. 
+. *Absolute exp. for rent and conveyance 
+. table mpce_10 [aw = pwt], c(med exp_rc_al_pp med exp_rc_pp med exp_fl_pp med exp_cl_pp) //14， 66, 91 at the MPCE class, benchmark to rent 30.68， fuel 70.4, cereal 96.5
+
+----------------------------------------------------------------------
+10        |
+quantiles |
+of        |
+mpce_mrp  | med(exp_rc~p)  med(exp_rc~p)  med(exp_fl~p)  med(exp_cl~p)
+----------+-----------------------------------------------------------
+        1 |     3.3333333      3.3333333           41.6      79.571429
+        2 |     8.3333333              8           54.2           86.4
+        3 |        14.375             14      66.285714             91
+        4 |            25             25      74.933333           96.6
+        5 |            40      38.333333          83.75      100.66667
+        6 |     58.571429             57             93          102.8
+        7 |          87.5             85          107.5          107.5
+        8 |         112.5            110          122.3            112
+        9 |           175            165         143.75          117.5
+       10 |           370          330.4        199.425          125.5
+----------------------------------------------------------------------
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\01_NSS61_Poverty_Line.log
+  log type:  text
+ closed on:   5 Feb 2021, 08:36:42
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

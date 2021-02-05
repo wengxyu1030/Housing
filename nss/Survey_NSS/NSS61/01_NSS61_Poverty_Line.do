@@ -38,14 +38,17 @@ gen hh_size = B3_q1
 
     *estimate housing related expenditure:
 	  
-	  *Rent (10: code = 529, 30 days recall period)
+	  *Rent house rent, garage rent(10: code = 529, 30 days recall period)
 	  gen double rent = B10_q4*(B10_q1 == "520")
+	  
+	  *Rent all
+	  gen double rent_all = B10_q4*(B10_q1 == "529")
 	  
 	  *Conveyance (10: 519, 30 days recall period)
 	  gen double convy = B10_q4*(B10_q1 == "519")
 	  
 	  *Collapse at household level for water ant rent
-	  foreach var in rent convy { 
+	  foreach var in rent rent_all convy { 
 	  egen double total_`var' = sum(`var'), by(HHID)
 	  } 
 	  bys HHID: keep if _n == 1 // keep only one observation for each HH
@@ -79,11 +82,15 @@ merge 1:1 hhid using "${r_input}\NSS_61_Poverty_For_Aline.dta"
 keep if _merge == 3
 drop _merge
 
-	*Total rent and coveyance expenditure
-	egen double exp_rc = rowtotal(total_rent total_convy)
+	*Total rent and coveyance expenditure (all rent)
+	egen double exp_rc = rowtotal(total_rent total_convy) //using rent_all instead of just house rent to keep consistency with the poverty measure
+
+	*Total rent and coveyance expenditure (house, garage rent only)
+	egen double exp_rc_all = rowtotal(total_rent_all total_convy) 
 
     *Rent and coveyance consumption per capita
 	gen double exp_rc_pp = exp_rc/hh_size 
+	gen double exp_rc_al_pp = exp_rc_all/hh_size 
 	
 	*Light and Fuel exp. per capita
 	gen double exp_fl_pp = total_fuel/hh_size 
@@ -118,13 +125,13 @@ table mpce_100 [aw = pwt] ,c(min mpce_mrp max mpce_mrp) //579Rs is 26 percentile
 table mpce_10 [aw = pwt] ,c(min mpce_mrp max mpce_mrp) //the same class for 579Rs(20-30 percentile), however higher value of MPCE for every class compared to the method paper.
 
 *Share of the rent and conveyance, fuel, cereal. 
-foreach var in rc fl cl dg {
+foreach var in rc rc_al fl cl dg {
 gen exp_`var'_ratio = exp_`var'_pp/mpce_mrp *100 
 }
 
-table mpce_10 [aw = pwt], c(med exp_rc_ratio med exp_fl_ratio med exp_cl_ratio) //2.4， 11.6, 15.9 benchmark to 3.5, 12.2,16.7 
+table mpce_10 [aw = pwt], c(med exp_rc_al_ratio med exp_rc_ratio med exp_fl_ratio med exp_cl_ratio) //(2.5/2.4), 11.6, 15.9 benchmark to rent 3.5, fuel 12.2, cereal 16.7 
 
 *Absolute exp. for rent and conveyance 
-table mpce_10 [aw = pwt], c(med exp_rc_pp med exp_fl_pp med exp_cl_pp) //14， 66, 91 at the MPCE class, benchmark to 30.68， 70.4, 96.5
+table mpce_10 [aw = pwt], c(med exp_rc_al_pp med exp_rc_pp med exp_fl_pp med exp_cl_pp) //(14.4/14)， 66, 91 at the MPCE class, benchmark to rent 30.68， fuel 70.4, cereal 96.5
 
 log close
