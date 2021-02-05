@@ -2,7 +2,7 @@
 *** AFH 
 *** NSS61-Residual Income Approach (2004)
 *** Prepared by Aline Weng
-*** Date:1/22/2021
+*** Date:1/25/2021
 ***************************
 
 clear 
@@ -38,7 +38,7 @@ gen hh_size = B3_q1
     *estimate housing related expenditure:
 	  
 	  *Rent (10: code = 529, 30 days recall period)
-	  gen double rent = B10_q4*(B10_q1 == "529")
+	  gen double rent = B10_q4*(B10_q1 == "520")
 	  
 	  *Water charge(10: 540, 30 days recall period)
 	  gen double water = B10_q4*(B10_q1 == "540")
@@ -168,6 +168,7 @@ use "${r_output}\ria_1.dta",clear //with both renter and owner.
 
 twoway kdensity mpce_mrp_ln [aw = hhwt] if renter == 1 || kdensity mpce_mrp_ln [aw = hhwt] if renter == 0, ///
 legend(order(1 "Renter" 2 "Owner")) title("Table 2. Kdensity of Log Monthly per capita Consumer Expenditure (MPCE) for India Urban Household (2004)", size(tiny)) xtitle("Log MPCE") ytitle("Kdensity")
+graph export "${r_output}/kdensity_tenure_mpce.png",replace
 
 gen tn = (state == 33)
  
@@ -251,5 +252,8 @@ dis `pline_`i'_ln'
 kdensity exp_non_housing_pp_ln if state == 33 [aw=hhwt], xline(`pline_1_ln' `pline_2_ln' `pline_3_ln') ///
 title("NSS61 - 2004, Residual Income vs. Minimum Standard by Scenario in Urban Tamil Nadu", size(small)) ///
 xtitle("Ln of Non-housing Exp. PC.")
+
+graph export "${r_output}/kdensity_tn.png",replace
+
  
 log close

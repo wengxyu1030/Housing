@@ -1,0 +1,114 @@
+-----------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\01_NSS61_Poverty_Line.log
+  log type:  text
+ opened on:   5 Feb 2021, 08:24:40
+
+. set linesize 255
+
+. 
+. 
+. ***********************************************************************************
+. *Step 1: Prepare data on rent and conveyance, MPCE. 
+. ***********************************************************************************
+. use "${r_input}\Block 10_Monthly expenditure on miscellaneous goods and services including medical (non-institutional), rents and taxes.dta",clear
+
+. merge m:1 HHID using "${r_input}\Block 3.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           121
+        from master                         0  (_merge==1)
+        from using                        121  (_merge==2)
+
+    matched                         2,378,390  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge m:1 HHID using "${r_input}\Block 3 Part 2_Household Characteristics.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                         2,378,511  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. 
+. gen hh_size = B3_q1
+
+.    
+. /* poverty line is by state and by sector */
+. 
+.     *estimate housing related expenditure:
+.           
+.           *Rent (10: code = 529, 30 days recall period)
+.           gen double rent = B10_q4*(B10_q1 == "520")
+(121 missing values generated)
+
+.           
+.           *Conveyance (10: 519, 30 days recall period)
+.           gen double convy = B10_q4*(B10_q1 == "519")
+(121 missing values generated)
+
+.           
+.           *Collapse at household level for water ant rent
+.           foreach var in rent convy { 
+  2.           egen double total_`var' = sum(`var'), by(HHID)
+  3.           } 
+
+.           bys HHID: keep if _n == 1 // keep only one observation for each HH
+(2,253,867 observations deleted)
+
+. 
+. merge 1:m HHID using "${r_input}\Block 6_Monthly consumption of fuel & light.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           422
+        from master                       422  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                           637,880  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+.           
+.           *Fuel and light (12: 359, 30 days recall period)
+.           gen double fuel = B6_q6*(B6_q1 == "359")
+(422 missing values generated)
+
+.           egen double total_fuel = sum(fuel), by(HHID)
+
+.           bys HHID: keep if _n == 1
+(513,658 observations deleted)
+
+.           
+. merge 1:m HHID using "${r_input}\Block 11_Expenditure for purchase and construction (including repair and maintenance) of durable goods for domestic use.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         2,608
+        from master                     2,608  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                         1,625,391  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+.         
+.           *Durable goods. (11: 639, 365 days recall period)
+.           gen double durable = B11_q14*(B11_q1 == "639")*30/365
+(1,041,338 missing values generated)
+
+.           egen double total_durable = sum(durable), by(HHID)
+
+.           bys HHID: keep if _n == 1
+(1,503,355 observations deleted)
+
+. 
+. merge 1:m HHID using "${r_input}\Block 5_Monthly consumption of food, pan, tobacco and intoxicants.dta"
