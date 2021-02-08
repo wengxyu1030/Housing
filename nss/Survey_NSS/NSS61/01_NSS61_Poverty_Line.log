@@ -1,8 +1,8 @@
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\01_NSS61_Poverty_Line.log
   log type:  text
- opened on:   5 Feb 2021, 08:34:34
+ opened on:   8 Feb 2021, 04:51:49
 
 . set linesize 255
 
@@ -343,7 +343,7 @@ mpce_mrp  | min(mpce_mrp)  max(mpce_mrp)
   3. }
 
 . 
-. table mpce_10 [aw = pwt], c(med exp_rc_al_ratio med exp_rc_ratio med exp_fl_ratio med exp_cl_ratio) //2.4， 11.6, 15.9 benchmark to rent 3.5, fuel 12.2, cereal 16.7 
+. table mpce_10 [aw = pwt], c(med exp_rc_al_ratio med exp_rc_ratio med exp_fl_ratio med exp_cl_ratio) //(2.5/2.4), 11.6, 15.9 benchmark to rent 3.5, fuel 12.2, cereal 16.7 
 
 ----------------------------------------------------------------------
 10        |
@@ -365,7 +365,7 @@ mpce_mrp  | med(exp_rc~o)  med(exp_rc~o)  med(exp_fl~o)  med(exp_cl~o)
 
 . 
 . *Absolute exp. for rent and conveyance 
-. table mpce_10 [aw = pwt], c(med exp_rc_al_pp med exp_rc_pp med exp_fl_pp med exp_cl_pp) //14， 66, 91 at the MPCE class, benchmark to rent 30.68， fuel 70.4, cereal 96.5
+. table mpce_10 [aw = pwt], c(med exp_rc_al_pp med exp_rc_pp med exp_fl_pp med exp_cl_pp) //(14.4/14)， 66, 91 at the MPCE class, benchmark to rent 30.68， fuel 70.4, cereal 96.5
 
 ----------------------------------------------------------------------
 10        |
@@ -390,5 +390,5 @@ mpce_mrp  | med(exp_rc~p)  med(exp_rc~p)  med(exp_fl~p)  med(exp_cl~p)
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\01_NSS61_Poverty_Line.log
   log type:  text
- closed on:   5 Feb 2021, 08:36:42
+ closed on:   8 Feb 2021, 04:54:01
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
