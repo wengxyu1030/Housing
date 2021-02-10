@@ -172,11 +172,11 @@ graph export "${r_output}/kdensity_tenure_mpce.png",replace
 
 gen tn = (state == 33)
  
-table renter, c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
-table mpce_qt, c(mean renter) format(%9.2f) row
+table renter [aw = hhwt], c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
+table mpce_qt [aw = hhwt], c(mean renter) format(%9.2f) row
 
-table renter if tn == 1, c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
-table mpce_qt_tn if tn == 1, c(mean renter) format(%9.2f) row
+table renter if tn == 1 [aw = hhwt], c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
+table mpce_qt_tn if tn == 1 [aw = hhwt], c(mean renter) format(%9.2f) row
 
 *affordability and the share of housing expenditure to total expenditure (RIA and Ratio Approach)
 use "${r_output}\ria_final.dta",replace

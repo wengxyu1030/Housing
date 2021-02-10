@@ -1,0 +1,361 @@
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\/Rent Multi-Year\Do Files\R_01_Renters_Summary.log
+  log type:  text
+ opened on:   7 Feb 2021, 15:40:03
+
+. 
+. ****************************************************************************
+. * Append 3 Years (NSS 50 - 1993, NSS 61 - 2004, NSS 68 - 2011)
+. ****************************************************************************
+. 
+. use "${root}/NSS 50/Data Output Files/NSS_50_Renters.dta"
+
+. gen survey = "NSS50"
+
+. 
+. append using "${root}/NSS 61/Data Output Files/NSS_61_Renters.dta"
+(label state already defined)
+(label sector already defined)
+(label poor already defined)
+
+. replace survey = "NSS61" if survey == ""
+(124,644 real changes made)
+
+. 
+. append using "${root}/NSS 68/Data Output Files/NSS_68_Renters.dta"
+(note: variable hhwt was float, now double to accommodate using data's values)
+(label poor already defined)
+(label sector already defined)
+(label state already defined)
+
+. replace survey = "NSS68" if survey == ""
+(101,662 real changes made)
+
+. 
+. 
+. 
+. ****************************************************************************
+. * Summary Table - Renters 
+. ****************************************************************************
+. 
+. egen med_rent_1_exp = median(rent_1_exp), by(survey)
+
+. label var med_rent_1_exp "Median Rent to Exp - de jure (%)"
+
+. egen med_rent_2_exp = median(rent_2_exp), by(survey)
+
+. label var med_rent_2_exp "Median Rent to Exp - de facto (%)"
+
+. 
+. label var rent_1 "Mean Rent - de jure (Rs.)"
+
+. label var rent_2 "Mean Rent - de facto (Rs.)"
+
+. 
+. egen med_rent_1 = median(rent_1), by(survey)
+
+. label var med_rent_1 "Median Rent - de jure (Rs.)"
+
+. egen med_rent_2 = median(rent_2), by(survey)
+
+. label var med_rent_2 "Median Rent - de facto (Rs.)"
+
+. 
+. label var rent_1_exp "Mean Rent to Exp - de jure (%)"
+
+. label var rent_2_exp "Mean Rent to Exp - de facto (%)"
+
+. 
+. 
+. local var_summary renter_1 rent_1 med_rent_1  rent_1_exp  med_rent_1_exp  renter_2  rent_2 med_rent_2 rent_2_exp med_rent_2_exp
+
+. 
+. local nss_round "NSS50 NSS61 NSS68"
+
+. 
+. foreach survey in `nss_round'{
+  2. qui eststo `survey': quietly estpost summarize `var_summary' [aw=hhwt] if survey == "`survey'", de
+  3. qui eststo `survey'_u: quietly estpost summarize `var_summary' [aw=hhwt] if survey == "`survey'" & sector ==2, de
+  4. }
+
+. 
+. esttab NSS50 NSS61 NSS68, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) /// 
+> mtitles("1994" "2005" "2012") stats(N, label("Observations") fmt(%15.0fc)) /// 
+> title("Table R1. Summary of Renters - All India")
+
+Table R1. Summary of Renters - All India
+--------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)
+                                                  1994         2005         2012
+--------------------------------------------------------------------------------
+Renter - de jure (%)                               9.9         11.5         13.4
+Mean Rent - de jure (Rs.)                        222.0        684.0      1,685.4
+Median Rent - de jure (Rs.)                      175.0        450.0      1,000.0
+Mean Rent to Exp - de jure (%)                    10.6         14.9         16.3
+Median Rent to Exp - de jure (%)                  10.0         13.8         14.5
+Renter - de facto (%)                             11.2         11.0         13.2
+Mean Rent - de facto (Rs.)                       220.8        679.0      1,670.4
+Median Rent - de facto (Rs.)                     160.0        450.0      1,000.0
+Mean Rent to Exp - de facto (%)                   10.1         14.8         16.2
+Median Rent to Exp - de facto (%)                  9.3         13.6         14.4
+--------------------------------------------------------------------------------
+Observations                                   113,126      124,644      101,662
+--------------------------------------------------------------------------------
+
+. 
+. esttab NSS50_u NSS61_u NSS68_u, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) /// 
+> mtitles("1994" "2005" "2012") stats(N, label("Observations") fmt(%15.0fc)) /// 
+> title("Table R2. Summary of Renters - Urban India")
+
+Table R2. Summary of Renters - Urban India
+--------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)
+                                                  1994         2005         2012
+--------------------------------------------------------------------------------
+Renter - de jure (%)                              29.2         32.1         34.6
+Mean Rent - de jure (Rs.)                        240.6        764.3      1,895.6
+Median Rent - de jure (Rs.)                      175.0        450.0      1,000.0
+Mean Rent to Exp - de jure (%)                    11.1         15.9         17.4
+Median Rent to Exp - de jure (%)                  10.0         13.8         14.5
+Renter - de facto (%)                             33.2         31.4         34.4
+Mean Rent - de facto (Rs.)                       242.6        759.7      1,882.2
+Median Rent - de facto (Rs.)                     160.0        450.0      1,000.0
+Mean Rent to Exp - de facto (%)                   10.7         15.7         17.3
+Median Rent to Exp - de facto (%)                  9.3         13.6         14.4
+--------------------------------------------------------------------------------
+Observations                                    43,925       45,346       41,967
+--------------------------------------------------------------------------------
+
+. 
+. ****************************************************************************
+. * Summary Table 2 - By Quntile and Decile 
+. ****************************************************************************
+. ** So can only focus on de jure renters as the numbers are close ** 
+. * Create deciles for each survey year 
+. 
+. forvalues i = 1/10 {
+  2. qui egen mean_renter_d_`i' = mean(renter_1) if decile==`i' & sector ==2, by(survey)
+  3. qui egen med_rent_exp_d_`i' = median(rent_1_exp) if decile==`i' & sector ==2, by(survey)
+  4. }
+
+. 
+. forvalues i = 1/5 { 
+  2. qui egen mean_renter_q_`i' = mean(renter_1) if quintile==`i' & sector ==2, by(survey)
+  3. qui egen med_exp_q_`i' = median(rent_1_exp) if quintile==`i' & sector ==2, by(survey)
+  4. }
+
+. 
+. ds *renter_d_* *exp_d_*
+mean_ren~d_1  mean_ren~d_3  mean_ren~d_5  mean_rente~7  mean_rente~9  med_rent_e~1  med_rent_e~3  med_rent_e~5  med_rent_e~7  med_rent_e~9
+mean_ren~d_2  mean_ren~d_4  mean_rente~6  mean_rente~8  mean_rent~10  med_rent_e~2  med_rent_e~4  med_rent_e~6  med_rent_e~8  med_rent_~10
+
+. local var_d `r(varlist)'
+
+. ds *renter_q_* *exp_q_*
+mean_ren~q_1  mean_ren~q_2  mean_ren~q_3  mean_ren~q_4  mean_ren~q_5  med_exp_q_1   med_exp_q_2   med_exp_q_3   med_exp_q_4   med_exp_q_5
+
+. local var_q `r(varlist)'
+
+. 
+. foreach survey in `nss_round'{
+  2. qui eststo `survey'_d: quietly estpost summarize `var_d' [aw=hhwt] if survey == "`survey'"  & sector ==2
+  3. qui eststo `survey'_q: quietly estpost summarize `var_q' [aw=hhwt] if survey == "`survey'" & sector ==2
+  4. }
+
+. 
+. esttab NSS50_d NSS61_d NSS68_d, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) /// 
+> mtitles("1994" "2005" "2012") stats(N, label("Observations") fmt(%15.0fc)) /// 
+> title("Table R3. Summary of Renters - Urban India - By Expenditure Decile")
+
+Table R3. Summary of Renters - Urban India - By Expenditure Decile
+--------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)
+                                                  1994         2005         2012
+--------------------------------------------------------------------------------
+mean_renter_d_1                                   20.2         22.4         26.6
+mean_renter_d_2                                   31.8         30.9         31.6
+mean_renter_d_3                                   30.6         31.3         31.6
+mean_renter_d_4                                   32.4         28.6         27.7
+mean_renter_d_5                                   32.5         29.3         27.4
+mean_renter_d_6                                   31.3         29.8         27.5
+mean_renter_d_7                                   30.6         30.6         27.9
+mean_renter_d_8                                   27.9         30.2         28.7
+mean_renter_d_9                                   27.3         29.6         29.8
+mean_renter_d_10                                  25.4         27.2         26.2
+med_rent_exp_d_1                                  10.1         13.3         14.2
+med_rent_exp_d_2                                  10.9         14.6         14.8
+med_rent_exp_d_3                                  10.7         15.0         14.2
+med_rent_exp_d_4                                  11.1         14.7         14.2
+med_rent_exp_d_5                                  10.8         14.1         14.6
+med_rent_exp_d_6                                  10.6         14.7         15.7
+med_rent_exp_d_7                                  10.8         14.3         14.6
+med_rent_exp_d_8                                  10.6         14.0         15.7
+med_rent_exp_d_9                                  10.4         14.3         15.7
+med_rent_exp_d_10                                  9.7         14.7         16.3
+--------------------------------------------------------------------------------
+Observations                                    43,925       45,346       41,967
+--------------------------------------------------------------------------------
+
+. 
+. esttab NSS50_q NSS61_q NSS68_q, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(41) /// 
+> mtitles("1994" "2005" "2012") stats(N, label("Observations") fmt(%15.0fc)) /// 
+> title("Table R4. Summary of Renters - Urban India - By Expenditure Quintile")
+
+Table R4. Summary of Renters - Urban India - By Expenditure Quintile
+--------------------------------------------------------------------------------
+                                                   (1)          (2)          (3)
+                                                  1994         2005         2012
+--------------------------------------------------------------------------------
+mean_renter_q_1                                   26.3         26.5         29.1
+mean_renter_q_2                                   31.6         29.9         29.6
+mean_renter_q_3                                   31.8         29.6         27.5
+mean_renter_q_4                                   29.1         30.4         28.4
+mean_renter_q_5                                   26.2         28.3         27.7
+med_exp_q_1                                       10.6         14.1         14.6
+med_exp_q_2                                       10.7         14.9         14.2
+med_exp_q_3                                       10.6         14.5         15.1
+med_exp_q_4                                       10.7         14.2         15.1
+med_exp_q_5                                       10.0         14.5         16.0
+--------------------------------------------------------------------------------
+Observations                                    43,925       45,346       41,967
+--------------------------------------------------------------------------------
+
+. 
+. ****************************************************************************
+. * Regression of rent on expenditure 
+. ****************************************************************************
+. estimates clear 
+
+. 
+. qui reg rent_1 month_exp_m hhsize [aw=hhwt] if survey == "NSS50"
+
+. eststo 
+(est1 stored)
+
+. 
+. qui reg rent_1 month_exp_m hhsize [aw=hhwt] if survey == "NSS61"
+
+. eststo  
+(est2 stored)
+
+. 
+. qui reg rent_1 month_exp_m hhsize [aw=hhwt] if survey == "NSS68"
+
+. eststo  
+(est3 stored)
+
+. 
+. *State FE
+. qui areg rent_1 month_exp_m hhsize [aw=hhwt] if survey == "NSS50", absorb(state)
+
+. eststo 
+(est4 stored)
+
+. 
+. qui areg rent_1 month_exp_m hhsize [aw=hhwt] if survey == "NSS61", absorb(state)
+
+. eststo  
+(est5 stored)
+
+. 
+. qui areg rent_1 month_exp_m hhsize [aw=hhwt] if survey == "NSS68", absorb(state)
+
+. eststo 
+(est6 stored)
+
+. 
+. esttab
+
+------------------------------------------------------------------------------------------------------------
+                      (1)             (2)             (3)             (4)             (5)             (6)   
+                   rent_1          rent_1          rent_1          rent_1          rent_1          rent_1   
+------------------------------------------------------------------------------------------------------------
+month_exp_m        0.0687***        0.203***        0.253***       0.0685***        0.201***        0.251***
+                  (64.90)        (134.74)        (137.32)         (65.19)        (135.86)        (135.82)   
+
+hhsize             -3.174**        -65.74***       -154.0***       -2.792**        -64.63***       -150.6***
+                  (-3.13)        (-24.98)        (-18.09)         (-2.77)        (-25.12)        (-17.75)   
+
+_cons               85.69***        37.46***       -168.0***        84.75***        41.75***       -161.4***
+                  (20.38)          (3.56)         (-5.46)         (20.40)          (4.06)         (-5.26)   
+------------------------------------------------------------------------------------------------------------
+N                   13145           14537           13532           13145           14537           13532   
+------------------------------------------------------------------------------------------------------------
+t statistics in parentheses
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. ****************************************************************************
+. * Regression of log rent on log expenditure 
+. ****************************************************************************
+. estimates clear 
+
+. gen l_rent_1 = log(rent_1)
+(298,223 missing values generated)
+
+. gen l_month_exp_m = log(month_exp_m)
+
+. 
+. qui reg l_rent_1 l_month_exp_m hhsize [aw=hhwt] if survey == "NSS50"
+
+. eststo 
+(est1 stored)
+
+. 
+. qui reg l_rent_1 l_month_exp_m hhsize [aw=hhwt] if survey == "NSS61"
+
+. eststo  
+(est2 stored)
+
+. 
+. qui reg l_rent_1 l_month_exp_m hhsize [aw=hhwt] if survey == "NSS68"
+
+. eststo  
+(est3 stored)
+
+. 
+. *State FE
+. qui areg l_rent_1 l_month_exp_m hhsize [aw=hhwt] if survey == "NSS50", absorb(state)
+
+. eststo 
+(est4 stored)
+
+. 
+. qui areg l_rent_1 l_month_exp_m hhsize [aw=hhwt] if survey == "NSS61", absorb(state)
+
+. eststo  
+(est5 stored)
+
+. 
+. qui areg l_rent_1 l_month_exp_m hhsize [aw=hhwt] if survey == "NSS68", absorb(state)
+
+. eststo 
+(est6 stored)
+
+. 
+. esttab
+
+------------------------------------------------------------------------------------------------------------
+                      (1)             (2)             (3)             (4)             (5)             (6)   
+                 l_rent_1        l_rent_1        l_rent_1        l_rent_1        l_rent_1        l_rent_1   
+------------------------------------------------------------------------------------------------------------
+l_month_ex~m        0.992***        1.150***        1.271***        1.014***        1.131***        1.248***
+                  (70.11)         (97.88)        (114.99)         (73.55)         (99.06)        (114.67)   
+
+hhsize            -0.0764***       -0.116***      -0.0747***      -0.0794***       -0.112***      -0.0711***
+                 (-16.84)        (-28.47)        (-18.14)        (-18.00)        (-28.45)        (-17.73)   
+
+_cons              -2.204***       -2.961***       -4.213***       -2.358***       -2.822***       -4.020***
+                 (-22.48)        (-32.85)        (-45.29)        (-24.71)        (-32.20)        (-43.88)   
+------------------------------------------------------------------------------------------------------------
+N                   13145           14537           13532           13145           14537           13532   
+------------------------------------------------------------------------------------------------------------
+t statistics in parentheses
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. 
+. 
+. *Close Log
+. cap log close

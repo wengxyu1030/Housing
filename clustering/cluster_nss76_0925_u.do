@@ -13,11 +13,17 @@ if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76"
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\clustering"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
+di "${r_output}"
+
+log using "${script}\01_cluster_nss76_u.log",replace
+set linesize 255
+
 
 ****************************************************************************
 * Load the data
@@ -532,3 +538,4 @@ gen hq_cluster_name = string(in_wall_permanent)+"-"+string(in_floor_permanent)+"
 bysort cluster: tab hq_cluster_name  [aw = hh_weight],sort
 
 save "${root}\Data Output Files\NSS76_urban_kmeans.dta",replace
+log close

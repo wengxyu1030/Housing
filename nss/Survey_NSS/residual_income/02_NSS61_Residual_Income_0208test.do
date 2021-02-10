@@ -83,8 +83,12 @@ drop _merge
    *Non-housing consumption per capita
    gen double exp_non_housing_pp = mpce_mrp - total_exp_housing_pp //all poverty line data are compiled using the MRP metho
    
+   *household expendigure 
+   gen double mhce = mpce*hhsize
+   
    *Expenditure quintile (for all india, urban and rural sector)
    xtile mpce_qt = mpce [aw = hhwt] , n(5)
+   xtile mhce_qt = mhce [aw = hhwt] , n(5)
    xtile mpce_qt_tn = mpce [aw = hhwt] if state == 33, n(5)
    
    *take log of expenditure
@@ -95,8 +99,9 @@ drop _merge
    keep if urban == 1
 
    *renter table
-   table renter, c(mean mpce median mpce) format(%9.2f) row
-   table mpce_qt, c(mean renter) format(%9.2f) row
+   table renter  [aw = hhwt], c(mean mpce median mpce) format(%9.2f) row
+   table mpce_qt  [aw = hhwt], c(mean renter) format(%9.2f) row
+   table mhce_qt  [aw = hhwt], c(mean renter) format(%9.2f) row
 
 ******************************************************************************
 *Use data from datalibweb only 
@@ -104,7 +109,9 @@ drop _merge
  use "${r_input}\NSS_61_Poverty_For_Aline.dta",clear
  
      *Expenditure quintile (for all india, urban and rural sector)
+	 gen double mhce = mpce*hhsize
      xtile mpce_qt = mpce [aw = hhwt] , n(5)
+	 xtile mhce_qt = mhce [aw = hhwt] , n(5)
      xtile mpce_qt_tn = mpce [aw = hhwt] if state == 33, n(5)
    
      *only focusing on urban households
@@ -115,5 +122,6 @@ drop _merge
 	 gen renter = (dwellingowned ! =1) * 100
    
      *renter table
-     table renter, c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
-     table mpce_qt, c(mean renter) format(%9.2f) row
+     table renter [aw = hhwt], c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
+     table mpce_qt [aw = hhwt], c(mean renter) format(%9.2f) row
+	 table mhce_qt [aw = hhwt], c(mean renter) format(%9.2f) row

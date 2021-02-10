@@ -1,0 +1,1058 @@
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\clustering\01_cluster_nss76_r.log
+  log type:  text
+ opened on:  10 Feb 2021, 05:45:29
+
+. set linesize 255
+
+. 
+. ****************************************************************************
+. * Load the data
+. ****************************************************************************
+. use "${root}\Data Output Files\NSS76_All.dta",clear
+
+. 
+. ****************************************************************************
+. * Get the Variable List to Make a Summary Table 
+. ****************************************************************************
+. label var hh_size "Size of Household"
+
+. 
+. **** MATERIALS ****
+. gen in_wall_permanent = 100*(b7_15== 6 | b7_15== 8 | b7_15== 9) // exclude timber and metal sheet
+
+. label var in_wall_permanent "Wall: Cement or Stone (%)"
+
+. 
+. gen in_wall = "Katcha"
+
+. replace in_wall = "Permanent" if in_wall_permanent == 100
+variable in_wall was str6 now str9
+(86,604 real changes made)
+
+. replace in_wall = "Metal" if inlist(b7_15,5,7) //metal or timber.
+(2,927 real changes made)
+
+. label var in_wall "Wall Material"
+
+. 
+. gen in_roof_permanent = 100*(b7_16== 6 | b7_16== 8 | b7_16== 9) // exclude metal and asbestos sheets
+
+. label var in_roof_permanent "Roof: Cement or Stone (%)"
+
+. 
+. gen in_roof = "Katcha"
+
+. replace in_roof = "Permanent" if in_roof_permanent == 100
+variable in_roof was str6 now str9
+(65,165 real changes made)
+
+. replace in_roof = "Metal" if b7_16 == 7
+(25,667 real changes made)
+
+. label var in_roof "Roof Material"
+
+. 
+. gen in_floor_permanent = 100*(inrange(b7_14,3,6)) // exclude mud, bamboo and log
+
+. label var in_floor_permanent "Floor: Cement or Stone (%)"
+
+. 
+. gen in_floor = "Katcha"
+
+. replace in_floor = "Permanent" if in_floor_permanent == 100
+variable in_floor was str6 now str9
+(79,402 real changes made)
+
+. 
+. sum *permanent
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+in_wall_pe~t |    106,838    81.06105    39.18196          0        100
+in_roof_pe~t |    106,838    60.99422    48.77653          0        100
+in_floor_p~t |    106,838       74.32    43.68702          0        100
+
+. 
+. gen in_all_permanent = (in_wall_permanent*in_roof_permanent*in_floor_permanent) / 1e4
+
+. label var in_all_permanent "All Materials: Cement or Stone (%)"
+
+. 
+. gen in_sep_kitch = 100*inrange(b7_12,1,2) 
+
+. label var in_sep_kitch "Separate Kitchen (%)" 
+
+. 
+. gen in_flat = 100 * (b7_1 == 2)
+
+. label var in_flat "Flat (%)"
+
+. 
+. gen in_size = b7_8 
+(34 missing values generated)
+
+. label var in_size "Dwelling Size (sq ft)"
+
+. sum in_size [aw = hh_weight] if hh_urban ==0 ,de
+
+                    Dwelling Size (sq ft)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          100             22
+ 5%          150             23
+10%          200             25       Obs              63,732
+25%          290             25       Sum of Wgt.  1.7837e+10
+
+50%          436                      Mean           501.1949
+                        Largest       Std. Dev.      310.5866
+75%          630           5200
+90%          880           5500       Variance       96464.06
+95%         1080           7000       Skewness       2.103841
+99%         1588          10400       Kurtosis       12.91377
+
+. gen in_size_big = 100*(in_size > `r(p50)') if hh_urban == 0 
+(43,102 missing values generated)
+
+. 
+. recode in_room (7/41 = 7), gen(in_room_grp)
+(5914 differences between in_room and in_room_grp)
+
+. tostring in_room_grp, replace
+in_room_grp was byte now str1
+
+. replace in_room_grp = ">6" if in_room_grp == "7"
+variable in_room_grp was str1 now str2
+(11,213 real changes made)
+
+. 
+. sum in_room [aw = hh_weight] if hh_urban == 0,de
+
+                       Number of Rooms
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            2              1       Obs              63,732
+25%            2              1       Sum of Wgt.  1.7837e+10
+
+50%            3                      Mean           3.719772
+                        Largest       Std. Dev.      1.844716
+75%            5             17
+90%            6             17       Variance       3.402976
+95%            7             18       Skewness       .9097393
+99%            9             21       Kurtosis       4.410918
+
+. gen in_room_big = 100*(in_room > `r(p50)') if hh_urban == 0 
+(43,102 missing values generated)
+
+. label var in_room_big "More Rooms"
+
+. 
+. gen in_ppl_room = hh_size / in_room
+(34 missing values generated)
+
+. label var in_ppl_room "People per room"
+
+. gen crowd_room =  100*(in_ppl_room > 1)
+
+. label var crowd_room "Overcrowd-room"
+
+. 
+. gen in_ppl_area = in_size / hh_size
+(34 missing values generated)
+
+. label var in_ppl_area "Area in sq ft per person"
+
+. 
+. **** WATER and SANITATION ****
+. gen h20_piped_in = 100* (b5_1 == 2 | b5_1 == 1 |b5_1 == 10 | b5_1 == 11)
+
+. label var h20_piped_in "Water: Piped into Dwelling (%)"
+
+. 
+. gen h20_yard = 100* (b5_1 == 3 | b5_1 ==4 )
+
+. label var h20_yar "Water: Piped into Yard (%)"
+
+. 
+. gen h20_pump_in = 100* inrange(b5_1,5,8)*(b5_5 <= 2) // include a protected well
+
+. label var h20_pump_in "Water: Pump/Tubewell in Premises (%)"
+
+. 
+. gen h20_pump_out = 100* inrange(b5_1,5,8)*(b5_5 > 2) // include a protected well
+
+. label var h20_pump_out "Water: Pump/Tubewell Outside Premises (%)"
+
+. 
+. gen h20_other = 100* (h20_piped_in!=100 & h20_pump_in!=100 & h20_pump_out!=100 & h20_yard!=100)
+
+. label var h20_other "Water: Other (%)"
+
+. 
+. gen h20 = ""
+(106,838 missing values generated)
+
+. replace h20 = "Piped in" if h20_piped_in == 100
+variable h20 was str1 now str8
+(33,126 real changes made)
+
+. replace h20 = "Yard" if h20_yard == 100
+(14,772 real changes made)
+
+. replace h20 = "Pump in" if h20_pump_in == 100
+(27,096 real changes made)
+
+. replace h20 = "Pump out" if h20_pump_out == 100
+(24,940 real changes made)
+
+. replace h20 = "Other" if h20_other == 100
+(6,904 real changes made)
+
+. label var h20 "Water Access"
+
+. 
+. gen san_flush = 100*inrange(b5_26,1,2)
+
+. label var san_flush "Sanitation: Flush (%)"
+
+. 
+. gen san_imp_pit = 100*inrange(b5_26,6,7)
+
+. label var san_imp_pit "Sanitation: Improved Pit (%)"
+
+. 
+. gen san_single_twin_pit = 100*inrange(b5_26,3,4)
+
+. label var san_single_twin_pit "Sanitation: Single/Twin Pit (%)"
+
+. 
+. gen san_other = 100*(san_flush!=100&san_imp_pit!= 100 & san_single_twin_pit!=100)
+
+. label var san_other "Sanitation: Other (%)"
+
+. 
+. gen san = ""
+(106,838 missing values generated)
+
+. replace san = "Flush" if san_flush == 100
+variable san was str1 now str5
+(60,114 real changes made)
+
+. replace san = "Improved Pit" if san_imp_pit == 100
+variable san was str5 now str12
+(8,716 real changes made)
+
+. replace san = "Single/Twin Pit" if san_single_twin_pit == 100
+variable san was str12 now str15
+(18,030 real changes made)
+
+. replace san = "Other" if san_other == 100
+(19,978 real changes made)
+
+. label var san "Sanitation Access"
+
+. 
+. ****** Check Weights for Large Cities ****** 
+. gen hh_district = substr(b1_id,19,2)
+
+. destring hh_district, replace
+hh_district: all characters numeric; replaced as byte
+
+. 
+. gen n = 1 
+
+. egen district_pop_num = sum(n*hh_weight) ,by(hh_state hh_dist)
+
+. egen district_pop_denom = sum(hh_weight)
+
+. gen district_pop = district_pop_num / district_pop_denom
+
+. 
+. gsort -district_pop
+
+. order hh_state hh_dist *pop
+
+. gen state_dist = hh_state + "-" + string(hh_dist)
+
+. table state_dist if district_pop > 0.005, c(count hh_urban mean hh_urban mean district_pop) row 
+
+----------------------------------------------------------
+state_dis |
+t         |    N(hh_urban)  mean(hh_urban)  mean(distri~p)
+----------+-----------------------------------------------
+    08-12 |            514        .5797665        .0050615
+     09-9 |            359        .7325906        .0052883
+    19-10 |            456         .368421        .0050526
+    19-11 |            956        .6485355        .0103121
+    19-16 |            499               1        .0063985
+    19-17 |            694        .3429395        .0082386
+     19-7 |            552        .2608696        .0064187
+    24-25 |            527        .8633776        .0050896
+     24-7 |            617        .8833063        .0069827
+    27-21 |            998        .8076152        .0086111
+    27-22 |          1,060               1        .0099115
+    27-25 |            815        .6466258        .0085143
+     28-3 |            346         .583815         .005178
+     28-4 |            408        .3529412        .0060323
+     28-7 |            408        .4117647        .0060746
+    29-18 |            888        .9459459         .012215
+     33-2 |            396               1        .0056053
+     33-3 |            336        .6428571        .0051271
+    36-23 |            624        .9230769        .0109379
+          | 
+    Total |         11,453        .7129136        .0079011
+----------------------------------------------------------
+
+. 
+. gen big_city  = district_pop > 0.005 & hh_urban ==1 
+
+.  
+. /*
+> *Mumbai - district == 23
+> table hh_district if hh_state == "27", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *Chennai
+> table hh_district if hh_state == "33", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *HYderabad
+> table hh_district if hh_state == "36", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *delhi
+> table hh_district if hh_state == "07", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *Banglore
+> table hh_district if hh_state == "29", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> */
+. 
+. 
+. local var_summary hh_size in_* h20* san*
+
+. 
+. *only focus on urban households with housing. 
+. keep if infra_has_dwell == 1 & hh_urban == 0
+(43,106 observations deleted)
+
+. 
+. save "${root}\Data Output Files\NSS76_All_clst_r.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76\Data Output Files\NSS76_All_clst_r.dta saved
+
+. 
+. ****************************************************************************
+. *Cluster of housing quality (matching Dendrogram)
+. ****************************************************************************
+. use "${root}\Data Output Files\NSS76_All_clst_r.dta",replace
+
+. 
+. *decide the housing material cluster
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t 
+-------------+---------------------------------
+in_wall_pe~t |         0                       
+in_roof_pe~t |  .2597282          0            
+in_floor_p~t |  .2361294   .3228833          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 3
+
+.     describe
+
+Contains data
+  obs:             3                          
+ vars:             4                          
+ size:            84                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str18   %18s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity)
+
+.         
+. restore 
+
+. 
+. *combine housing infra with area, separate kitchen
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent in_size_big in_room_big in_sep_kitch
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  in_sep_~h  in_size~g  in_room~g 
+-------------+------------------------------------------------------------------
+in_wall_pe~t |         0                                                        
+in_roof_pe~t |  .2597282          0                                             
+in_floor_p~t |  .2361294   .3228833          0                                  
+in_sep_kitch |  .4246219   .4543557   .3344788          0                       
+ in_size_big |  .4348993   .4360133    .412289   .3412885          0            
+ in_room_big |   .416651   .4150348   .3514875   .2662085   .2427509          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 6
+
+.     describe
+
+Contains data
+  obs:             6                          
+ vars:             4                          
+ size:           168                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str18   %18s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra with water
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent h20*
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  h20_pip~n   h20_yard  h20_pum~n  h20_pum~t  h20_other 
+-------------+----------------------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                              
+in_roof_pe~t |  .2597282          0                                                                   
+in_floor_p~t |  .2361294   .3228833          0                                                        
+h20_piped_in |  .6063673    .456066   .4864118          0                                             
+    h20_yard |  .6682514   .5223749   .5499906   .2891169          0                                  
+ h20_pump_in |  .5612879   .4427446   .5901745   .4795236   .4322318          0                       
+h20_pump_out |  .6497207   .5725695   .6170997   .4838229   .4365311   .6269378          0            
+   h20_other |  .7292569   .5359003     .60268   .2521496   .2048578   .3952645   .3995638          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 8
+
+.     describe
+
+Contains data
+  obs:             8                          
+ vars:             4                          
+ size:           224                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str18   %18s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra with sanitation
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent san*
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  san_flush  san_imp~t  san_sin~t  san_other 
+-------------+-----------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                   
+in_roof_pe~t |  .2597282          0                                                        
+in_floor_p~t |  .2361294   .3228833          0                                             
+   san_flush |  .4576037    .399909   .3848145          0                                  
+ san_imp_pit |  .7352507     .56656   .6119061   .4982897          0                       
+san_single~t |   .632304   .5015848   .5594835   .6092701    .334667          0            
+   san_other |   .651431   .5517166   .6747003    .665333   .3907299   .5017103          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 7
+
+.     describe
+
+Contains data
+  obs:             7                          
+ vars:             4                          
+ size:           203                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str19   %19s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra, water, sanitation
+. 
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20* 
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  h20_pip~n   h20_yard  h20_pum~n  h20_pum~t  h20_other  san_flush  san_imp~t  san_sin~t  san_other 
+-------------+------------------------------------------------------------------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                                                                          
+in_roof_pe~t |  .2597282          0                                                                                                               
+in_floor_p~t |  .2361294   .3228833          0                                                                                                    
+h20_piped_in |  .6063673    .456066   .4864118          0                                                                                         
+    h20_yard |  .6682514   .5223749   .5499906   .2891169          0                                                                              
+ h20_pump_in |  .5612879   .4427446   .5901745   .4795236   .4322318          0                                                                   
+h20_pump_out |  .6497207   .5725695   .6170997   .4838229   .4365311   .6269378          0                                                        
+   h20_other |  .7292569   .5359003     .60268   .2521496   .2048578   .3952645   .3995638          0                                             
+   san_flush |  .4576037    .399909   .3848145    .340504   .3964884   .4581686   .5307852    .433393          0                                  
+ san_imp_pit |  .7352507     .56656   .6119061   .2610306   .2076822   .3420417   .3591132   .1656625   .4982897          0                       
+san_single~t |   .632304   .5015848   .5594835   .3264137   .2903251   .3971317   .4050085    .249592   .6092701    .334667          0            
+   san_other |   .651431   .5517166   .6747003   .4084604   .3473294   .4252966   .3363303   .3192431    .665333   .3907299   .5017103          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 12
+
+.     describe
+
+Contains data
+  obs:            12                          
+ vars:             4                          
+ size:           348                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str19   %19s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra, water, sanitation, and size separate kitchen 
+. 
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20* in_size_big in_room_big in_sep_kitch
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  in_sep_~h  in_size~g  in_room~g  h20_pip~n   h20_yard  h20_pum~n  h20_pum~t  h20_other  san_flush  san_imp~t  san_sin~t  san_other 
+-------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                                                                                                           
+in_roof_pe~t |  .2597282          0                                                                                                                                                
+in_floor_p~t |  .2361294   .3228833          0                                                                                                                                     
+in_sep_kitch |  .4246219   .4543557   .3344788          0                                                                                                                          
+ in_size_big |  .4348993   .4360133    .412289   .3412885          0                                                                                                               
+ in_room_big |   .416651   .4150348   .3514875   .2662085   .2427509          0                                                                                                    
+h20_piped_in |  .6063673    .456066   .4864118     .48194   .4963598    .459973          0                                                                                         
+    h20_yard |  .6682514   .5223749   .5499906   .5308009   .5392895   .5092418   .2891169          0                                                                              
+ h20_pump_in |  .5612879   .4427446   .5901745   .5364652   .4743457   .5014435   .4795236   .4322318          0                                                                   
+h20_pump_out |  .6497207   .5725695   .6170997   .6077951   .5999341   .6027741   .4838229   .4365311   .6269378          0                                                        
+   h20_other |  .7292569   .5359003     .60268   .5320875   .5218728   .5053191   .2521496   .2048578   .3952645   .3995638          0                                             
+   san_flush |  .4576037    .399909   .3848145   .4180945   .4267401   .3908555    .340504   .3964884   .4581686   .5307852    .433393          0                                  
+ san_imp_pit |  .7352507     .56656   .6119061   .5287297   .5315069   .5190328   .2610306   .2076822   .3420417   .3591132   .1656625   .4982897          0                       
+san_single~t |   .632304   .5015848   .5594835   .5080336   .5094301   .4710663   .3264137   .2903251   .3971317   .4050085    .249592   .6092701    .334667          0            
+   san_other |   .651431   .5517166   .6747003   .6712013   .6201908   .6715465   .4084604   .3473294   .4252966   .3363303   .3192431    .665333   .3907299   .5017103          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 15
+
+.     describe
+
+Contains data
+  obs:            15                          
+ vars:             4                          
+ size:           435                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str19   %19s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. ****************************************************************************
+. *Crosstab the principal variables. 
+. ****************************************************************************
+. 
+. *housing material grouping: 42% is whole pucca structure.  
+. sort in_wall_permanent in_roof_permanent in_floor_permanent
+
+. gen house_material = string(in_wall_permanent)+"-"+string(in_floor_permanent)+"-"+string(in_roof_permanent)
+
+. tab house_material 
+
+house_mater |
+        ial |      Freq.     Percent        Cum.
+------------+-----------------------------------
+      0-0-0 |     12,487       19.59       19.59
+    0-0-100 |        582        0.91       20.51
+    0-100-0 |      3,194        5.01       25.52
+  0-100-100 |        416        0.65       26.17
+    100-0-0 |      5,096        8.00       34.17
+  100-0-100 |      6,343        9.95       44.12
+  100-100-0 |     10,459       16.41       60.53
+100-100-100 |     25,155       39.47      100.00
+------------+-----------------------------------
+      Total |     63,732      100.00
+
+. 
+. gen hse_material_grp = 1
+
+. replace hse_material_grp = 3 if house_material == "100-100-100"
+(25,155 real changes made)
+
+. replace hse_material_grp = 2 if house_material == "100-100-0"
+(10,459 real changes made)
+
+. tab hse_material_grp [aw = hh_weight]
+
+hse_materia |
+      l_grp |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 | 27,447.189       43.07       43.07
+          2 | 9,502.3696       14.91       57.98
+          3 | 26,782.441       42.02      100.00
+------------+-----------------------------------
+      Total |     63,732      100.00
+
+. 
+. gen hse_material_grp_p = 0
+
+. replace hse_material_grp_p = 1 if house_material == "100-100-100"
+(25,155 real changes made)
+
+. tab hse_material_grp_p [aw = hh_weight]
+
+hse_materia |
+    l_grp_p |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 36,949.559       57.98       57.98
+          1 | 26,782.441       42.02      100.00
+------------+-----------------------------------
+      Total |     63,732      100.00
+
+. 
+. ****************************************************************************
+. *Cluster of observations
+. ****************************************************************************
+. 
+. *all the indicators add up
+. sort hse_material_grp h20_piped_in san_flush in_size_big
+
+. gen hse_quality = string(hse_material_grp)+"-"+string(h20_piped_in)+"-"+string(san_flush)+"-"+string(in_size_big)+"-"+string(in_sep_kitch)
+
+. tab hse_quality [aw = hh_weight],sort //15% has none of the indicators met. 
+
+      hse_quality |      Freq.     Percent        Cum.
+------------------+-----------------------------------
+        1-0-0-0-0 |  10,175.51       15.97       15.97
+  3-0-100-100-100 | 5,272.8412        8.27       24.24
+      1-0-0-100-0 | 4,177.1465        6.55       30.79
+    3-0-0-100-100 | 3,781.8037        5.93       36.73
+    1-0-0-100-100 | 3,391.3157        5.32       42.05
+      1-0-0-0-100 | 3,091.5516        4.85       46.90
+        3-0-0-0-0 | 2,707.6665        4.25       51.15
+3-100-100-100-100 | 2,593.2194        4.07       55.22
+      3-0-0-0-100 |  2,003.207        3.14       58.36
+    3-0-100-0-100 | 1,960.3831        3.08       61.44
+      3-0-0-100-0 | 1,714.8016        2.69       64.13
+      1-0-100-0-0 |  1,611.213        2.53       66.66
+      3-0-100-0-0 | 1,558.2994        2.45       69.10
+    2-0-0-100-100 | 1,532.8254        2.41       71.51
+        2-0-0-0-0 | 1,527.3989        2.40       73.90
+    1-0-100-100-0 | 1,431.6237        2.25       76.15
+  1-0-100-100-100 |  1,411.096        2.21       78.36
+      2-0-0-0-100 | 1,243.5191        1.95       80.31
+    3-0-100-100-0 |  1,203.558        1.89       82.20
+  2-0-100-100-100 | 1,111.2956        1.74       83.95
+  3-100-100-0-100 | 1,062.4891        1.67       85.61
+  3-100-0-100-100 | 1,019.1746        1.60       87.21
+      2-0-100-0-0 |661.7872102        1.04       88.25
+    2-0-100-0-100 | 647.280456        1.02       89.27
+    1-0-100-0-100 | 628.821682        0.99       90.25
+    3-100-0-0-100 | 583.857351        0.92       91.17
+      2-0-0-100-0 |  548.05778        0.86       92.03
+2-100-100-100-100 | 512.098234        0.80       92.83
+    3-100-100-0-0 |  440.86257        0.69       93.52
+      3-100-0-0-0 | 379.304855        0.60       94.12
+  2-100-0-100-100 | 365.152123        0.57       94.69
+      1-100-0-0-0 | 356.463979        0.56       95.25
+  3-100-100-100-0 | 293.055074        0.46       95.71
+    2-0-100-100-0 |273.6551457        0.43       96.14
+1-100-100-100-100 | 256.755094        0.40       96.54
+  1-100-0-100-100 | 232.938544        0.37       96.91
+  2-100-100-0-100 | 231.794087        0.36       97.27
+      2-100-0-0-0 | 212.530108        0.33       97.61
+    3-100-0-100-0 | 207.917884        0.33       97.93
+    2-100-0-0-100 | 207.917348        0.33       98.26
+    2-100-100-0-0 |190.9947998        0.30       98.56
+    1-100-0-100-0 | 166.633173        0.26       98.82
+    1-100-0-0-100 |164.3792266        0.26       99.08
+    1-100-100-0-0 | 140.704007        0.22       99.30
+  1-100-100-100-0 | 129.608083        0.20       99.50
+    2-100-0-100-0 | 118.564101        0.19       99.69
+  2-100-100-100-0 | 117.499164        0.18       99.87
+  1-100-100-0-100 | 81.4288522        0.13      100.00
+------------------+-----------------------------------
+            Total |     63,732      100.00
+
+. 
+. *crosstab service and other indicator. 
+. gen hse_service = string(h20_piped_in)+"-"+string(san_flush)
+
+. tab hse_service [aw = hh_weight] //more than 90% of them do not have complete water and sanitation in house. 
+
+hse_service |      Freq.     Percent        Cum.
+------------+-----------------------------------
+        0-0 | 35,894.804       56.32       56.32
+      0-100 | 17,771.854       27.89       84.21
+      100-0 | 4,014.8333        6.30       90.51
+    100-100 | 6,050.5085        9.49      100.00
+------------+-----------------------------------
+      Total |     63,732      100.00
+
+. tab hse_service hse_material_grp [aw = hh_weight],cell
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |         hse_material_grp
+         e |         1          2          3 |     Total
+-----------+---------------------------------+----------
+       0-0 | 20,835.52  4,851.801  10,207.48 |  35,894.8 
+           |     32.69       7.61      16.02 |     56.32 
+-----------+---------------------------------+----------
+     0-100 |5,082.7544  2,694.018  9,995.082 | 17,771.85 
+           |      7.98       4.23      15.68 |     27.89 
+-----------+---------------------------------+----------
+     100-0 | 920.41492  904.16368  2,190.255 | 4,014.833 
+           |      1.44       1.42       3.44 |      6.30 
+-----------+---------------------------------+----------
+   100-100 | 608.49604  1,052.386  4,389.626 | 6,050.508 
+           |      0.95       1.65       6.89 |      9.49 
+-----------+---------------------------------+----------
+     Total | 27,447.19   9,502.37  26,782.44 |    63,732 
+           |     43.07      14.91      42.02 |    100.00 
+
+. 
+.     gen hse_service_grp = 0
+
+.     replace hse_service_grp = 1 if hse_service == "100-100"
+(6,824 real changes made)
+
+.         
+.         *with housing materia
+.         tab hse_service_grp hse_material_grp [aw = hh_weight],cell
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |         hse_material_grp
+     e_grp |         1          2          3 |     Total
+-----------+---------------------------------+----------
+         0 | 26,838.69  8,449.983  22,392.82 | 57,681.49 
+           |     42.11      13.26      35.14 |     90.51 
+-----------+---------------------------------+----------
+         1 | 608.49604  1,052.386  4,389.626 | 6,050.508 
+           |      0.95       1.65       6.89 |      9.49 
+-----------+---------------------------------+----------
+     Total | 27,447.19   9,502.37  26,782.44 |    63,732 
+           |     43.07      14.91      42.02 |    100.00 
+
+.         tab hse_service_grp hse_material_grp_p [aw = hh_weight],cell
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |  hse_material_grp_p
+     e_grp |         0          1 |     Total
+-----------+----------------------+----------
+         0 | 35,288.68  22,392.82 | 57,681.49 
+           |     55.37      35.14 |     90.51 
+-----------+----------------------+----------
+         1 | 1,660.882  4,389.626 | 6,050.508 
+           |      2.61       6.89 |      9.49 
+-----------+----------------------+----------
+     Total | 36,949.56  26,782.44 |    63,732 
+           |     57.98      42.02 |    100.00 
+
+.         
+.         *with dwelling size
+.         tab hse_service_grp in_size_big [aw = hh_weight],cell //half of them is overcrowded. 
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |      in_size_big
+     e_grp |         0        100 |     Total
+-----------+----------------------+----------
+         0 | 29,721.09   27,960.4 | 57,681.49 
+           |     46.63      43.87 |     90.51 
+-----------+----------------------+----------
+         1 | 2,148.273  3,902.235 | 6,050.508 
+           |      3.37       6.12 |      9.49 
+-----------+----------------------+----------
+     Total | 31,869.36  31,862.64 |    63,732 
+           |     50.01      49.99 |    100.00 
+
+.         
+.         *with separate kitchen
+.         tab hse_service_grp in_sep_kitch [aw = hh_weight],row //majority of them is with separate kitchen with good service. 
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+hse_servic | Separate Kitchen (%)
+     e_grp |         0        100 |     Total
+-----------+----------------------+----------
+         0 | 29,032.13  28,649.36 | 57,681.49 
+           |     50.33      49.67 |    100.00 
+-----------+----------------------+----------
+         1 |1,312.7237  4,737.785 | 6,050.508 
+           |     21.70      78.30 |    100.00 
+-----------+----------------------+----------
+     Total | 30,344.86  33,387.14 |    63,732 
+           |     47.61      52.39 |    100.00 
+
+. 
+. gen hse_quality_grp = string(hse_material_grp_p)+"-"+string(hse_service_grp)+"-"+string(in_size_big)
+
+. tab hse_quality_grp [aw = hh_weight]
+
+hse_quality |
+       _grp |      Freq.     Percent        Cum.
+------------+-----------------------------------
+      0-0-0 | 20,528.373       32.21       32.21
+    0-0-100 | 14,760.304       23.16       55.37
+      0-1-0 | 644.921746        1.01       56.38
+    0-1-100 | 1,015.9606        1.59       57.98
+      1-0-0 | 9,192.7182       14.42       72.40
+    1-0-100 | 13,200.097       20.71       93.11
+      1-1-0 | 1,503.3517        2.36       95.47
+    1-1-100 | 2,886.2745        4.53      100.00
+------------+-----------------------------------
+      Total |     63,732      100.00
+
+. tab hse_quality_grp [aw = hh_weight],sort
+
+hse_quality |
+       _grp |      Freq.     Percent        Cum.
+------------+-----------------------------------
+      0-0-0 | 20,528.373       32.21       32.21
+    0-0-100 | 14,760.304       23.16       55.37
+    1-0-100 | 13,200.097       20.71       76.08
+      1-0-0 | 9,192.7182       14.42       90.51
+    1-1-100 | 2,886.2745        4.53       95.04
+      1-1-0 | 1,503.3517        2.36       97.39
+    0-1-100 | 1,015.9606        1.59       98.99
+      0-1-0 | 644.921746        1.01      100.00
+------------+-----------------------------------
+      Total |     63,732      100.00
+
+. 
+. *cross validate with other indicator: slum, consumption, rent, overcrowding
+. 
+. **distribution of slum and renter
+. tab hse_quality_grp legal_rent [aw = hh_weight],col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+hse_qualit |      legal_rent
+     y_grp |         0          1 |     Total
+-----------+----------------------+----------
+     0-0-0 | 20,016.72  511.65007 | 20,528.37 
+           |     32.31      28.70 |     32.21 
+-----------+----------------------+----------
+   0-0-100 | 14,585.65  174.65195 |  14,760.3 
+           |     23.54       9.80 |     23.16 
+-----------+----------------------+----------
+     0-1-0 | 582.26453  62.657218 | 644.92175 
+           |      0.94       3.51 |      1.01 
+-----------+----------------------+----------
+   0-1-100 | 994.47296  21.487618 | 1,015.961 
+           |      1.61       1.21 |      1.59 
+-----------+----------------------+----------
+     1-0-0 | 8,666.037  526.68121 | 9,192.718 
+           |     13.99      29.54 |     14.42 
+-----------+----------------------+----------
+   1-0-100 | 13,009.87  190.22478 |  13,200.1 
+           |     21.00      10.67 |     20.71 
+-----------+----------------------+----------
+     1-1-0 | 1,307.793   195.5584 |1,503.3517 
+           |      2.11      10.97 |      2.36 
+-----------+----------------------+----------
+   1-1-100 | 2,786.149  100.12538 | 2,886.274 
+           |      4.50       5.62 |      4.53 
+-----------+----------------------+----------
+     Total | 61,948.96  1,783.037 |    63,732 
+           |    100.00     100.00 |    100.00 
+
+. 
+. **mean
+. table hse_quality_grp [aw = hh_weight],c(mean hq_slum med hh_umce mean legal_rent med cost_rent mean in_ppl_area ) format(%9.2f) center
+hq_slum ambiguous abbreviation
+r(111);
+
+end of do-file
+
+r(111);
+
+. tab hq_slum_be
+no observations
+
+. tab hq_slum_doc
+no observations
+
+. tab hq_nslum
+
+   hq_nslum |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     63,732      100.00      100.00
+------------+-----------------------------------
+      Total |     63,732      100.00
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD37c4_000000.tmp"
+
+. ****************************************************************************
+. * Description: Generate clusters for housing condition using nss76 (rural)
+. * Date: September 30, 2020
+. * Version 1.0
+. * Last Editor: Aline
+. ****************************************************************************
+. 
+. 
+. ****************************************************************************
+. * Determine Whose Machine is running the code and set the global directory
+. ****************************************************************************
+. if "`c(username)'" == "wb308830" local pc = 0
+
+. if "`c(username)'" != "wb308830" local pc = 1
+
+. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76"
+
+. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76"
+
+. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\clustering"
+
+. 
+. di "$root"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76
+
+. global r_input "${root}\Raw Data & Dictionaries"
+
+. di "${r_input}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76\Raw Data & Dictionaries
+
+. global r_output "${root}\Data Output Files"
+
+. 
+. log using "${script}\01_cluster_nss76_r.log",replace
+log file already open
+r(604);
+
+end of do-file
+
+r(604);
+

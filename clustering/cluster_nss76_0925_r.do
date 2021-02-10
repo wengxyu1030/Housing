@@ -13,11 +13,15 @@ if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 76"
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\clustering"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
+
+log using "${script}\01_cluster_nss76_r.log",replace
+set linesize 255
 
 ****************************************************************************
 * Load the data
@@ -310,7 +314,7 @@ tab hse_quality_grp [aw = hh_weight],sort
 tab hse_quality_grp legal_rent [aw = hh_weight],col
 
 **mean
-table hse_quality_grp [aw = hh_weight],c(mean hq_slum med hh_umce mean legal_rent med cost_rent mean in_ppl_area ) format(%9.2f) center
+table hse_quality_grp [aw = hh_weight],c(med hh_umce mean legal_rent med cost_rent mean in_ppl_area ) format(%9.2f) center
 table hse_quality_grp [aw = hh_weight],c(mean  in_sep_kitch) format(%9.2f) center
 
 **sd (binary no need to check sd.)
@@ -497,3 +501,4 @@ gen hq_cluster_name = string(in_wall_permanent)+"-"+string(in_floor_permanent)+"
 bysort cluster: tab hq_cluster_name  [aw = hh_weight],sort
 
 save "${root}\Data Output Files\NSS76_rural_kmeans.dta",replace
+log close

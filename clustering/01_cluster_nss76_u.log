@@ -1,0 +1,2324 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\clustering\01_cluster_nss76_u.log
+  log type:  text
+ opened on:  10 Feb 2021, 05:38:14
+
+. set linesize 255
+
+. 
+. 
+. ****************************************************************************
+. * Load the data
+. ****************************************************************************
+. use "${root}\Data Output Files\NSS76_All.dta",clear
+
+. 
+. ****************************************************************************
+. * Get the Variable List to Make a Summary Table 
+. ****************************************************************************
+. label var hh_size "Size of Household"
+
+. 
+. **** MATERIALS ****
+. gen in_wall_permanent = 100*(b7_15== 6 | b7_15== 8 | b7_15== 9) // exclude timber and metal sheet
+
+. label var in_wall_permanent "Wall: Cement or Stone (%)"
+
+. 
+. gen in_wall = "Katcha"
+
+. replace in_wall = "Permanent" if in_wall_permanent == 100
+variable in_wall was str6 now str9
+(86,604 real changes made)
+
+. replace in_wall = "Metal" if inlist(b7_15,5,7) //metal or timber.
+(2,927 real changes made)
+
+. label var in_wall "Wall Material"
+
+. 
+. gen in_roof_permanent = 100*(b7_16== 6 | b7_16== 8 | b7_16== 9) // exclude metal and asbestos sheets
+
+. label var in_roof_permanent "Roof: Cement or Stone (%)"
+
+. 
+. gen in_roof = "Katcha"
+
+. replace in_roof = "Permanent" if in_roof_permanent == 100
+variable in_roof was str6 now str9
+(65,165 real changes made)
+
+. replace in_roof = "Metal" if b7_16 == 7
+(25,667 real changes made)
+
+. label var in_roof "Roof Material"
+
+. 
+. gen in_floor_permanent = 100*(inrange(b7_14,3,6)) // exclude mud, bamboo and log
+
+. label var in_floor_permanent "Floor: Cement or Stone (%)"
+
+. 
+. gen in_floor = "Katcha"
+
+. replace in_floor = "Permanent" if in_floor_permanent == 100
+variable in_floor was str6 now str9
+(79,402 real changes made)
+
+. 
+. sum *permanent
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+in_wall_pe~t |    106,838    81.06105    39.18196          0        100
+in_roof_pe~t |    106,838    60.99422    48.77653          0        100
+in_floor_p~t |    106,838       74.32    43.68702          0        100
+
+. 
+. gen in_all_permanent = (in_wall_permanent*in_roof_permanent*in_floor_permanent) / 1e4
+
+. label var in_all_permanent "All Materials: Cement or Stone (%)"
+
+. 
+. gen in_sep_kitch = 100*inrange(b7_12,1,2) 
+
+. label var in_sep_kitch "Separate Kitchen (%)" 
+
+. 
+. gen in_flat = 100 * (b7_1 == 2)
+
+. label var in_flat "Flat (%)"
+
+. 
+. gen in_size = b7_8 
+(34 missing values generated)
+
+. label var in_size "Dwelling Size (sq ft)"
+
+. sum in_size [aw = hh_weight] if hh_urban ==1 ,de
+
+                    Dwelling Size (sq ft)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           50             20
+ 5%          100             20
+10%          145             20       Obs              43,072
+25%          250             20       Sum of Wgt.  9.2690e+09
+
+50%          420                      Mean             496.65
+                        Largest       Std. Dev.      361.9997
+75%          645           4524
+90%          940           4574       Variance       131043.8
+95%         1190           4866       Skewness       2.156832
+99%         1800           8840       Kurtosis       13.50047
+
+. gen in_size_big = 100*(in_size > `r(p50)') if hh_urban >=1 //420
+(63,736 missing values generated)
+
+. 
+. recode in_room (7/41 = 7), gen(in_room_grp)
+(5914 differences between in_room and in_room_grp)
+
+. tostring in_room_grp, replace
+in_room_grp was byte now str1
+
+. replace in_room_grp = ">6" if in_room_grp == "7"
+variable in_room_grp was str1 now str2
+(11,213 real changes made)
+
+. 
+. sum in_room [aw = hh_weight] if hh_urban == 1,de
+
+                       Number of Rooms
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            2              1       Obs              43,072
+25%            3              1       Sum of Wgt.  9.2690e+09
+
+50%            4                      Mean            4.26057
+                        Largest       Std. Dev.      2.151923
+75%            5             24
+90%            7             24       Variance       4.630775
+95%            8             30       Skewness        .973435
+99%           10             41       Kurtosis       5.682805
+
+. gen in_room_big = 100*(in_room > `r(p50)') if hh_urban >=1
+(63,736 missing values generated)
+
+. label var in_room_big "More Rooms"
+
+. 
+. gen in_ppl_room = hh_size / in_room
+(34 missing values generated)
+
+. label var in_ppl_room "People per room"
+
+. gen crowd_room =  100*(in_ppl_room > 1)
+
+. label var crowd_room "Overcrowd-room"
+
+. 
+. gen in_ppl_area = in_size / hh_size
+(34 missing values generated)
+
+. label var in_ppl_area "Area in sq ft per person"
+
+. 
+. **** WATER and SANITATION ****
+. gen h20_piped_in = 100* (b5_1 == 2 | b5_1 == 1 |b5_1 == 10 | b5_1 == 11)
+
+. label var h20_piped_in "Water: Piped into Dwelling (%)"
+
+. 
+. gen h20_yard = 100* (b5_1 == 3 | b5_1 ==4 )
+
+. label var h20_yar "Water: Piped into Yard (%)"
+
+. 
+. gen h20_pump_in = 100* inrange(b5_1,5,8)*(b5_5 <= 2) // include a protected well
+
+. label var h20_pump_in "Water: Pump/Tubewell in Premises (%)"
+
+. 
+. gen h20_pump_out = 100* inrange(b5_1,5,8)*(b5_5 > 2) // include a protected well
+
+. label var h20_pump_out "Water: Pump/Tubewell Outside Premises (%)"
+
+. 
+. gen h20_other = 100* (h20_piped_in!=100 & h20_pump_in!=100 & h20_pump_out!=100 & h20_yard!=100)
+
+. label var h20_other "Water: Other (%)"
+
+. 
+. gen h20 = ""
+(106,838 missing values generated)
+
+. replace h20 = "Piped in" if h20_piped_in == 100
+variable h20 was str1 now str8
+(33,126 real changes made)
+
+. replace h20 = "Yard" if h20_yard == 100
+(14,772 real changes made)
+
+. replace h20 = "Pump in" if h20_pump_in == 100
+(27,096 real changes made)
+
+. replace h20 = "Pump out" if h20_pump_out == 100
+(24,940 real changes made)
+
+. replace h20 = "Other" if h20_other == 100
+(6,904 real changes made)
+
+. label var h20 "Water Access"
+
+. 
+. gen san_flush = 100*inrange(b5_26,1,2)
+
+. label var san_flush "Sanitation: Flush (%)"
+
+. 
+. gen san_imp_pit = 100*inrange(b5_26,6,7)
+
+. label var san_imp_pit "Sanitation: Improved Pit (%)"
+
+. 
+. gen san_single_twin_pit = 100*inrange(b5_26,3,4)
+
+. label var san_single_twin_pit "Sanitation: Single/Twin Pit (%)"
+
+. 
+. gen san_other = 100*(san_flush!=100&san_imp_pit!= 100 & san_single_twin_pit!=100)
+
+. label var san_other "Sanitation: Other (%)"
+
+. 
+. gen san = ""
+(106,838 missing values generated)
+
+. replace san = "Flush" if san_flush == 100
+variable san was str1 now str5
+(60,114 real changes made)
+
+. replace san = "Improved Pit" if san_imp_pit == 100
+variable san was str5 now str12
+(8,716 real changes made)
+
+. replace san = "Single/Twin Pit" if san_single_twin_pit == 100
+variable san was str12 now str15
+(18,030 real changes made)
+
+. replace san = "Other" if san_other == 100
+(19,978 real changes made)
+
+. label var san "Sanitation Access"
+
+. 
+. ****** Check Weights for Large Cities ****** 
+. gen hh_district = substr(b1_id,19,2)
+
+. destring hh_district, replace
+hh_district: all characters numeric; replaced as byte
+
+. 
+. gen n = 1 
+
+. egen district_pop_num = sum(n*hh_weight) ,by(hh_state hh_dist)
+
+. egen district_pop_denom = sum(hh_weight)
+
+. gen district_pop = district_pop_num / district_pop_denom
+
+. 
+. gsort -district_pop
+
+. order hh_state hh_dist *pop
+
+. gen state_dist = hh_state + "-" + string(hh_dist)
+
+. table state_dist if district_pop > 0.005, c(count hh_urban mean hh_urban mean district_pop) row 
+
+----------------------------------------------------------
+state_dis |
+t         |    N(hh_urban)  mean(hh_urban)  mean(distri~p)
+----------+-----------------------------------------------
+    08-12 |            514        .5797665        .0050615
+     09-9 |            359        .7325906        .0052883
+    19-10 |            456         .368421        .0050526
+    19-11 |            956        .6485355        .0103121
+    19-16 |            499               1        .0063985
+    19-17 |            694        .3429395        .0082386
+     19-7 |            552        .2608696        .0064187
+    24-25 |            527        .8633776        .0050896
+     24-7 |            617        .8833063        .0069827
+    27-21 |            998        .8076152        .0086111
+    27-22 |          1,060               1        .0099115
+    27-25 |            815        .6466258        .0085143
+     28-3 |            346         .583815         .005178
+     28-4 |            408        .3529412        .0060323
+     28-7 |            408        .4117647        .0060746
+    29-18 |            888        .9459459         .012215
+     33-2 |            396               1        .0056053
+     33-3 |            336        .6428571        .0051271
+    36-23 |            624        .9230769        .0109379
+          | 
+    Total |         11,453        .7129136        .0079011
+----------------------------------------------------------
+
+. 
+. gen big_city  = district_pop > 0.005 & hh_urban ==1 
+
+.  
+. /*
+> *Mumbai - district == 23
+> table hh_district if hh_state == "27", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *Chennai
+> table hh_district if hh_state == "33", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *HYderabad
+> table hh_district if hh_state == "36", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *delhi
+> table hh_district if hh_state == "07", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> *Banglore
+> table hh_district if hh_state == "29", c(sum hh_weight mean hh_weight sd hh_weight sd hh_urban count hh_weight)
+> */
+. 
+. 
+. local var_summary hh_size in_* h20* san*
+
+. 
+. *only focus on urban households with housing. 
+. keep if infra_has_dwell == 1 & hh_urban == 1
+(63,766 observations deleted)
+
+. 
+. save "${root}\Data Output Files\NSS76_All_clst_u.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76\Data Output Files\NSS76_All_clst_u.dta saved
+
+. 
+. ****************************************************************************
+. *Cluster of housing quality (matching)
+. ****************************************************************************
+. use "${root}\Data Output Files\NSS76_All_clst_u.dta",replace
+
+. 
+. *decide the housing material cluster
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t 
+-------------+---------------------------------
+in_wall_pe~t |         0                       
+in_roof_pe~t |  .1764952          0            
+in_floor_p~t |   .067956   .2051217          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 3
+
+.     describe
+
+Contains data
+  obs:             3                          
+ vars:             4                          
+ size:            84                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str18   %18s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity)
+
+.         
+. restore 
+
+. 
+. *combine housing infra with area, separate kitchen
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent in_size_big in_room_big in_sep_kitch
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  in_sep_~h  in_size~g  in_room~g 
+-------------+------------------------------------------------------------------
+in_wall_pe~t |         0                                                        
+in_roof_pe~t |  .1764952          0                                             
+in_floor_p~t |   .067956   .2051217          0                                  
+in_sep_kitch |  .2577777   .2973393   .2371378          0                       
+ in_size_big |  .4657782   .4318351   .4581399   .3068583          0            
+ in_room_big |  .5344772   .4632012   .5336181   .3597233   .2302424          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 6
+
+.     describe
+
+Contains data
+  obs:             6                          
+ vars:             4                          
+ size:           168                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str18   %18s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra with water
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent h20*
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  h20_pip~n   h20_yard  h20_pum~n  h20_pum~t  h20_other 
+-------------+----------------------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                              
+in_roof_pe~t |  .1764952          0                                                                   
+in_floor_p~t |   .067956   .2051217          0                                                        
+h20_piped_in |  .4316958   .3876764   .4329727          0                                             
+    h20_yard |  .7904671   .7046109   .7903046   .6839942          0                                  
+ h20_pump_in |  .7825501   .6709695    .801054   .6885215   .3323505          0                       
+h20_pump_out |  .8513652   .7597975   .8675009   .6315936   .2754225   .2799499          0            
+   h20_other |  .8986813   .7523681   .9065983   .5561386   .1999675   .2044948   .1475669          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 8
+
+.     describe
+
+Contains data
+  obs:             8                          
+ vars:             4                          
+ size:           224                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str18   %18s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra with sanitation
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent san*
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  san_flush  san_imp~t  san_sin~t  san_other 
+-------------+-----------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                   
+in_roof_pe~t |  .1764952          0                                                        
+in_floor_p~t |   .067956   .2051217          0                                             
+   san_flush |  .1728733   .2429421   .1600344          0                                  
+ san_imp_pit |  .9100576    .771081   .9199712   .8604198          0                       
+san_single~t |  .8577266   .7369521   .8679188   .9124721   .1257429          0            
+   san_other |  .8958488   .7659733    .917696   .8742571   .0875279   .1395802          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 7
+
+.     describe
+
+Contains data
+  obs:             7                          
+ vars:             4                          
+ size:           203                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str19   %19s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra, water, sanitation
+. 
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20* 
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  h20_pip~n   h20_yard  h20_pum~n  h20_pum~t  h20_other  san_flush  san_imp~t  san_sin~t  san_other 
+-------------+------------------------------------------------------------------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                                                                          
+in_roof_pe~t |  .1764952          0                                                                                                               
+in_floor_p~t |   .067956   .2051217          0                                                                                                    
+h20_piped_in |  .4316958   .3876764   .4329727          0                                                                                         
+    h20_yard |  .7904671   .7046109   .7903046   .6839942          0                                                                              
+ h20_pump_in |  .7825501   .6709695    .801054   .6885215   .3323505          0                                                                   
+h20_pump_out |  .8513652   .7597975   .8675009   .6315936   .2754225   .2799499          0                                                        
+   h20_other |  .8986813   .7523681   .9065983   .5561386   .1999675   .2044948   .1475669          0                                             
+   san_flush |  .1728733   .2429421   .1600344   .3893016   .7159872   .7280368   .8094354   .8279625          0                                  
+ san_imp_pit |  .9100576    .771081   .9199712   .5419298    .187291   .1886608   .1279718   .0646824   .8604198          0                       
+san_single~t |  .8577266   .7369521   .8679188   .5582281     .22806   .2157782    .168555   .0960717   .9124721   .1257429          0            
+   san_other |  .8958488   .7659733    .917696   .5507058    .196485   .2044019   .1170598   .0833952   .8742571   .0875279   .1395802          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 12
+
+.     describe
+
+Contains data
+  obs:            12                          
+ vars:             4                          
+ size:           348                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str19   %19s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. *combine housing infra, water, sanitation, and size separate kitchen 
+. 
+. preserve 
+
+. 
+.     keep in_roof_permanent in_floor_permanent in_wall_permanent san* h20* in_size_big in_room_big in_sep_kitch
+
+. 
+.     matrix dissimilarity houseD = , variables matching dissim(oneminus)
+
+.     matlist houseD
+
+             | in_wall~t  in_roof~t  in_floo~t  in_sep_~h  in_size~g  in_room~g  h20_pip~n   h20_yard  h20_pum~n  h20_pum~t  h20_other  san_flush  san_imp~t  san_sin~t  san_other 
+-------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+in_wall_pe~t |         0                                                                                                                                                           
+in_roof_pe~t |  .1764952          0                                                                                                                                                
+in_floor_p~t |   .067956   .2051217          0                                                                                                                                     
+in_sep_kitch |  .2577777   .2973393   .2371378          0                                                                                                                          
+ in_size_big |  .4657782   .4318351   .4581399   .3068583          0                                                                                                               
+ in_room_big |  .5344772   .4632012   .5336181   .3597233   .2302424          0                                                                                                    
+h20_piped_in |  .4316958   .3876764   .4329727   .4056231   .4350854   .4250325          0                                                                                         
+    h20_yard |  .7904671   .7046109   .7903046   .7207931   .5783572   .5013001   .6839942          0                                                                              
+ h20_pump_in |  .7825501   .6709695    .801054   .6780043   .4918741   .4410522   .6885215   .3323505          0                                                                   
+h20_pump_out |  .8513652   .7597975   .8675009   .7538308   .5703009   .4851179   .6315936   .2754225   .2799499          0                                                        
+   h20_other |  .8986813   .7523681   .9065983   .7378575   .5108191   .4108237   .5561386   .1999675   .2044948   .1475669          0                                             
+   san_flush |  .1728733   .2429421   .1600344   .2888419   .4635958   .5242617   .3893016   .7159872   .7280368   .8094354   .8279625          0                                  
+ san_imp_pit |  .9100576    .771081   .9199712   .7467264   .5288819   .4367338   .5419298    .187291   .1886608   .1279718   .0646824   .8604198          0                       
+san_single~t |  .8577266   .7369521   .8679188   .7172873   .5101226     .42155   .5582281     .22806   .2157782    .168555   .0960717   .9124721   .1257429          0            
+   san_other |  .8958488   .7659733    .917696   .7778835   .5550241   .4596722   .5507058    .196485   .2044019   .1170598   .0833952   .8742571   .0875279   .1395802          0 
+
+. 
+.     clustermat singlelink houseD, name(house) clear labelvar(question)
+number of observations (_N) was 0, now 15
+
+.     describe
+
+Contains data
+  obs:            15                          
+ vars:             4                          
+ size:           435                          
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+house_id        byte    %8.0g                 
+house_ord       byte    %8.0g                 
+house_hgt       double  %10.0g                
+question        str19   %19s                  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.     cluster dendrogram house, labels(question) title(Single-linkage clustering) ytitle(Matching similarity) xlabel(, angle(90) labsize(*.75))
+
+.         
+. restore 
+
+. 
+. ****************************************************************************
+. *Crosstab the principal variables. 
+. ****************************************************************************
+. 
+. *housing material grouping: 80% is whole pucca structure.  
+. sort in_wall_permanent in_roof_permanent in_floor_permanent
+
+. gen house_material = string(in_wall_permanent)+"-"+string(in_floor_permanent)+"-"+string(in_roof_permanent)
+
+. tab house_material [aw = hh_weight]
+
+house_mater |
+        ial |      Freq.     Percent        Cum.
+------------+-----------------------------------
+      0-0-0 | 839.180148        1.95        1.95
+    0-0-100 | 43.8326573        0.10        2.05
+    0-100-0 | 780.816531        1.81        3.86
+  0-100-100 | 291.029653        0.68        4.54
+    100-0-0 | 446.990776        1.04        5.58
+  100-0-100 | 586.384688        1.36        6.94
+  100-100-0 |5,503.94236       12.78       19.72
+100-100-100 | 34,579.823       80.28      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+. 
+. gen hse_material_grp = 1
+
+. replace hse_material_grp = 3 if house_material == "100-100-100"
+(31,703 real changes made)
+
+. replace hse_material_grp = 2 if house_material == "100-100-0"
+(6,698 real changes made)
+
+. 
+. gen hse_material_grp_p = 0
+
+. replace hse_material_grp_p = 1 if house_material == "100-100-100"
+(31,703 real changes made)
+
+. 
+. *can these indicators separate slum? Yes. 
+. gen hq_slum = 1- hq_nslum
+
+. 
+. tab hse_material_grp hq_slum [aw = hh_weight],col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+hse_materi |        hq_slum
+    al_grp |         0          1 |     Total
+-----------+----------------------+----------
+         1 | 2,504.916  483.31895 | 2,988.234 
+           |      6.27      15.46 |      6.94 
+-----------+----------------------+----------
+         2 | 4,437.029 1,066.9138 | 5,503.942 
+           |     11.11      34.14 |     12.78 
+-----------+----------------------+----------
+         3 | 33,004.77  1,575.054 | 34,579.82 
+           |     82.62      50.40 |     80.28 
+-----------+----------------------+----------
+     Total | 39,946.71 3,125.2872 |    43,072 
+           |    100.00     100.00 |    100.00 
+
+. table hq_slum [aw = hh_weight],c(mean h20_piped_in mean san_flush mean in_size_big mean in_room_big mean in_sep_kitch) format(%9.2f)
+
+--------------------------------------------------------------------------------
+  hq_slum | mean(h20_~n)  mean(san_~h)  mean(in_s~g)  mean(in_r~g)  mean(in_s~h)
+----------+---------------------------------------------------------------------
+        0 |        55.80         85.09         51.73         44.01         77.56
+        1 |        36.66         80.57         16.65         13.92         45.79
+--------------------------------------------------------------------------------
+
+. 
+. ****************************************************************************
+. *Cluster of observations
+. ****************************************************************************
+. 
+. *all the indicators add up
+. sort hse_material_grp h20_piped_in san_flush in_size_big
+
+. gen hse_quality = string(hse_material_grp)+"-"+string(h20_piped_in)+"-"+string(san_flush)+"-"+string(in_size_big)+"-"+string(in_sep_kitch)
+
+. tab hse_quality [aw = hh_weight]
+
+      hse_quality |      Freq.     Percent        Cum.
+------------------+-----------------------------------
+        1-0-0-0-0 | 744.318727        1.73        1.73
+      1-0-0-0-100 | 271.334745        0.63        2.36
+      1-0-0-100-0 | 103.626039        0.24        2.60
+    1-0-0-100-100 |  323.68963        0.75        3.35
+      1-0-100-0-0 |   379.8373        0.88        4.23
+    1-0-100-0-100 |198.0182696        0.46        4.69
+    1-0-100-100-0 | 56.2110349        0.13        4.82
+  1-0-100-100-100 | 239.532493        0.56        5.38
+      1-100-0-0-0 | 104.418429        0.24        5.62
+    1-100-0-0-100 | 57.4667371        0.13        5.75
+    1-100-0-100-0 | 22.6317432        0.05        5.81
+  1-100-0-100-100 | 52.4510473        0.12        5.93
+    1-100-100-0-0 | 98.9906681        0.23        6.16
+  1-100-100-0-100 |123.5327794        0.29        6.45
+  1-100-100-100-0 | 17.9780032        0.04        6.49
+1-100-100-100-100 | 194.196808        0.45        6.94
+        2-0-0-0-0 | 416.252046        0.97        7.90
+      2-0-0-0-100 | 335.932481        0.78        8.68
+      2-0-0-100-0 | 52.7240373        0.12        8.81
+    2-0-0-100-100 | 324.610952        0.75        9.56
+      2-0-100-0-0 | 1,119.7785        2.60       12.16
+    2-0-100-0-100 | 762.180335        1.77       13.93
+    2-0-100-100-0 | 53.7715548        0.12       14.05
+  2-0-100-100-100 | 507.979056        1.18       15.23
+      2-100-0-0-0 | 107.359433        0.25       15.48
+    2-100-0-0-100 | 95.6040477        0.22       15.70
+    2-100-0-100-0 |  8.5005777        0.02       15.72
+  2-100-0-100-100 | 81.6016797        0.19       15.91
+    2-100-100-0-0 |538.0623723        1.25       17.16
+  2-100-100-0-100 |  580.95091        1.35       18.51
+  2-100-100-100-0 | 69.4831462        0.16       18.67
+2-100-100-100-100 | 449.151225        1.04       19.72
+        3-0-0-0-0 |  491.86649        1.14       20.86
+      3-0-0-0-100 | 441.503986        1.03       21.88
+      3-0-0-100-0 | 82.0940395        0.19       22.07
+    3-0-0-100-100 |1,151.18892        2.67       24.75
+      3-0-100-0-0 | 3,343.3361        7.76       32.51
+    3-0-100-0-100 | 2,988.4029        6.94       39.45
+    3-0-100-100-0 |  240.93309        0.56       40.01
+  3-0-100-100-100 |5,006.18528       11.62       51.63
+      3-100-0-0-0 |  234.76201        0.55       52.17
+    3-100-0-0-100 | 318.258955        0.74       52.91
+    3-100-0-100-0 | 36.8156321        0.09       53.00
+  3-100-0-100-100 | 703.619621        1.63       54.63
+    3-100-100-0-0 |  2,095.225        4.86       59.50
+  3-100-100-0-100 | 6,040.5583       14.02       73.52
+  3-100-100-100-0 | 239.707527        0.56       74.08
+3-100-100-100-100 | 11,165.365       25.92      100.00
+------------------+-----------------------------------
+            Total |     43,072      100.00
+
+. 
+. *crosstab service and other indicator. 
+. gen hse_service = string(h20_piped_in)+"-"+string(san_flush)
+
+. tab hse_service [aw = hh_weight] //half of them do not have complete water and sanitation in house. 
+
+hse_service |      Freq.     Percent        Cum.
+------------+-----------------------------------
+        0-0 | 4,739.1421       11.00       11.00
+      0-100 |14,896.1659       34.58       45.59
+      100-0 | 1,823.4899        4.23       49.82
+    100-100 | 21,613.202       50.18      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+. tab hse_service hse_material_grp [aw = hh_weight],cell
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |         hse_material_grp
+         e |         1          2          3 |     Total
+-----------+---------------------------------+----------
+       0-0 | 1,442.969   1,129.52  2,166.653 | 4,739.142 
+           |      3.35       2.62       5.03 |     11.00 
+-----------+---------------------------------+----------
+     0-100 |  873.5991  2,443.709  11,578.86 | 14,896.17 
+           |      2.03       5.67      26.88 |     34.58 
+-----------+---------------------------------+----------
+     100-0 | 236.96796  293.06574  1,293.456 |  1,823.49 
+           |      0.55       0.68       3.00 |      4.23 
+-----------+---------------------------------+----------
+   100-100 | 434.69826  1,637.648  19,540.86 |  21,613.2 
+           |      1.01       3.80      45.37 |     50.18 
+-----------+---------------------------------+----------
+     Total | 2,988.234  5,503.942  34,579.82 |    43,072 
+           |      6.94      12.78      80.28 |    100.00 
+
+. 
+.     gen hse_service_grp = 0
+
+.     replace hse_service_grp = 1 if hse_service == "100-100"
+(20,553 real changes made)
+
+.         
+.         *with housing materia
+.         tab hse_service_grp hse_material_grp [aw = hh_weight],cell
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |         hse_material_grp
+     e_grp |         1          2          3 |     Total
+-----------+---------------------------------+----------
+         0 | 2,553.536  3,866.295 15,038.967 |  21,458.8 
+           |      5.93       8.98      34.92 |     49.82 
+-----------+---------------------------------+----------
+         1 | 434.69826  1,637.648  19,540.86 |  21,613.2 
+           |      1.01       3.80      45.37 |     50.18 
+-----------+---------------------------------+----------
+     Total | 2,988.234  5,503.942  34,579.82 |    43,072 
+           |      6.94      12.78      80.28 |    100.00 
+
+.         tab hse_service_grp hse_material_grp_p [aw = hh_weight],cell
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |  hse_material_grp_p
+     e_grp |         0          1 |     Total
+-----------+----------------------+----------
+         0 |6,419.8309 15,038.967 |  21,458.8 
+           |     14.90      34.92 |     49.82 
+-----------+----------------------+----------
+         1 | 2,072.346  19,540.86 |  21,613.2 
+           |      4.81      45.37 |     50.18 
+-----------+----------------------+----------
+     Total | 8,492.177  34,579.82 |    43,072 
+           |     19.72      80.28 |    100.00 
+
+.         
+.         *with dwelling size
+.         tab hse_service_grp in_size_big [aw = hh_weight],cell //half of them is overcrowded. 
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+hse_servic |      in_size_big
+     e_grp |         0        100 |     Total
+-----------+----------------------+----------
+         0 | 12,410.63  9,048.166 |  21,458.8 
+           |     28.81      21.01 |     49.82 
+-----------+----------------------+----------
+         1 |  9,477.32  12,135.88 |  21,613.2 
+           |     22.00      28.18 |     50.18 
+-----------+----------------------+----------
+     Total | 21,887.95  21,184.05 |    43,072 
+           |     50.82      49.18 |    100.00 
+
+.         
+.         *with separate kitchen
+.         tab hse_service_grp in_sep_kitch [aw = hh_weight],row //majority of them is with separate kitchen with good service. 
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+hse_servic | Separate Kitchen (%)
+     e_grp |         0        100 |     Total
+-----------+----------------------+----------
+         0 | 7,599.237  13,859.56 |  21,458.8 
+           |     35.41      64.59 |    100.00 
+-----------+----------------------+----------
+         1 | 3,059.447  18,553.76 |  21,613.2 
+           |     14.16      85.84 |    100.00 
+-----------+----------------------+----------
+     Total | 10,658.68  32,413.32 |    43,072 
+           |     24.75      75.25 |    100.00 
+
+. 
+. gen hse_quality_grp = string(hse_material_grp_p)+"-"+string(hse_service_grp)+"-"+string(in_size_big)
+
+. tab hse_quality_grp [aw = hh_weight]
+
+hse_quality |
+       _grp |      Freq.     Percent        Cum.
+------------+-----------------------------------
+      0-0-0 | 4,592.5011       10.66       10.66
+    0-0-100 | 1,827.3298        4.24       14.90
+      0-1-0 |1,341.53673        3.11       18.02
+    0-1-100 | 730.809183        1.70       19.72
+      1-0-0 | 7,818.1304       18.15       37.87
+    1-0-100 | 7,220.8366       16.76       54.63
+      1-1-0 | 8,135.7833       18.89       73.52
+    1-1-100 |11,405.0729       26.48      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+. tab hse_quality_grp [aw = hh_weight],sort
+
+hse_quality |
+       _grp |      Freq.     Percent        Cum.
+------------+-----------------------------------
+    1-1-100 |11,405.0729       26.48       26.48
+      1-1-0 | 8,135.7833       18.89       45.37
+      1-0-0 | 7,818.1304       18.15       63.52
+    1-0-100 | 7,220.8366       16.76       80.28
+      0-0-0 | 4,592.5011       10.66       90.95
+    0-0-100 | 1,827.3298        4.24       95.19
+      0-1-0 |1,341.53673        3.11       98.30
+    0-1-100 | 730.809183        1.70      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+. 
+. *cross validate with other indicator: slum, consumption, rent, overcrowding
+. 
+. **distribution of slum and renter
+. tab hse_quality_grp hq_slum [aw = hh_weight],col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+hse_qualit |        hq_slum
+     y_grp |         0          1 |     Total
+-----------+----------------------+----------
+     0-0-0 | 3,442.228  1,150.273 | 4,592.501 
+           |      8.62      36.81 |     10.66 
+-----------+----------------------+----------
+   0-0-100 | 1,756.374  70.955969 |  1,827.33 
+           |      4.40       2.27 |      4.24 
+-----------+----------------------+----------
+     0-1-0 | 1,044.583  296.95406 | 1,341.537 
+           |      2.61       9.50 |      3.11 
+-----------+----------------------+----------
+   0-1-100 | 698.75958  32.049605 | 730.80918 
+           |      1.75       1.03 |      1.70 
+-----------+----------------------+----------
+     1-0-0 |7,120.9251  697.20532 |  7,818.13 
+           |     17.83      22.31 |     18.15 
+-----------+----------------------+----------
+   1-0-100 | 7,027.522  193.31424 | 7,220.837 
+           |     17.59       6.19 |     16.76 
+-----------+----------------------+----------
+     1-1-0 | 7,675.237  460.54624 | 8,135.783 
+           |     19.21      14.74 |     18.89 
+-----------+----------------------+----------
+   1-1-100 | 11,181.08  223.98866 | 11,405.07 
+           |     27.99       7.17 |     26.48 
+-----------+----------------------+----------
+     Total | 39,946.71 3,125.2872 |    43,072 
+           |    100.00     100.00 |    100.00 
+
+. tab hse_quality_grp legal_rent [aw = hh_weight],col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+hse_qualit |      legal_rent
+     y_grp |         0          1 |     Total
+-----------+----------------------+----------
+     0-0-0 | 3,180.456  1,412.045 | 4,592.501 
+           |     11.00       9.97 |     10.66 
+-----------+----------------------+----------
+   0-0-100 |1,618.4792  208.85065 |  1,827.33 
+           |      5.60       1.47 |      4.24 
+-----------+----------------------+----------
+     0-1-0 | 801.91487  539.62186 | 1,341.537 
+           |      2.77       3.81 |      3.11 
+-----------+----------------------+----------
+   0-1-100 | 626.06257  104.74661 | 730.80918 
+           |      2.17       0.74 |      1.70 
+-----------+----------------------+----------
+     1-0-0 | 3,745.741   4,072.39 |  7,818.13 
+           |     12.96      28.75 |     18.15 
+-----------+----------------------+----------
+   1-0-100 | 6,159.123  1,061.714 | 7,220.837 
+           |     21.31       7.50 |     16.76 
+-----------+----------------------+----------
+     1-1-0 | 4,040.715  4,095.069 | 8,135.783 
+           |     13.98      28.91 |     18.89 
+-----------+----------------------+----------
+   1-1-100 | 8,735.888  2,669.185 | 11,405.07 
+           |     30.22      18.85 |     26.48 
+-----------+----------------------+----------
+     Total | 28,908.38  14,163.62 |    43,072 
+           |    100.00     100.00 |    100.00 
+
+. 
+. **mean
+. table hse_quality_grp [aw = hh_weight],c(mean hq_slum med hh_umce mean legal_rent med cost_rent mean in_ppl_area ) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+hse_quali |
+ty_grp    | mean(hq_s~m)  med(hh_umce)  mean(lega~t)  med(cost_~t)  mean(in_p~a)
+----------+---------------------------------------------------------------------
+    0-0-0 |       0.25       8000.00          0.31       1500.00         77.78  
+  0-0-100 |       0.04      10500.00          0.11       2000.00        175.47  
+    0-1-0 |       0.22      10067.00          0.40       2000.00         84.95  
+  0-1-100 |       0.04      13100.00          0.14       3000.00        182.16  
+    1-0-0 |       0.09       8600.00          0.52       2000.00         97.25  
+  1-0-100 |       0.03      13460.00          0.15       3500.00        220.39  
+    1-1-0 |       0.06      11500.00          0.50       2700.00        108.05  
+  1-1-100 |       0.02      16500.00          0.23       5000.00        222.36  
+--------------------------------------------------------------------------------
+
+. table hse_quality_grp [aw = hh_weight],c(mean  in_sep_kitch) format(%9.2f) center
+
+--------------------------
+hse_quali |
+ty_grp    | mean(in_sep~h)
+----------+---------------
+    0-0-0 |      37.46    
+  0-0-100 |      83.72    
+    0-1-0 |      52.51    
+  0-1-100 |      88.03    
+    1-0-0 |      47.94    
+  1-0-100 |      95.02    
+    1-1-0 |      74.25    
+  1-1-100 |      97.90    
+--------------------------
+
+. 
+. **sd (binary no need to check sd.)
+. 
+. 
+. ****************************************************************************
+. *Cluster using k-means (matching)
+. ****************************************************************************
+. use "${root}\Data Output Files\NSS76_All_clst_u.dta",replace
+
+. 
+. ********housing material:
+. **no roof/all
+. preserve 
+
+.     cluster kmeans  in_floor_permanent in_roof_permanent in_wall_permanent, k(2) ///
+>     name(gr2) start(firstk) measure(Jaccard)
+
+.     tab gr2
+
+        gr2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     34,356       79.76       79.76
+          2 |      8,716       20.24      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr2,c(mean in_wall_permanent mean in_roof_permanent mean in_floor_permanent) format(%9.2f) center
+
+----------------------------------------------------------
+      gr2 | mean(in_wal~t)  mean(in_roo~t)  mean(in_flo~t)
+----------+-----------------------------------------------
+        1 |      94.04           95.09           93.16    
+        2 |      83.09            0.00           93.76    
+----------------------------------------------------------
+
+. restore
+
+. 
+. **only floor/floor+wall/all
+. preserve 
+
+.     cluster kmeans  in_floor_permanent in_roof_permanent in_wall_permanent, k(3) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     33,750       78.36       78.36
+          2 |      8,172       18.97       97.33
+          3 |      1,150        2.67      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_wall_permanent mean in_roof_permanent mean in_floor_permanent) format(%9.2f) center
+
+----------------------------------------------------------
+      gr3 | mean(in_wal~t)  mean(in_roo~t)  mean(in_flo~t)
+----------+-----------------------------------------------
+        1 |      93.93           95.00           94.83    
+        2 |      81.96            0.00          100.00    
+        3 |     100.00           52.70            0.00    
+----------------------------------------------------------
+
+. restore
+
+. 
+. ********water:
+. **with/without pipied_in water
+. preserve 
+
+.     cluster kmeans  h20_piped_in h20_yard h20_pump_in h20_pump_out h20_other, k(2) ///
+>     name(gr2) start(firstk) measure(Jaccard)
+
+.     tab gr2
+
+        gr2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     36,012       83.61       83.61
+          2 |      7,060       16.39      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr2,c(mean h20_piped_in mean h20_yard mean h20_pump_in mean h20_pump_out mean h20_other) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr2 | mean(h20_~n)  mean(h20_~d)  mean(h20_~n)  mean(h20_~t)  mean(h20_~r)
+----------+---------------------------------------------------------------------
+        1 |     62.20          0.00         20.15         13.34          4.31   
+        2 |      0.00        100.00          0.00          0.00          0.00   
+--------------------------------------------------------------------------------
+
+. restore
+
+. 
+. **pipied_in/pump_in/all other
+. preserve 
+
+.     cluster kmeans  h20_piped_in h20_yard h20_pump_in h20_pump_out h20_other, k(3) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     31,209       72.46       72.46
+          2 |      7,060       16.39       88.85
+          3 |      4,803       11.15      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean h20_piped_in mean h20_yard mean h20_pump_in mean h20_pump_out mean h20_other) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(h20_~n)  mean(h20_~d)  mean(h20_~n)  mean(h20_~t)  mean(h20_~r)
+----------+---------------------------------------------------------------------
+        1 |     71.78          0.00         23.25          0.00          4.98   
+        2 |      0.00        100.00          0.00          0.00          0.00   
+        3 |      0.00          0.00          0.00        100.00          0.00   
+--------------------------------------------------------------------------------
+
+. restore
+
+. 
+. 
+. ********sanitation:
+. **with/without flush
+. preserve 
+
+.     cluster kmeans  san_flush san_imp_pit san_single_twin_pit san_other, k(2) ///
+>     name(gr2) start(firstk) measure(Jaccard)
+
+.     tab gr2
+
+        gr2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     39,243       91.11       91.11
+          2 |      3,829        8.89      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr2,c(mean san_flush mean san_imp_pit mean san_single_twin_pit mean san_other) format(%9.2f) center
+
+--------------------------------------------------------------------------
+      gr2 | mean(san_fl~h)  mean(san_im~t)  mean(san_si~t)  mean(san_ot~r)
+----------+---------------------------------------------------------------
+        1 |      90.39            4.04            0.00            5.56    
+        2 |       0.00            0.00          100.00            0.00    
+--------------------------------------------------------------------------
+
+. restore
+
+. 
+. **flush/imp_pit/other
+. preserve 
+
+.     cluster kmeans  san_flush san_imp_pit san_single_twin_pit san_other, k(3) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     37,656       87.43       87.43
+          2 |      3,829        8.89       96.32
+          3 |      1,587        3.68      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean san_flush mean san_imp_pit mean san_single_twin_pit mean san_other) format(%9.2f) center
+
+--------------------------------------------------------------------------
+      gr3 | mean(san_fl~h)  mean(san_im~t)  mean(san_si~t)  mean(san_ot~r)
+----------+---------------------------------------------------------------
+        1 |      94.20            0.00            0.00            5.80    
+        2 |       0.00            0.00          100.00            0.00    
+        3 |       0.00          100.00            0.00            0.00    
+--------------------------------------------------------------------------
+
+. restore
+
+. 
+. ********water and sanitation:
+. **with/out both
+. preserve 
+
+.     cluster kmeans  san_flush h20_piped_in, k(2) ///
+>     name(gr2) start(firstk) measure(Jaccard)
+
+.     tab gr2
+
+        gr2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     28,152       65.36       65.36
+          2 |     14,920       34.64      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr2,c(mean san_flush mean h20_piped_in) format(%9.2f) center
+
+------------------------------------------
+      gr2 | mean(san_fl~h)  mean(h20_pi~n)
+----------+-------------------------------
+        1 |      73.01           79.57    
+        2 |     100.00            0.00    
+------------------------------------------
+
+. restore
+
+. 
+. **both/sanitation only/neither
+. preserve 
+
+.     cluster kmeans  san_flush h20_piped_in, k(3) ///
+>     name(gr2) start(firstk) measure(Jaccard)
+
+.     tab gr2
+
+        gr2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     26,304       61.07       61.07
+          2 |     14,920       34.64       95.71
+          3 |      1,848        4.29      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr2,c(mean san_flush mean h20_piped_in) format(%9.2f) center
+
+------------------------------------------
+      gr2 | mean(san_fl~h)  mean(h20_pi~n)
+----------+-------------------------------
+        1 |      78.14           78.14    
+        2 |     100.00            0.00    
+        3 |       0.00          100.00    
+------------------------------------------
+
+. restore
+
+. 
+. ********infra, water and sanitation:
+. 
+. preserve 
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in, k(3) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     21,600       50.15       50.15
+          2 |     19,624       45.56       95.71
+          3 |      1,848        4.29      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     94.05         82.77         92.75         95.15         95.15   
+        2 |     92.81         68.71         91.07         76.03          0.00   
+        3 |     89.34         70.78         89.02          0.00        100.00   
+--------------------------------------------------------------------------------
+
+. restore
+
+. 
+. preserve 
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in, k(4) ///
+>     name(gr4) start(firstk) measure(Jaccard)
+
+.     tab gr4
+
+        gr4 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     21,600       50.15       50.15
+          2 |     17,442       40.49       90.64
+          3 |      1,848        4.29       94.93
+          4 |      2,182        5.07      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr4,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr4 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     94.05         82.77         92.75         95.15         95.15   
+        2 |     93.64         77.30         92.86         85.54          0.00   
+        3 |     89.34         70.78         89.02          0.00        100.00   
+        4 |     86.21          0.00         76.76          0.00          0.00   
+--------------------------------------------------------------------------------
+
+. restore
+
+. 
+. ********infra, water and sanitation, size:
+. 
+. preserve 
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big, k(3) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     23,055       53.53       53.53
+          2 |     10,459       24.28       77.81
+          3 |      9,558       22.19      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     95.27         83.22         94.03         89.15         97.16   
+        2 |     92.01         64.01         91.37         76.35          0.00   
+        3 |     89.87         71.02         87.01         72.56          0.00   
+--------------------------------------------------------------------------------
+
+.         table gr3,c(mean in_size_big) format(%9.2f) center
+
+--------------------------
+      gr3 | mean(in_siz~g)
+----------+---------------
+        1 |      57.34    
+        2 |       0.00    
+        3 |     100.00    
+--------------------------
+
+. restore
+
+. 
+. preserve //best
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big, k(4) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     21,207       49.24       49.24
+          2 |     10,459       24.28       73.52
+          3 |      9,558       22.19       95.71
+          4 |      1,848        4.29      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     95.79         84.30         94.47         96.92         96.92   
+        2 |     92.01         64.01         91.37         76.35          0.00   
+        3 |     89.87         71.02         87.01         72.56          0.00   
+        4 |     89.34         70.78         89.02          0.00        100.00   
+--------------------------------------------------------------------------------
+
+.         table gr3,c(mean in_size_big) format(%9.2f) center
+
+--------------------------
+      gr3 | mean(in_siz~g)
+----------+---------------
+        1 |      57.56    
+        2 |       0.00    
+        3 |     100.00    
+        4 |      54.82    
+--------------------------
+
+. restore
+
+. 
+. preserve 
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big, k(5) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     12,860       29.86       29.86
+          2 |     10,450       24.26       54.12
+          3 |      9,558       22.19       76.31
+          4 |      1,848        4.29       80.60
+          5 |      8,356       19.40      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     94.00         84.43         92.60         94.91         94.91   
+        2 |     92.09         63.98         91.44         76.33          0.00   
+        3 |     89.87         71.02         87.01         72.56          0.00   
+        4 |     89.34         70.78         89.02          0.00        100.00   
+        5 |     98.44         84.12         97.24        100.00         99.89   
+--------------------------------------------------------------------------------
+
+.         table gr3,c(mean in_size_big) format(%9.2f) center
+
+--------------------------
+      gr3 | mean(in_siz~g)
+----------+---------------
+        1 |      94.91    
+        2 |       0.00    
+        3 |     100.00    
+        4 |      54.82    
+        5 |       0.00    
+--------------------------
+
+. restore
+
+. 
+. ********infra, water and sanitation, size, separate kitchen:
+. 
+. preserve 
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(4) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     20,997       48.75       48.75
+          2 |     10,121       23.50       72.25
+          3 |     10,106       23.46       95.71
+          4 |      1,848        4.29      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     96.75         85.15         95.41         97.89         97.89   
+        2 |     93.53         65.79         93.61         77.93          0.00   
+        3 |     86.55         67.51         83.10         69.58          0.00   
+        4 |     89.34         70.78         89.02          0.00        100.00   
+--------------------------------------------------------------------------------
+
+.         table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+
+------------------------------------------
+      gr3 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      58.13           83.62    
+        2 |       0.00           45.96    
+        3 |      94.58           92.67    
+        4 |      54.82           75.32    
+------------------------------------------
+
+. restore
+
+. 
+. preserve 
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(5) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     13,699       31.80       31.80
+          2 |      5,343       12.40       44.21
+          3 |      9,559       22.19       66.40
+          4 |        970        2.25       68.65
+          5 |     13,501       31.35      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     95.05         84.98         93.56         89.10         96.77   
+        2 |     89.05         63.47         93.49         75.97          0.00   
+        3 |     89.86         71.02         87.00         72.55          0.00   
+        4 |     70.52          0.00         45.67          0.00          4.12   
+        5 |     97.22         80.35         96.14         90.90         67.44   
+--------------------------------------------------------------------------------
+
+.         table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+
+------------------------------------------
+      gr3 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      96.50           90.88    
+        2 |       0.00            0.00    
+        3 |      99.99           92.25    
+        4 |       0.00           87.01    
+        5 |       0.00           80.39    
+------------------------------------------
+
+. restore
+
+. 
+. preserve //best
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(6) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     12,649       29.37       29.37
+          2 |      7,611       17.67       47.04
+          3 |      9,908       23.00       70.04
+          4 |      1,636        3.80       73.84
+          5 |      8,559       19.87       93.71
+          6 |      2,709        6.29      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     95.56         85.84         94.15         96.50         96.50   
+        2 |     91.91         80.90         91.78         92.04          0.00   
+        3 |     87.54         68.52         83.81         69.99          0.00   
+        4 |     89.49         66.99         87.78          0.00        100.00   
+        5 |     98.29         84.50         97.37         97.52        100.00   
+        6 |     93.95         19.82         95.35         36.18          0.00   
+--------------------------------------------------------------------------------
+
+.         table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+
+------------------------------------------
+      gr3 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      96.50           91.08    
+        2 |       0.00           57.76    
+        3 |      95.79           93.20    
+        4 |      61.92           85.09    
+        5 |       0.00           70.51    
+        6 |       2.47           14.32    
+------------------------------------------
+
+. restore
+
+. 
+. preserve
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush h20_piped_in in_size_big in_sep_kitch, k(7) ///
+>     name(gr3) start(firstk) measure(Jaccard)
+
+.     tab gr3
+
+        gr3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     13,619       31.62       31.62
+          2 |      7,829       18.18       49.80
+          3 |      9,135       21.21       71.00
+          4 |        835        1.94       72.94
+          5 |      8,347       19.38       92.32
+          6 |      2,327        5.40       97.72
+          7 |        980        2.28      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr3,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr3 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     95.61         85.43         94.11         89.62         96.75   
+        2 |     94.21         85.50         95.24         85.40          0.00   
+        3 |     95.68         74.29         91.64         73.37          0.00   
+        4 |     85.99         63.59         88.26          0.00        100.00   
+        5 |     98.55         84.10         97.34        100.00        100.00   
+        6 |     90.12          0.00         87.88         51.65          0.00   
+        7 |      0.00          0.31          0.00         33.67          4.39   
+--------------------------------------------------------------------------------
+
+.         table gr3,c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+
+------------------------------------------
+      gr3 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      96.75           91.07    
+        2 |       0.00           54.91    
+        3 |      97.76           92.75    
+        4 |       0.00           55.93    
+        5 |       0.00           72.30    
+        6 |       0.00           16.67    
+        7 |      68.47           91.94    
+------------------------------------------
+
+. restore
+
+. 
+. ********infra, water and sanitation, size, separate kitchen with more than one indicators per feature:
+. 
+. preserve //best
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush san_imp_pit h20_piped_in h20_pump_in in_size_big in_sep_kitch, k(6) ///
+>     name(gr6) s(kr(45)) measure(Jaccard)
+
+.     tab gr6
+
+        gr6 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      2,900        6.73        6.73
+          2 |      2,715        6.30       13.04
+          3 |        924        2.15       15.18
+          4 |     27,030       62.76       77.94
+          5 |      2,475        5.75       83.68
+          6 |      7,028       16.32      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr6,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean san_imp_pit) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr6 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(san_~t)
+----------+---------------------------------------------------------------------
+        1 |     83.69         88.62         87.17         68.93          3.17   
+        2 |     86.85          0.00         74.03         65.12          5.82   
+        3 |     18.72          0.00          2.92          0.00         66.45   
+        4 |     98.48         90.96         97.69         89.83          1.49   
+        5 |     87.80          0.00         82.42         70.26          4.57   
+        6 |     91.48         78.43         93.07         80.89          2.93   
+--------------------------------------------------------------------------------
+
+.         table gr6,c(mean h20_piped_in mean h20_pump_in mean in_size_big mean in_sep_kitch) format(%9.2f) center
+
+--------------------------------------------------------------------------
+      gr6 | mean(h20_pi~n)  mean(h20_pu~n)  mean(in_siz~g)  mean(in_sep~h)
+----------+---------------------------------------------------------------
+        1 |       0.00            0.00            8.14            0.00    
+        2 |       0.00            0.00           52.49           95.36    
+        3 |       9.52           24.57           60.17           86.80    
+        4 |      80.02            0.00           59.84           89.77    
+        5 |      27.64            0.00            2.87            0.00    
+        6 |       0.00          100.00           61.38           75.57    
+--------------------------------------------------------------------------
+
+. restore
+
+. 
+. 
+. preserve 
+
+.     cluster kmeans in_floor_permanent in_roof_permanent in_wall_permanent san_flush san_imp_pit h20_piped_in h20_pump_in in_size_big in_sep_kitch, k(7) ///
+>     name(gr7) start(kr(40)) measure(Jaccard)
+
+.     tab gr7
+
+        gr7 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      5,101       11.84       11.84
+          2 |     22,604       52.48       64.32
+          3 |        713        1.66       65.98
+          4 |      5,344       12.41       78.39
+          5 |      2,939        6.82       85.21
+          6 |      4,848       11.26       96.46
+          7 |      1,523        3.54      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table gr7,c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean san_imp_pit) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+      gr7 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(san_~t)
+----------+---------------------------------------------------------------------
+        1 |     80.06         69.55         80.45         73.85          2.35   
+        2 |     98.69         86.95         97.06         93.88          0.88   
+        3 |     26.23          0.56          5.47          0.00         90.32   
+        4 |     90.87         63.29         92.31         75.37          3.27   
+        5 |     95.47         66.35         93.81         87.21          1.19   
+        6 |     96.06         67.97         93.48         80.34          4.06   
+        7 |     83.98         54.89         81.88          0.00         14.18   
+--------------------------------------------------------------------------------
+
+.         table gr7,c(mean h20_piped_in mean h20_pump_in mean in_size_big mean in_sep_kitch) format(%9.2f) center
+
+--------------------------------------------------------------------------
+      gr7 | mean(h20_pi~n)  mean(h20_pu~n)  mean(in_siz~g)  mean(in_sep~h)
+----------+---------------------------------------------------------------
+        1 |       0.00           90.20           88.92           85.55    
+        2 |      85.71            0.00           71.35           96.74    
+        3 |      12.34           22.02           46.00           81.21    
+        4 |       0.00           24.72            0.00            0.00    
+        5 |     100.00            0.00            8.95            0.00    
+        6 |       0.00           24.26            0.00          100.00    
+        7 |       0.00            0.00          100.00           85.95    
+--------------------------------------------------------------------------
+
+. restore
+
+. 
+. *********consolidate with k-mode on indicators
+. forvalues r = 40(1)45 {
+  2. preserve 
+  3.     cluster kmeans in_roof_permanent san_flush h20_piped_in in_room_big in_sep_kitch, k(6) ///
+>     name(gr_`r') start(kr(`r')) measure(Jaccard)
+  4.     tab gr_`r'
+  5.     table gr_`r',c(mean in_floor_permanent mean in_roof_permanent mean in_wall_permanent mean san_flush mean h20_piped_in) format(%9.2f) center
+  6.         table gr_`r',c(mean in_size_big mean in_sep_kitch) format(%9.2f) center
+  7. restore
+  8. }
+
+      gr_40 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      8,358       19.40       19.40
+          2 |     18,979       44.06       63.47
+          3 |      1,439        3.34       66.81
+          4 |      5,223       12.13       78.94
+          5 |      3,214        7.46       86.40
+          6 |      5,859       13.60      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+--------------------------------------------------------------------------------
+    gr_40 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     87.47         65.39         85.47         62.62          0.00   
+        2 |     98.89         88.92         97.61         93.71        100.00   
+        3 |     60.95          0.00         49.27          0.00         14.45   
+        4 |     89.87         71.89         92.32         84.36          0.00   
+        5 |     94.93         71.87         94.12         86.12        100.00   
+        6 |     93.46         72.76         90.89         90.12          0.00   
+--------------------------------------------------------------------------------
+
+------------------------------------------
+    gr_40 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      74.91           82.89    
+        2 |      66.34           98.74    
+        3 |      42.32          100.00    
+        4 |       9.57            0.00    
+        5 |      16.99            0.00    
+        6 |      38.76          100.00    
+------------------------------------------
+
+      gr_41 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      5,742       13.33       13.33
+          2 |     18,017       41.83       55.16
+          3 |      1,014        2.35       57.52
+          4 |      7,090       16.46       73.98
+          5 |     10,381       24.10       98.08
+          6 |        828        1.92      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+--------------------------------------------------------------------------------
+    gr_41 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     82.03         51.17         82.41         76.73          0.00   
+        2 |     97.40         85.57         95.65         85.52         61.09   
+        3 |     90.53          0.00         82.64         81.56        100.00   
+        4 |     87.56         60.13         83.30         74.47          0.00   
+        5 |     97.75         88.85         96.73         92.00        100.00   
+        6 |     78.14        100.00         96.62          0.00          0.00   
+--------------------------------------------------------------------------------
+
+------------------------------------------
+    gr_41 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |       8.93            0.00    
+        2 |      85.36           98.82    
+        3 |      28.01            0.00    
+        4 |      39.45          100.00    
+        5 |      35.14           77.75    
+        6 |      18.72            0.00    
+------------------------------------------
+
+      gr_42 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      5,091       11.82       11.82
+          2 |      2,189        5.08       16.90
+          3 |     21,472       49.85       66.75
+          4 |      2,101        4.88       71.63
+          5 |      9,728       22.59       94.22
+          6 |      2,491        5.78      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+--------------------------------------------------------------------------------
+    gr_42 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     80.89         73.76         86.21         57.71          0.00   
+        2 |     87.53          0.00         80.31        100.00         32.94   
+        3 |     98.42         89.35         97.45         92.36        100.00   
+        4 |     65.35          0.00         52.55          0.00          9.90   
+        5 |     98.04        100.00         98.85         82.47          0.00   
+        6 |     84.34          0.00         70.61        100.00          0.00   
+--------------------------------------------------------------------------------
+
+------------------------------------------
+    gr_42 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      10.37            0.00    
+        2 |      12.70            0.00    
+        3 |      60.48           87.28    
+        4 |      55.74           99.43    
+        5 |      65.96           99.37    
+        6 |      56.04           99.16    
+------------------------------------------
+
+      gr_43 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     16,614       38.57       38.57
+          2 |      1,336        3.10       41.67
+          3 |      5,223       12.13       53.80
+          4 |      4,351       10.10       63.90
+          5 |      3,214        7.46       71.36
+          6 |     12,334       28.64      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+--------------------------------------------------------------------------------
+    gr_43 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     98.86         92.86         98.15         88.12         66.91   
+        2 |     48.88          0.00         52.32          0.00          0.00   
+        3 |     89.87         71.89         92.32         84.36          0.00   
+        4 |     75.94          0.00         62.33         56.77          0.00   
+        5 |     94.93         71.87         94.12         86.12        100.00   
+        6 |     97.71         90.61         97.19         90.71         65.44   
+--------------------------------------------------------------------------------
+
+------------------------------------------
+    gr_43 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      85.62           98.00    
+        2 |      11.75            0.00    
+        3 |       9.57            0.00    
+        4 |      56.40          100.00    
+        5 |      16.99            0.00    
+        6 |      39.69          100.00    
+------------------------------------------
+
+      gr_44 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     16,362       37.99       37.99
+          2 |      1,336        3.10       41.09
+          3 |     17,699       41.09       82.18
+          4 |      3,064        7.11       89.29
+          5 |      2,089        4.85       94.14
+          6 |      2,522        5.86      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+--------------------------------------------------------------------------------
+    gr_44 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     98.26         87.41         96.96         94.82         67.94   
+        2 |     48.88          0.00         52.32          0.00          0.00   
+        3 |     97.50         89.52         97.27         95.45         62.59   
+        4 |     83.52          0.00         72.94        100.00          0.00   
+        5 |     65.34          0.00         52.47          0.00          9.96   
+        6 |     89.89        100.00         96.83          0.00          0.00   
+--------------------------------------------------------------------------------
+
+------------------------------------------
+    gr_44 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      85.02           98.03    
+        2 |      11.75            0.00    
+        3 |      30.44           65.24    
+        4 |      25.55           52.09    
+        5 |      55.53          100.00    
+        6 |      54.64           67.17    
+------------------------------------------
+
+      gr_45 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      7,022       16.30       16.30
+          2 |      3,785        8.79       25.09
+          3 |      1,439        3.34       28.43
+          4 |     21,472       49.85       78.28
+          5 |      1,336        3.10       81.38
+          6 |      8,018       18.62      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+--------------------------------------------------------------------------------
+    gr_45 | mean(in_f~t)  mean(in_r~t)  mean(in_w~t)  mean(san_~h)  mean(h20_~n)
+----------+---------------------------------------------------------------------
+        1 |     94.82         77.83         91.78         74.54          0.00   
+        2 |     85.76          0.00         75.59        100.00         19.05   
+        3 |     60.95          0.00         49.27          0.00         14.45   
+        4 |     98.42         89.35         97.45         92.36        100.00   
+        5 |     48.88          0.00         52.32          0.00          0.00   
+        6 |     94.92        100.00         98.68         82.59          0.00   
+--------------------------------------------------------------------------------
+
+------------------------------------------
+    gr_45 | mean(in_siz~g)  mean(in_sep~h)
+----------+-------------------------------
+        1 |      86.93           98.66    
+        2 |      24.62           42.17    
+        3 |      42.32          100.00    
+        4 |      60.48           87.28    
+        5 |      11.75            0.00    
+        6 |      24.79           53.17    
+------------------------------------------
+
+. 
+. //when r = 41 the cluster is the best. 
+. 
+. ********cross validate with other indicator: slum, consumption, rent, overcrowding********
+. use "${root}\Data Output Files\NSS76_All_clst_u.dta",replace
+
+. 
+. cluster kmeans in_roof_permanent san_flush h20_piped_in in_room_big in_sep_kitch, k(6) ///
+>     name(cluster) start(kr(41)) measure(Jaccard)
+
+.     tab cluster
+
+    cluster |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      5,742       13.33       13.33
+          2 |     18,017       41.83       55.16
+          3 |      1,014        2.35       57.52
+          4 |      7,090       16.46       73.98
+          5 |     10,381       24.10       98.08
+          6 |        828        1.92      100.00
+------------+-----------------------------------
+      Total |     43,072      100.00
+
+.     table cluster,c(mean in_roof_permanent mean in_sep_kitch mean in_room_big mean h20_piped_in mean san_flush) format(%9.2f) center
+
+--------------------------------------------------------------------------------
+  cluster | mean(in_r~t)  mean(in_s~h)  mean(in_r~g)  mean(h20_~n)  mean(san_~h)
+----------+---------------------------------------------------------------------
+        1 |     51.17          0.00          0.00          0.00         76.73   
+        2 |     85.57         98.82        100.00         61.09         85.52   
+        3 |      0.00          0.00         10.85        100.00         81.56   
+        4 |     60.13        100.00          0.00          0.00         74.47   
+        5 |     88.85         77.75          0.00        100.00         92.00   
+        6 |    100.00          0.00          1.33          0.00          0.00   
+--------------------------------------------------------------------------------
+
+. 
+. 
+. **distribution of slum and renter
+. gen hq_slum = (1-hq_nslum)*100
+
+. tab cluster hq_slum [aw = hh_weight],col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+           |        hq_slum
+   cluster |         0        100 |     Total
+-----------+----------------------+----------
+         1 | 5,104.272  1,165.127 | 6,269.399 
+           |     12.78      37.28 |     14.56 
+-----------+----------------------+----------
+         2 | 17,557.26  435.07166 | 17,992.34 
+           |     43.95      13.92 |     41.77 
+-----------+----------------------+----------
+         3 | 634.91138  240.38004 | 875.29142 
+           |      1.59       7.69 |      2.03 
+-----------+----------------------+----------
+         4 | 5,393.317  554.31598 | 5,947.633 
+           |     13.50      17.74 |     13.81 
+-----------+----------------------+----------
+         5 | 10,568.68  678.72212 |  11,247.4 
+           |     26.46      21.72 |     26.11 
+-----------+----------------------+----------
+         6 | 688.26714  51.670437 | 739.93758 
+           |      1.72       1.65 |      1.72 
+-----------+----------------------+----------
+     Total | 39,946.71 3,125.2872 |    43,072 
+           |    100.00     100.00 |    100.00 
+
+. tab cluster legal_rent [aw = hh_weight],col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+           |      legal_rent
+   cluster |         0          1 |     Total
+-----------+----------------------+----------
+         1 | 3,170.249   3,099.15 | 6,269.399 
+           |     10.97      21.88 |     14.56 
+-----------+----------------------+----------
+         2 | 14,608.88   3,383.46 | 17,992.34 
+           |     50.54      23.89 |     41.77 
+-----------+----------------------+----------
+         3 | 504.21149  371.07993 | 875.29142 
+           |      1.74       2.62 |      2.03 
+-----------+----------------------+----------
+         4 | 3,812.443 2,135.1905 | 5,947.633 
+           |     13.19      15.08 |     13.81 
+-----------+----------------------+----------
+         5 |6,221.0497  5,026.353 |  11,247.4 
+           |     21.52      35.49 |     26.11 
+-----------+----------------------+----------
+         6 | 591.54991  148.38766 | 739.93758 
+           |      2.05       1.05 |      1.72 
+-----------+----------------------+----------
+     Total | 28,908.38  14,163.62 |    43,072 
+           |    100.00     100.00 |    100.00 
+
+. 
+. **mean
+. table cluster [aw = hh_weight],c(med cost_rent med hh_umce mean hh_size mean hq_slum ) format(%9.2f) center
+
+----------------------------------------------------------------------
+  cluster | med(cost_r~t)   med(hh_umce)  mean(hh_size)  mean(hq_slum)
+----------+-----------------------------------------------------------
+        1 |     1500.00        7465.00           3.02          18.58  
+        2 |     4288.00       15148.00           4.43           2.42  
+        3 |     1800.00       10000.00           3.67          27.46  
+        4 |     2400.00       10000.00           3.71           9.32  
+        5 |     2800.00       11460.00           3.48           6.03  
+        6 |     1100.00        7390.00           3.91           6.98  
+----------------------------------------------------------------------
+
+. table cluster [aw = hh_weight],c(mean legal_own med in_ppl_room) format(%9.2f) center
+
+------------------------------------------
+  cluster | mean(legal_~n)   med(in_ppl~m)
+----------+-------------------------------
+        1 |      0.38            1.33     
+        2 |      0.81            0.67     
+        3 |      0.53            2.00     
+        4 |      0.61            1.00     
+        5 |      0.53            1.00     
+        6 |      0.75            2.00     
+------------------------------------------
+
+. 
+. **the mode for each group
+. sort in_floor_permanent in_roof_permanent in_wall_permanent san_flush san_imp_pit h20_piped_in h20_pump_in in_size_big in_sep_kitch
+
+. 
+. gen hq_cluster_name = string(in_wall_permanent)+"-"+string(in_floor_permanent)+"-"+string(in_roof_permanent) ///
+> +"-"+string(san_flush) ///
+> +"-"+string(h20_piped_in) ///
+> +"-"+string(in_room_big)+"-"+string(in_sep_kitch) 
+
+. 
+. bysort cluster: tab hq_cluster_name  [aw = hh_weight],sort
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-> cluster = 1
+
+            hq_cluster_name |      Freq.     Percent        Cum.
+----------------------------+-----------------------------------
+      100-100-100-100-0-0-0 | 3,236.0655       56.36       56.36
+        100-100-0-100-0-0-0 | 1,066.0072       18.57       74.92
+          100-100-0-0-0-0-0 | 426.606313        7.43       82.35
+              0-0-0-0-0-0-0 | 356.974085        6.22       88.57
+            100-0-0-0-0-0-0 | 151.643588        2.64       91.21
+          0-100-0-100-0-0-0 | 117.286148        2.04       93.25
+            0-100-0-0-0-0-0 | 113.082085        1.97       95.22
+            0-0-0-100-0-0-0 | 102.496061        1.79       97.01
+        100-0-100-100-0-0-0 | 79.5743326        1.39       98.39
+          100-0-0-100-0-0-0 | 66.5438885        1.16       99.55
+        0-100-100-100-0-0-0 |  19.282126        0.34       99.89
+          0-0-100-100-0-0-0 | 6.43867209        0.11      100.00
+----------------------------+-----------------------------------
+                      Total |      5,742      100.00
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-> cluster = 2
+
+            hq_cluster_name |      Freq.     Percent        Cum.
+----------------------------+-----------------------------------
+100-100-100-100-100-100-100 |9,965.27441       55.31       55.31
+  100-100-100-100-0-100-100 | 4,379.0817       24.31       79.62
+    100-100-100-0-0-100-100 | 1,094.6721        6.08       85.69
+  100-100-100-0-100-100-100 |660.4073849        3.67       89.36
+    100-100-0-100-0-100-100 | 451.526313        2.51       91.86
+  100-100-0-100-100-100-100 | 405.396616        2.25       94.11
+      100-100-0-0-0-100-100 | 301.508413        1.67       95.79
+        0-100-0-0-0-100-100 | 90.6816005        0.50       96.29
+    100-100-0-0-100-100-100 | 72.8673679        0.40       96.69
+  0-100-100-100-100-100-100 | 56.4664192        0.31       97.01
+      0-100-100-0-0-100-100 | 54.9311783        0.30       97.31
+    100-100-100-100-0-100-0 | 51.0432048        0.28       97.60
+      0-100-0-100-0-100-100 | 47.5610409        0.26       97.86
+  100-0-100-100-100-100-100 |42.79264993        0.24       98.10
+  100-100-100-100-100-100-0 | 42.7666522        0.24       98.33
+    100-0-100-100-0-100-100 | 33.0762154        0.18       98.52
+      100-0-100-0-0-100-100 | 32.9882086        0.18       98.70
+        100-0-0-0-0-100-100 |  32.456617        0.18       98.88
+          0-0-0-0-0-100-100 | 30.1563498        0.17       99.05
+    0-100-0-100-100-100-100 | 23.4553353        0.13       99.18
+    0-100-100-100-0-100-100 | 23.4222089        0.13       99.31
+        0-0-0-100-0-100-100 | 20.3003086        0.11       99.42
+      100-0-0-100-0-100-100 | 18.2221036        0.10       99.52
+    0-100-100-0-100-100-100 | 17.6951328        0.10       99.62
+      0-100-0-0-100-100-100 | 10.6759898        0.06       99.68
+      100-100-0-100-0-100-0 |    9.64403        0.05       99.73
+    100-0-100-0-100-100-100 | 9.49561005        0.05       99.79
+      0-0-0-100-100-100-100 | 8.10087855        0.04       99.83
+    100-100-100-0-100-100-0 | 3.84918404        0.02       99.85
+      100-0-100-100-0-100-0 | 3.33986761        0.02       99.87
+    100-0-100-100-100-100-0 |  3.2954989        0.02       99.89
+        0-0-0-0-100-100-100 | 3.19612883        0.02       99.91
+        100-100-0-0-0-100-0 | 3.19064265        0.02       99.93
+    100-0-0-100-100-100-100 | 2.44158166        0.01       99.94
+          0-0-0-100-0-100-0 | 1.77679561        0.01       99.95
+          100-0-0-0-0-100-0 | 1.62342461        0.01       99.96
+            0-0-0-0-0-100-0 | 1.45237127        0.01       99.97
+      0-0-100-100-0-100-100 | 1.39262358        0.01       99.97
+      0-100-100-100-0-100-0 | 1.28115507        0.01       99.98
+        100-0-0-100-0-100-0 | 1.26121591        0.01       99.99
+    0-100-100-100-100-100-0 | .818855036        0.00       99.99
+        0-100-0-100-0-100-0 | .809525277        0.00      100.00
+      0-0-100-100-100-100-0 | .294131705        0.00      100.00
+    0-0-100-100-100-100-100 | .124241679        0.00      100.00
+          0-100-0-0-0-100-0 | .093809448        0.00      100.00
+      100-0-0-0-100-100-100 | .092902065        0.00      100.00
+----------------------------+-----------------------------------
+                      Total |     18,017      100.00
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-> cluster = 3
+
+            hq_cluster_name |      Freq.     Percent        Cum.
+----------------------------+-----------------------------------
+      100-100-0-100-100-0-0 | 692.969674       68.34       68.34
+        100-100-0-0-100-0-0 | 132.913009       13.11       81.45
+            0-0-0-0-100-0-0 | 50.6671515        5.00       86.44
+        0-100-0-100-100-0-0 | 46.0095113        4.54       90.98
+          100-0-0-0-100-0-0 |  29.349476        2.89       93.88
+          0-100-0-0-100-0-0 | 19.9301692        1.97       95.84
+          0-0-0-100-100-0-0 | 14.3565866        1.42       97.26
+        100-0-0-100-100-0-0 | 13.1905265        1.30       98.56
+    100-100-0-100-100-100-0 |10.85437978        1.07       99.63
+      100-100-0-0-100-100-0 | 1.30748938        0.13       99.76
+      0-100-0-100-100-100-0 | 1.19985084        0.12       99.88
+        0-100-0-0-100-100-0 |   .9808862        0.10       99.97
+      100-0-0-100-100-100-0 | .157191576        0.02       99.99
+        100-0-0-0-100-100-0 | .114098474        0.01      100.00
+----------------------------+-----------------------------------
+                      Total |      1,014      100.00
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-> cluster = 4
+
+            hq_cluster_name |      Freq.     Percent        Cum.
+----------------------------+-----------------------------------
+    100-100-100-100-0-0-100 | 4,317.0857       60.89       60.89
+      100-100-0-100-0-0-100 |976.6054197       13.77       74.66
+      100-100-100-0-0-0-100 | 595.462365        8.40       83.06
+        100-100-0-0-0-0-100 | 428.487183        6.04       89.11
+            0-0-0-0-0-0-100 | 160.170204        2.26       91.37
+        0-100-0-100-0-0-100 | 129.231924        1.82       93.19
+          0-100-0-0-0-0-100 | 128.893783        1.82       95.01
+          0-0-0-100-0-0-100 | 73.9642415        1.04       96.05
+      100-0-100-100-0-0-100 | 65.2997797        0.92       96.97
+          100-0-0-0-0-0-100 |61.37858386        0.87       97.84
+        100-0-100-0-0-0-100 | 61.0445798        0.86       98.70
+        100-0-0-100-0-0-100 | 40.6566856        0.57       99.27
+      0-100-100-100-0-0-100 | 38.1870357        0.54       99.81
+        0-100-100-0-0-0-100 | 8.89013713        0.13       99.93
+        0-0-100-100-0-0-100 |2.858970476        0.04       99.97
+          0-0-100-0-0-0-100 | 1.78341173        0.03      100.00
+----------------------------+-----------------------------------
+                      Total |      7,090      100.00
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-> cluster = 5
+
+            hq_cluster_name |      Freq.     Percent        Cum.
+----------------------------+-----------------------------------
+  100-100-100-100-100-0-100 |  6,695.483       64.50       64.50
+    100-100-100-100-100-0-0 | 2,115.6512       20.38       84.88
+    100-100-0-100-100-0-100 | 577.095808        5.56       90.44
+    100-100-100-0-100-0-100 | 334.460974        3.22       93.66
+      100-100-100-0-100-0-0 | 247.109835        2.38       96.04
+      100-100-0-0-100-0-100 | 96.3930993        0.93       96.97
+      0-100-0-100-100-0-100 |58.65731237        0.57       97.53
+    0-100-100-100-100-0-100 | 44.4232832        0.43       97.96
+    100-0-100-100-100-0-100 | 40.0268729        0.39       98.35
+        100-0-100-0-100-0-0 | 32.2789022        0.31       98.66
+      100-0-100-100-100-0-0 | 27.8967869        0.27       98.93
+      100-0-100-0-100-0-100 |16.66669679        0.16       99.09
+        0-100-0-0-100-0-100 | 16.0214629        0.15       99.24
+      100-0-0-100-100-0-100 | 15.6198397        0.15       99.39
+        100-0-0-0-100-0-100 | 12.2463543        0.12       99.51
+      0-100-100-100-100-0-0 |10.26352168        0.10       99.61
+        0-0-0-100-100-0-100 | 9.52070195        0.09       99.70
+          0-0-0-0-100-0-100 |9.008214454        0.09       99.79
+        0-0-100-100-100-0-0 | 6.05012397        0.06       99.84
+      0-100-100-0-100-0-100 | 5.99132286        0.06       99.90
+        0-0-100-0-100-0-100 | 3.58313643        0.03       99.94
+          0-0-100-0-100-0-0 | 2.58441821        0.02       99.96
+      0-0-100-100-100-0-100 | 2.06837949        0.02       99.98
+        0-100-100-0-100-0-0 | 1.89874836        0.02      100.00
+----------------------------+-----------------------------------
+                      Total |     10,381      100.00
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-> cluster = 6
+
+            hq_cluster_name |      Freq.     Percent        Cum.
+----------------------------+-----------------------------------
+        100-100-100-0-0-0-0 |632.3237546       76.37       76.37
+          100-0-100-0-0-0-0 | 158.088752       19.09       95.46
+            0-0-100-0-0-0-0 | 17.4804612        2.11       97.57
+      100-100-100-0-0-100-0 | 9.94571948        1.20       98.77
+          0-100-100-0-0-0-0 | 9.26731754        1.12       99.89
+        100-0-100-0-0-100-0 | .893995679        0.11      100.00
+----------------------------+-----------------------------------
+                      Total |        828      100.00
+
+
+. 
+. save "${root}\Data Output Files\NSS76_urban_kmeans.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS76\Data Output Files\NSS76_urban_kmeans.dta saved
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\clustering\01_cluster_nss76_u.log
+  log type:  text
+ closed on:  10 Feb 2021, 05:39:00
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

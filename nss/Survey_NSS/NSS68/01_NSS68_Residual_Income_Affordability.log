@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS68\01_NSS68_Residual_Income_Affordability.log
   log type:  text
- opened on:  25 Jan 2021, 07:50:58
+ opened on:  10 Feb 2021, 05:23:50
 
 . set linesize 255
 
@@ -40,7 +40,6 @@
 .         
 .           egen double total_fuel = sum(fuel), by(ID)
 
-. 
 .           bys ID: keep if _n == 1 // keep only one observation for each HH
 (3,460,931 observations deleted)
 
@@ -377,18 +376,18 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data O
 . gen tn = (state == 33)
 
 .  
-. table renter, c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
+. table renter [aw = hhwt] , c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
 
 ------------------------------------------
    renter | mean(mpce_mrp)   med(mpce_mrp)
 ----------+-------------------------------
-        0 |        2433.29         1821.12
-        1 |        3337.09         2614.77
+        0 |        2542.84         1900.12
+        1 |        3631.70         2746.39
           | 
-    Total |        2682.63         2021.02
+    Total |        2912.72         2177.82
 ------------------------------------------
 
-. table mpce_qt, c(mean renter) format(%9.2f) row
+. table mpce_qt [aw = hhwt] , c(mean renter) format(%9.2f) row
 
 ------------------------
 5         |
@@ -398,26 +397,26 @@ mpce_mrp  | mean(renter)
 ----------+-------------
         1 |         0.11
         2 |         0.16
-        3 |         0.20
-        4 |         0.26
-        5 |         0.38
+        3 |         0.23
+        4 |         0.32
+        5 |         0.46
           | 
-    Total |         0.28
+    Total |         0.34
 ------------------------
 
 . 
-. table renter if tn == 1, c(mean mpce_mrp median mpce_mrp) format(%9.2f)row
+. table renter if tn == 1 [aw = hhwt] , c(mean mpce_mrp median mpce_mrp) format(%9.2f)row
 
 ------------------------------------------
    renter | mean(mpce_mrp)   med(mpce_mrp)
 ----------+-------------------------------
-        0 |        2417.22         1920.98
-        1 |        3079.54         2506.27
+        0 |        2421.40         1879.21
+        1 |        3226.62         2553.65
           | 
-    Total |        2673.35         2174.48
+    Total |        2783.14         2200.08
 ------------------------------------------
 
-. table mpce_qt_tn if tn == 1, c(mean renter) format(%9.2f) row
+. table mpce_qt_tn if tn == 1 [aw = hhwt] , c(mean renter) format(%9.2f) row
 
 ------------------------
 5         |
@@ -425,13 +424,13 @@ quantiles |
 of        |
 mpce_mrp  | mean(renter)
 ----------+-------------
-        1 |         0.20
-        2 |         0.29
-        3 |         0.35
-        4 |         0.43
-        5 |         0.49
+        1 |         0.22
+        2 |         0.28
+        3 |         0.38
+        4 |         0.51
+        5 |         0.58
           | 
-    Total |         0.39
+    Total |         0.45
 ------------------------
 
 . 
@@ -598,5 +597,5 @@ Notes: The data source is NSS 68th Round Household Consumer Expenditure.
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS68\01_NSS68_Residual_Income_Affordability.log
   log type:  text
- closed on:  25 Jan 2021, 07:52:01
+ closed on:  10 Feb 2021, 05:24:42
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
