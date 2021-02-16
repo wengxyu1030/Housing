@@ -1,0 +1,1070 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS68\03_HDS_income_stats.log
+  log type:  text
+ opened on:  16 Feb 2021, 02:24:06
+
+. set linesize 255
+
+. 
+. *******************************************
+. *******Estimate income expenditure ratio
+. *******************************************
+. 
+. use "${r_input}\DS0002\36151-0002-Data.dta",clear //UMD DHS data
+(India Human Development Survey-II (IHDS-II), 2011-12, Household)
+
+. 
+. foreach var of var * {
+  2. rename `var' `= lower("`var'")'
+  3. }
+
+. 
+. replace income = 0 if income < 0 //assumption there's no negative income. 
+(452 real changes made)
+
+. 
+. egen con_1 = rowtotal(co1x co2x co3x co4x co5x co6x co7x co8x co9x co10x co11x co12x ///
+> co13x co14x) //constructed
+
+. egen con_2 = rowtotal(co15-co30) 
+
+. egen con_3 = rowtotal(co31-co33)
+
+. egen con_4 = rowtotal(co34-co52) //annual
+
+. 
+. replace cototal= (con_1+con_2+con_3)*12+con_4
+(3,108 real changes made)
+
+. drop con_1-con_4
+
+. sum cototal [aw = indwt]
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
+-------------+-----------------------------------------------------------------
+     cototal |  42,152  1.2123e+09    120987.7   116057.4          0    4080760
+
+. rename cototal exp
+
+. 
+. //per capita expenditure and its log
+. gen exp_ind = exp/npersons 
+
+. gen exp_ind_ln = ln(exp_ind)
+(23 missing values generated)
+
+. 
+. //per capita income and its log
+. gen income_ind = income/npersons
+
+. gen income_ind_ln = ln(income_ind)
+(618 missing values generated)
+
+. 
+. //label the variables
+. label var income "Income(Household)"
+
+. label var income_ind "Income(Per Capita)"
+
+. label var income_ind_ln "Log Income(Per Capita)"
+
+. 
+. label var exp "Expenditure(Household)"
+
+. label var exp_ind "Expenditure(Per Capita)"
+
+. label var exp_ind_ln "Log Expenditure(Per Capita)"
+
+. 
+. label var npersons "Household Size"
+
+. 
+. *********the relation between income and exp (regression by quintile)*************
+. foreach i in 5 10 100 {
+  2. xtile exp_p_`i' = exp [aw = indwt],n(`i')
+  3. }
+
+. 
+. forvalues i = 1/5 {
+  2.  qui reg income_ind exp_ind  [aw = indwt] if exp_p_5 == `i', noconstant
+  3.  eststo q`i'
+  4. }
+
+. 
+. //regression result table 
+.  esttab q1 q2 q3 q4 q5, nose not label b("%9.2f") r2 ///
+>  stats(N r2 , label(Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+>  title("Regression of Income on Expenditure by Decile") ///
+>  addnotes("Regressions are weighted by survey weights.")
+
+Regression of Income on Expenditure by Decile
+----------------------------------------------------------------------------------------------------
+                              (1)             (2)             (3)             (4)             (5)   
+                     Income(Per~)    Income(Per~)    Income(Per~)    Income(Per~)    Income(Per~)   
+----------------------------------------------------------------------------------------------------
+Expenditure(Per Ca~)         1.15***         1.06***         1.12***         1.07***         0.80***
+----------------------------------------------------------------------------------------------------
+Observations                9,756           8,298           8,149           8,019           7,930   
+R2                       .4482133        .5291531        .2074243         .521221        .3758014   
+----------------------------------------------------------------------------------------------------
+Regressions are weighted by survey weights.
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. //scatter plot: income and expenditure median by percentile.
+. foreach var in exp income {
+  2. egen `var'_ind_med = median(`var'_ind),by(exp_p_100)
+  3. }
+
+. label var income_ind_med "Med. Income(Per Capita)"
+
+. label var exp_ind_med "Med. Expenditure(Per Capita)"
+
+. 
+. scatter income_ind_med exp_ind_med exp_p_100,msize(tiny tiny) ///
+> title("1. Median of Income and Expenditure by Exp. Percentile (All)",size(12pt)) 
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+. graph export "${r_output}\scatter_1.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\scatter_1.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image "${r_output}\scatter_1.png"
+
+. 
+. scatter income_ind_med exp_ind_med exp_p_100 if urban2011 == 1,msize(tiny tiny) ///
+> title("2. Median of Income and Expenditure by Exp. Percentile (Urban)",size(12pt)) 
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+. graph export  "${r_output}\scatter_2.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\scatter_2.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\scatter_2.png"
+
+. 
+. *********the relation between income and exp (regression)*************
+. 
+. **scatter of the log Expenditure and income
+. scatter income_ind_ln exp_ind_ln, msize(tiny)
+
+. 
+. **linear model 
+.  reg income_ind exp_ind [aw = indwt] 
+(sum of wgt is 1,212,277,319.273)
+
+      Source |       SS           df       MS      Number of obs   =    42,152
+-------------+----------------------------------   F(1, 42150)     =   8604.12
+       Model |  1.2424e+13         1  1.2424e+13   Prob > F        =    0.0000
+    Residual |  6.0864e+13    42,150  1.4440e+09   R-squared       =    0.1695
+-------------+----------------------------------   Adj R-squared   =    0.1695
+       Total |  7.3289e+13    42,151  1.7387e+09   Root MSE        =     38000
+
+------------------------------------------------------------------------------
+  income_ind |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     exp_ind |   .7196333   .0077581    92.76   0.000     .7044272    .7348395
+       _cons |   7502.709   255.9977    29.31   0.000     7000.948     8004.47
+------------------------------------------------------------------------------
+
+.  eststo reg_1 //linear with absolute value
+
+. 
+.  reg income_ind_ln exp_ind_ln [aw = indwt]
+(sum of wgt is 1,194,467,675.454)
+
+      Source |       SS           df       MS      Number of obs   =    41,518
+-------------+----------------------------------   F(1, 41516)     =  18616.55
+       Model |  13136.1132         1  13136.1132   Prob > F        =    0.0000
+    Residual |  29294.3034    41,516  .705614783   R-squared       =    0.3096
+-------------+----------------------------------   Adj R-squared   =    0.3096
+       Total |  42430.4166    41,517  1.02200103   Root MSE        =    .84001
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   .8471114   .0062086   136.44   0.000     .8349425    .8592803
+       _cons |   1.290393   .0608507    21.21   0.000     1.171125    1.409662
+------------------------------------------------------------------------------
+
+.  eststo reg_2 //linear with log value
+
+. 
+. /*
+> centile exp [aw = indwt], c(10 90) //centile can not be weighted
+> return list
+> */
+.  sum exp_ind_ln [aw = indwt],de
+
+                 Log Expenditure(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     8.412159       5.192957
+ 5%     8.785142       6.068426
+10%     8.989361       6.562444       Obs              42,129
+25%     9.324339       7.235259       Sum of Wgt.  1.2119e+09
+
+50%     9.723164                      Mean           9.781031
+                        Largest       Std. Dev.      .6648927
+75%     10.18535       13.60531
+90%     10.64702       13.61236       Variance       .4420823
+95%     10.94926       13.72243       Skewness       .5031409
+99%      11.5856       13.82269       Kurtosis       3.753972
+
+.  reg income_ind_ln exp_ind_ln [aw = indwt] if inrange(exp_ind_ln, r(p10), r(p90))
+(sum of wgt is 1,194,467,675.454)
+
+      Source |       SS           df       MS      Number of obs   =    41,518
+-------------+----------------------------------   F(1, 41516)     =  18616.55
+       Model |  13136.1132         1  13136.1132   Prob > F        =    0.0000
+    Residual |  29294.3034    41,516  .705614783   R-squared       =    0.3096
+-------------+----------------------------------   Adj R-squared   =    0.3096
+       Total |  42430.4166    41,517  1.02200103   Root MSE        =    .84001
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   .8471114   .0062086   136.44   0.000     .8349425    .8592803
+       _cons |   1.290393   .0608507    21.21   0.000     1.171125    1.409662
+------------------------------------------------------------------------------
+
+.  eststo reg_3  //remove expenditure outlier
+
+. 
+.  sum income_ind_ln [aw = indwt],de
+
+                   Log Income(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      6.84588       2.813411
+ 5%     7.981819       3.401197
+10%     8.396154       3.506558       Obs              41,534
+25%     8.968268       3.624341       Sum of Wgt.  1.1947e+09
+
+50%     9.552155                      Mean            9.57394
+                        Largest       Std. Dev.      1.011046
+75%     10.20253       14.31629
+90%     10.84187       14.80834       Variance       1.022214
+95%     11.22968       14.84243       Skewness      -.1837245
+99%      12.0137       15.24127       Kurtosis       4.350082
+
+.  reg income_ind_ln exp_ind_ln [aw = indwt] if inrange(income_ind_ln, r(p10), r(p90))
+(sum of wgt is 1,194,467,675.454)
+
+      Source |       SS           df       MS      Number of obs   =    41,518
+-------------+----------------------------------   F(1, 41516)     =  18616.55
+       Model |  13136.1132         1  13136.1132   Prob > F        =    0.0000
+    Residual |  29294.3034    41,516  .705614783   R-squared       =    0.3096
+-------------+----------------------------------   Adj R-squared   =    0.3096
+       Total |  42430.4166    41,517  1.02200103   Root MSE        =    .84001
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   .8471114   .0062086   136.44   0.000     .8349425    .8592803
+       _cons |   1.290393   .0608507    21.21   0.000     1.171125    1.409662
+------------------------------------------------------------------------------
+
+.  eststo reg_4 //remove income outlier
+
+. 
+.  sum income_ind_ln [aw = indwt],de
+
+                   Log Income(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      6.84588       2.813411
+ 5%     7.981819       3.401197
+10%     8.396154       3.506558       Obs              41,534
+25%     8.968268       3.624341       Sum of Wgt.  1.1947e+09
+
+50%     9.552155                      Mean            9.57394
+                        Largest       Std. Dev.      1.011046
+75%     10.20253       14.31629
+90%     10.84187       14.80834       Variance       1.022214
+95%     11.22968       14.84243       Skewness      -.1837245
+99%      12.0137       15.24127       Kurtosis       4.350082
+
+.  gen income_lb = r(p10)
+
+.  gen income_ub = r(p90)
+
+.  sum exp_ind_ln [aw = indwt],de
+
+                 Log Expenditure(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     8.412159       5.192957
+ 5%     8.785142       6.068426
+10%     8.989361       6.562444       Obs              42,129
+25%     9.324339       7.235259       Sum of Wgt.  1.2119e+09
+
+50%     9.723164                      Mean           9.781031
+                        Largest       Std. Dev.      .6648927
+75%     10.18535       13.60531
+90%     10.64702       13.61236       Variance       .4420823
+95%     10.94926       13.72243       Skewness       .5031409
+99%      11.5856       13.82269       Kurtosis       3.753972
+
+.  gen exp_lb = r(p10)
+
+.  gen exp_ub = r(p90)
+
+.  sum income_lb income_ub exp_lb exp_ub
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+   income_lb |     42,152    8.396154           0   8.396154   8.396154
+   income_ub |     42,152    10.84187           0   10.84187   10.84187
+      exp_lb |     42,152    8.989361           0   8.989361   8.989361
+      exp_ub |     42,152    10.64702           0   10.64702   10.64702
+
+. 
+.  reg income_ind_ln exp_ind_ln [aw = indwt] if inrange(income_ind_ln,income_lb,income_ub) & inrange(exp_ind_ln,exp_lb,exp_ub)
+(sum of wgt is 808,634,635.58047)
+
+      Source |       SS           df       MS      Number of obs   =    27,885
+-------------+----------------------------------   F(1, 27883)     =   5216.16
+       Model |  1567.84654         1  1567.84654   Prob > F        =    0.0000
+    Residual |  8380.92812    27,883  .300574835   R-squared       =    0.1576
+-------------+----------------------------------   Adj R-squared   =    0.1576
+       Total |  9948.77466    27,884  .356791517   Root MSE        =    .54825
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   .5790898   .0080181    72.22   0.000      .563374    .5948056
+       _cons |    3.95504   .0781522    50.61   0.000     3.801858    4.108222
+------------------------------------------------------------------------------
+
+.  eststo reg_5 //remove both income and expenditure outlier. 
+
+.  
+.  predict fitted
+(option xb assumed; fitted values)
+(23 missing values generated)
+
+.  scatter income_ind_ln exp_ind_ln,msize(tiny) || line fitted exp_ind_ln, title("3. Linear prediction of log income on log exp. (Urban)",size(12pt))
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+.  
+.  graph export  "${r_output}\fit_1.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\fit_1.png written in PNG format)
+
+.  putpdf paragraph, halign(center)
+
+.  putpdf image  "${r_output}\fit_1.png"
+
+. 
+.  esttab reg_1 reg_2 reg_3 reg_4 reg_5, nose not label b("%9.2f") r2 ///
+>  stats(N r2 , label(Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+>  title("Regression of Income on Expenditure") ///
+>  nonumbers mtitles("Linear" "Log Linear" "Excl. Exp. Outlier""Excl. Income Outliner""Excl. both Outliner") ///
+>  addnotes("Regressions are weighted by survey weights.")
+
+Regression of Income on Expenditure
+----------------------------------------------------------------------------------------------------
+                           Linear      Log Linear    Excl. Exp.~r    Excl. Inco~r    Excl. both~r   
+----------------------------------------------------------------------------------------------------
+Expenditure(Per Ca~)         0.72***                                                                
+Log Expenditure(Pe~)                         0.85***         0.85***         0.85***         0.58***
+Constant                  7502.71***         1.29***         1.29***         1.29***         3.96***
+----------------------------------------------------------------------------------------------------
+Observations               42,152          41,518          41,518          41,518          27,885   
+R2                       .1695256        .3095919        .3095919        .3095919        .1575919   
+----------------------------------------------------------------------------------------------------
+Regressions are weighted by survey weights.
+* p<0.05, ** p<0.01, *** p<0.001
+
+.  
+. **model with square term
+. foreach var in exp_ind_ln exp_ind {
+  2. gen `var'2 = `var'^2
+  3. gen `var'3 = `var'^3
+  4. }
+(23 missing values generated)
+(23 missing values generated)
+
+. 
+.  reg income_ind exp_ind2  [aw = indwt] if urban2011 == 1
+(sum of wgt is 383,298,500.36744)
+
+      Source |       SS           df       MS      Number of obs   =    14,573
+-------------+----------------------------------   F(1, 14571)     =   1245.44
+       Model |  2.9019e+12         1  2.9019e+12   Prob > F        =    0.0000
+    Residual |  3.3950e+13    14,571  2.3300e+09   R-squared       =    0.0787
+-------------+----------------------------------   Adj R-squared   =    0.0787
+       Total |  3.6852e+13    14,572  2.5290e+09   Root MSE        =     48270
+
+------------------------------------------------------------------------------
+  income_ind |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    exp_ind2 |   1.41e-06   4.00e-08    35.29   0.000     1.33e-06    1.49e-06
+       _cons |   33640.21   406.0909    82.84   0.000     32844.22     34436.2
+------------------------------------------------------------------------------
+
+.  eststo reg_1 //absolute value 
+
+.  
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if urban2011 == 1
+(sum of wgt is 380,552,438.9961)
+
+      Source |       SS           df       MS      Number of obs   =    14,450
+-------------+----------------------------------   F(2, 14447)     =   3498.09
+       Model |  3907.04013         2  1953.52006   Prob > F        =    0.0000
+    Residual |  8067.97195    14,447  .558453101   R-squared       =    0.3263
+-------------+----------------------------------   Adj R-squared   =    0.3262
+       Total |  11975.0121    14,449  .828777914   Root MSE        =     .7473
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   1.150542   .1945658     5.91   0.000     .7691679    1.531916
+ exp_ind_ln2 |  -.0162614   .0094838    -1.71   0.086    -.0348509    .0023281
+       _cons |   .1221606   .9962547     0.12   0.902    -1.830626    2.074947
+------------------------------------------------------------------------------
+
+.  eststo reg_2 //log on both side
+
+.  
+.  sum exp_ind_ln [aw = indwt],de
+
+                 Log Expenditure(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     8.412159       5.192957
+ 5%     8.785142       6.068426
+10%     8.989361       6.562444       Obs              42,129
+25%     9.324339       7.235259       Sum of Wgt.  1.2119e+09
+
+50%     9.723164                      Mean           9.781031
+                        Largest       Std. Dev.      .6648927
+75%     10.18535       13.60531
+90%     10.64702       13.61236       Variance       .4420823
+95%     10.94926       13.72243       Skewness       .5031409
+99%      11.5856       13.82269       Kurtosis       3.753972
+
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if inrange(exp_ind_ln, r(p10), r(p90)) & urban2011 == 1
+(sum of wgt is 380,552,438.9961)
+
+      Source |       SS           df       MS      Number of obs   =    14,450
+-------------+----------------------------------   F(2, 14447)     =   3498.09
+       Model |  3907.04013         2  1953.52006   Prob > F        =    0.0000
+    Residual |  8067.97195    14,447  .558453101   R-squared       =    0.3263
+-------------+----------------------------------   Adj R-squared   =    0.3262
+       Total |  11975.0121    14,449  .828777914   Root MSE        =     .7473
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   1.150542   .1945658     5.91   0.000     .7691679    1.531916
+ exp_ind_ln2 |  -.0162614   .0094838    -1.71   0.086    -.0348509    .0023281
+       _cons |   .1221606   .9962547     0.12   0.902    -1.830626    2.074947
+------------------------------------------------------------------------------
+
+.  eststo reg_3  //remove expenditure outlier
+
+. 
+.  sum income_ind_ln [aw = indwt],de
+
+                   Log Income(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      6.84588       2.813411
+ 5%     7.981819       3.401197
+10%     8.396154       3.506558       Obs              41,534
+25%     8.968268       3.624341       Sum of Wgt.  1.1947e+09
+
+50%     9.552155                      Mean            9.57394
+                        Largest       Std. Dev.      1.011046
+75%     10.20253       14.31629
+90%     10.84187       14.80834       Variance       1.022214
+95%     11.22968       14.84243       Skewness      -.1837245
+99%      12.0137       15.24127       Kurtosis       4.350082
+
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if inrange(income_ind_ln, r(p10), r(p90)) & urban2011 == 1
+(sum of wgt is 380,552,438.9961)
+
+      Source |       SS           df       MS      Number of obs   =    14,450
+-------------+----------------------------------   F(2, 14447)     =   3498.09
+       Model |  3907.04013         2  1953.52006   Prob > F        =    0.0000
+    Residual |  8067.97195    14,447  .558453101   R-squared       =    0.3263
+-------------+----------------------------------   Adj R-squared   =    0.3262
+       Total |  11975.0121    14,449  .828777914   Root MSE        =     .7473
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   1.150542   .1945658     5.91   0.000     .7691679    1.531916
+ exp_ind_ln2 |  -.0162614   .0094838    -1.71   0.086    -.0348509    .0023281
+       _cons |   .1221606   .9962547     0.12   0.902    -1.830626    2.074947
+------------------------------------------------------------------------------
+
+.  eststo reg_4 //remove income outlier
+
+.  
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if inrange(income_ind_ln,income_lb,income_ub) & inrange(exp_ind_ln,exp_lb,exp_ub) & urban2011 == 1
+(sum of wgt is 259,998,917.71542)
+
+      Source |       SS           df       MS      Number of obs   =     9,139
+-------------+----------------------------------   F(2, 9136)      =    829.63
+       Model |  447.091171         2  223.545586   Prob > F        =    0.0000
+    Residual |   2461.7072     9,136  .269451313   R-squared       =    0.1537
+-------------+----------------------------------   Adj R-squared   =    0.1535
+       Total |  2908.79837     9,138  .318318929   Root MSE        =    .51909
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   3.014475    .627953     4.80   0.000     1.783547    4.245404
+ exp_ind_ln2 |  -.1246897   .0318371    -3.92   0.000    -.1870975   -.0622819
+       _cons |  -7.781719   3.092914    -2.52   0.012    -13.84452   -1.718915
+------------------------------------------------------------------------------
+
+.  eststo reg_5 //remove both income and expenditure outlier. 
+
+.  predict fitted_sq
+(option xb assumed; fitted values)
+(23 missing values generated)
+
+.  scatter income_ind_ln exp_ind_ln,msize(tiny) || scatter fitted_sq exp_ind_ln, title("4.1 Polynomial prediction of log income on log exp-square term. (Urban)",size(12pt))
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+.  
+.  graph export  "${r_output}\fit_2.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\fit_2.png written in PNG format)
+
+.  putpdf paragraph, halign(center)
+
+.  putpdf image  "${r_output}\fit_2.png"
+
+.  
+.  esttab reg_1 reg_2 reg_3 reg_4 reg_5, nose not label b("%9.2f") r2 ///
+>  stats(N r2 , label(Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+>  title("Regression of Income on Expenditure (Square Term)") ///
+>  nonumbers mtitles("Polynomial" "Log Polynomial" "Excl. Exp. Outlier""Excl. Income Outliner""Excl. both Outliner") ///
+>  addnotes("Regressions are weighted by survey weights.") 
+
+Regression of Income on Expenditure (Square Term)
+----------------------------------------------------------------------------------------------------
+                       Polynomial    Log Polyno~l    Excl. Exp.~r    Excl. Inco~r    Excl. both~r   
+----------------------------------------------------------------------------------------------------
+exp_ind2                     0.00***                                                                
+Log Expenditure(Pe~)                         1.15***         1.15***         1.15***         3.01***
+exp_ind_ln2                                 -0.02           -0.02           -0.02           -0.12***
+Constant                 33640.21***         0.12            0.12            0.12           -7.78*  
+----------------------------------------------------------------------------------------------------
+Observations               14,573          14,450          14,450          14,450           9,139   
+R2                       .0787431        .3262661        .3262661        .3262661         .153703   
+----------------------------------------------------------------------------------------------------
+Regressions are weighted by survey weights.
+* p<0.05, ** p<0.01, *** p<0.001
+
+.  
+. **model with square and cubic terms
+. 
+.  reg income_ind exp_ind2 exp_ind3 [aw = indwt] if urban2011 == 1
+(sum of wgt is 383,298,500.36744)
+
+      Source |       SS           df       MS      Number of obs   =    14,573
+-------------+----------------------------------   F(2, 14570)     =   1548.24
+       Model |  6.4593e+12         2  3.2296e+12   Prob > F        =    0.0000
+    Residual |  3.0393e+13    14,570  2.0860e+09   R-squared       =    0.1753
+-------------+----------------------------------   Adj R-squared   =    0.1752
+       Total |  3.6852e+13    14,572  2.5290e+09   Root MSE        =     45673
+
+------------------------------------------------------------------------------
+  income_ind |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    exp_ind2 |   4.96e-06   9.39e-08    52.83   0.000     4.78e-06    5.14e-06
+    exp_ind3 |  -6.01e-12   1.46e-13   -41.30   0.000    -6.29e-12   -5.72e-12
+       _cons |   29012.31   400.2489    72.49   0.000     28227.77    29796.85
+------------------------------------------------------------------------------
+
+.  eststo reg_1 //absolute value 
+
+.  
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2 exp_ind_ln3 [aw = indwt] if urban2011 == 1
+(sum of wgt is 380,552,438.9961)
+
+      Source |       SS           df       MS      Number of obs   =    14,450
+-------------+----------------------------------   F(3, 14446)     =   2357.49
+       Model |  3935.82124         3  1311.94041   Prob > F        =    0.0000
+    Residual |  8039.19084    14,446  .556499435   R-squared       =    0.3287
+-------------+----------------------------------   Adj R-squared   =    0.3285
+       Total |  11975.0121    14,449  .828777914   Root MSE        =    .74599
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   -13.0783   1.988066    -6.58   0.000    -16.97517    -9.18144
+ exp_ind_ln2 |   1.361047    .191752     7.10   0.000     .9851887    1.736906
+ exp_ind_ln3 |  -.0442274   .0061499    -7.19   0.000    -.0562821   -.0321728
+       _cons |   48.89216   6.854121     7.13   0.000      35.4572    62.32711
+------------------------------------------------------------------------------
+
+.  eststo reg_2 //log on both side
+
+.  
+.  sum exp_ind_ln [aw = indwt],de
+
+                 Log Expenditure(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     8.412159       5.192957
+ 5%     8.785142       6.068426
+10%     8.989361       6.562444       Obs              42,129
+25%     9.324339       7.235259       Sum of Wgt.  1.2119e+09
+
+50%     9.723164                      Mean           9.781031
+                        Largest       Std. Dev.      .6648927
+75%     10.18535       13.60531
+90%     10.64702       13.61236       Variance       .4420823
+95%     10.94926       13.72243       Skewness       .5031409
+99%      11.5856       13.82269       Kurtosis       3.753972
+
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2 exp_ind_ln3 [aw = indwt] if inrange(exp_ind_ln, r(p10), r(p90)) & urban2011 == 1
+(sum of wgt is 380,552,438.9961)
+
+      Source |       SS           df       MS      Number of obs   =    14,450
+-------------+----------------------------------   F(3, 14446)     =   2357.49
+       Model |  3935.82124         3  1311.94041   Prob > F        =    0.0000
+    Residual |  8039.19084    14,446  .556499435   R-squared       =    0.3287
+-------------+----------------------------------   Adj R-squared   =    0.3285
+       Total |  11975.0121    14,449  .828777914   Root MSE        =    .74599
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   -13.0783   1.988066    -6.58   0.000    -16.97517    -9.18144
+ exp_ind_ln2 |   1.361047    .191752     7.10   0.000     .9851887    1.736906
+ exp_ind_ln3 |  -.0442274   .0061499    -7.19   0.000    -.0562821   -.0321728
+       _cons |   48.89216   6.854121     7.13   0.000      35.4572    62.32711
+------------------------------------------------------------------------------
+
+.  eststo reg_3  //remove expenditure outlier
+
+. 
+.  sum income_ind_ln [aw = indwt],de
+
+                   Log Income(Per Capita)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      6.84588       2.813411
+ 5%     7.981819       3.401197
+10%     8.396154       3.506558       Obs              41,534
+25%     8.968268       3.624341       Sum of Wgt.  1.1947e+09
+
+50%     9.552155                      Mean            9.57394
+                        Largest       Std. Dev.      1.011046
+75%     10.20253       14.31629
+90%     10.84187       14.80834       Variance       1.022214
+95%     11.22968       14.84243       Skewness      -.1837245
+99%      12.0137       15.24127       Kurtosis       4.350082
+
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2 exp_ind_ln3 [aw = indwt] if inrange(income_ind_ln, r(p10), r(p90)) & urban2011 == 1
+(sum of wgt is 380,552,438.9961)
+
+      Source |       SS           df       MS      Number of obs   =    14,450
+-------------+----------------------------------   F(3, 14446)     =   2357.49
+       Model |  3935.82124         3  1311.94041   Prob > F        =    0.0000
+    Residual |  8039.19084    14,446  .556499435   R-squared       =    0.3287
+-------------+----------------------------------   Adj R-squared   =    0.3285
+       Total |  11975.0121    14,449  .828777914   Root MSE        =    .74599
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |   -13.0783   1.988066    -6.58   0.000    -16.97517    -9.18144
+ exp_ind_ln2 |   1.361047    .191752     7.10   0.000     .9851887    1.736906
+ exp_ind_ln3 |  -.0442274   .0061499    -7.19   0.000    -.0562821   -.0321728
+       _cons |   48.89216   6.854121     7.13   0.000      35.4572    62.32711
+------------------------------------------------------------------------------
+
+.  eststo reg_4 //remove income outlier
+
+.  
+.  reg income_ind_ln exp_ind_ln exp_ind_ln2 exp_ind_ln3 [aw = indwt] if inrange(income_ind_ln,income_lb,income_ub) & inrange(exp_ind_ln,exp_lb,exp_ub) & urban2011 == 1
+(sum of wgt is 259,998,917.71542)
+
+      Source |       SS           df       MS      Number of obs   =     9,139
+-------------+----------------------------------   F(3, 9135)      =    553.38
+       Model |  447.334961         3  149.111654   Prob > F        =    0.0000
+    Residual |  2461.46341     9,135  .269454123   R-squared       =    0.1538
+-------------+----------------------------------   Adj R-squared   =    0.1535
+       Total |  2908.79837     9,138  .318318929   Root MSE        =    .51909
+
+------------------------------------------------------------------------------
+income_ind~n |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  exp_ind_ln |  -17.56277   21.64237    -0.81   0.417    -59.98667    24.86112
+ exp_ind_ln2 |   1.967226   2.199502     0.89   0.371     -2.34429    6.278741
+ exp_ind_ln3 |  -.0708056   .0744393    -0.95   0.342    -.2167232     .075112
+       _cons |   59.60812   70.91572     0.84   0.401    -79.40256    198.6188
+------------------------------------------------------------------------------
+
+.  eststo reg_5 //remove both income and expenditure outlier. 
+
+.  predict fitted_cubic
+(option xb assumed; fitted values)
+(23 missing values generated)
+
+.  scatter income_ind_ln exp_ind_ln,msize(tiny) || scatter fitted_cubic exp_ind_ln, title("4.2 Polynomial prediction of log income on log exp-square and cubic. (Urban)",size(12pt))
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+.  
+.  graph export  "${r_output}\fit_3.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\fit_3.png written in PNG format)
+
+.  putpdf paragraph, halign(center)
+
+.  putpdf image  "${r_output}\fit_3.png"
+
+.  
+.  esttab reg_1 reg_2 reg_3 reg_4 reg_5, nose not label b("%9.2f") r2 ///
+>  stats(N r2 , label(Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
+>  title("Regression of Income on Expenditure (Square and Cubic Term)") ///
+>  nonumbers mtitles("Polynomial" "Log Polynomial" "Excl. Exp. Outlier""Excl. Income Outliner""Excl. both Outliner") ///
+>  addnotes("Regressions are weighted by survey weights.") 
+
+Regression of Income on Expenditure (Square and Cubic Term)
+----------------------------------------------------------------------------------------------------
+                       Polynomial    Log Polyno~l    Excl. Exp.~r    Excl. Inco~r    Excl. both~r   
+----------------------------------------------------------------------------------------------------
+exp_ind2                     0.00***                                                                
+exp_ind3                    -0.00***                                                                
+Log Expenditure(Pe~)                       -13.08***       -13.08***       -13.08***       -17.56   
+exp_ind_ln2                                  1.36***         1.36***         1.36***         1.97   
+exp_ind_ln3                                 -0.04***        -0.04***        -0.04***        -0.07   
+Constant                 29012.31***        48.89***        48.89***        48.89***        59.61   
+----------------------------------------------------------------------------------------------------
+Observations               14,573          14,450          14,450          14,450           9,139   
+R2                       .1752743        .3286695        .3286695        .3286695        .1537869   
+----------------------------------------------------------------------------------------------------
+Regressions are weighted by survey weights.
+* p<0.05, ** p<0.01, *** p<0.001
+
+.  
+. *********the relation between income and exp (descriptive stats)*********
+. gen exp_in = exp_ind/income_ind
+(618 missing values generated)
+
+. 
+. //table by quintile
+. table exp_p_10 [aw = indwt],c(mean exp_in med exp_in sd exp_in) row //all India
+
+----------------------------------------------------
+10        |
+quantiles |
+of exp    | mean(exp_in)   med(exp_in)    sd(exp_in)
+----------+-----------------------------------------
+        1 |     1.564908      .9149215      3.668571
+        2 |     1.854854       1.09225      4.732238
+        3 |     1.856584      1.151736       4.92801
+        4 |     2.024266      1.197377      5.809014
+        5 |     1.988451      1.198009      5.363345
+        6 |     2.482987      1.194873      16.65373
+        7 |     2.181466      1.174376      14.74724
+        8 |     2.420381      1.192127      14.69558
+        9 |     2.089334      1.127619      6.011094
+       10 |     3.267182      1.377815      24.23326
+          | 
+    Total |     2.172583      1.149864      12.07066
+----------------------------------------------------
+
+. table exp_p_10 [aw = indwt]  if urban2011 == 1 ,c(mean exp_in med exp_in sd exp_in) row //urban only
+
+----------------------------------------------------
+10        |
+quantiles |
+of exp    | mean(exp_in)   med(exp_in)    sd(exp_in)
+----------+-----------------------------------------
+        1 |     1.326912      .7651613      2.654593
+        2 |      1.25569      .8609833      4.321316
+        3 |     1.114969      .8873655      1.492167
+        4 |     1.429865      .9412935      5.458617
+        5 |     1.282634      .9545842        1.9517
+        6 |      1.40934      .9761488      2.802964
+        7 |     1.769209      1.002463      6.195459
+        8 |     1.781167      1.027773      9.296705
+        9 |     1.532015       .989759      5.510262
+       10 |     2.117336      1.111808      10.20725
+          | 
+    Total |     1.607043      .9787899      6.617072
+----------------------------------------------------
+
+. 
+. //box plot
+. gen exp_in_ln = ln(exp_in)
+(634 missing values generated)
+
+. 
+. graph box exp_in_ln [aw=indwt],over(exp_p_10) m(1,msize(tiny)) ///
+> title("5. Log of Exp. to Income. Ratio by Decile (All)",size(12pt)) ///
+> ytitle("Log Exp. to Income Ratio") yline(0, lcolor(red)) 
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+. graph export  "${r_output}\box_3.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\box_3.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\box_3.png"
+
+. 
+. egen exp_in_med_100 = median(exp_in),by(exp_p_100)
+
+. graph box exp_in_ln [aw=indwt] if urban2011 == 1,over(exp_p_10) m(1,msize(tiny)) ///
+> title("6. Log of Exp. to Income. Ratio by Decile (Urban)",size(12pt)) ///
+> ytitle("Log Exp. to Income Ratio") yline(0, lcolor(red)) 
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+. 
+. graph export  "${r_output}\box_4.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\box_4.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\box_4.png"
+
+. 
+. graph box exp_in_ln [aw=indwt] if urban2011 == 1,over(exp_p_100) m(1,msize(tiny)) ///
+> medtype(marker) medmarker(msymbol(diamond) msize(tiny)) yline(0, lcolor(blue)) ///
+> title("7. Log Exp. to Income. Ratio by Percentile (Urban)",size(12pt)) ///
+> ytitle("Log Exp. to Income Ratio")
+(note:  named style 12pt not found in class gsize, default attributes used)
+
+. 
+. graph export  "${r_output}\box_5.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\box_5.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\box_5.png"
+
+. 
+. save "${r_output}\hds",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\hds.dta saved
+
+. 
+. *********the relation between income and exp (med for each percentile)*********
+. //get the median hh level urban income to exp ratio by percentile
+. preserve
+
+. 
+. collapse (median) exp_in [aw = indwt] if urban2011 == 1,by(exp_p_100) //egen with weight for median to be discussed. 
+
+. rename (exp_p_100 exp_in) (exp_p hat_ei_u)
+
+. save "${r_output}\hat_ei_u",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\hat_ei_u.dta saved
+
+. 
+. restore
+
+. 
+. //get the percentile for income and expenditure separately, and mathing the percentiles to get the ratio (not at hh level but percentile, assume income and exp positively correlated and linear)
+. xtile income_p = income[aw=indwt],n(100)
+
+. xtile exp_p= exp [aw=indwt],n(100)
+
+. 
+. gen income_ln = ln(income)
+(618 missing values generated)
+
+. gen exp_ln = ln(exp)
+(23 missing values generated)
+
+. 
+. kdensity income_ln
+
+. twoway kdensity income_ln [aw=indwt] || kdensity exp_ln [aw=indwt], title(Income and Expenditure by Percentile) 
+
+. 
+. tempfile income exp
+
+. 
+. preserve
+
+. keep income income_p indwt
+
+. collapse (mean) income [aw=indwt],by(income_p)
+
+. rename income_p decile
+
+. save `income'
+file C:\Users\wb500886\AppData\Local\Temp\ST_25bc_000002.tmp saved
+
+. restore
+
+. 
+. preserve
+
+. keep exp exp_p indwt
+
+. collapse (mean) exp [aw=indwt],by(exp_p)
+
+. rename exp_p decile
+
+. save `exp',replace
+(note: file C:\Users\wb500886\AppData\Local\Temp\ST_25bc_000003.tmp not found)
+file C:\Users\wb500886\AppData\Local\Temp\ST_25bc_000003.tmp saved
+
+. restore
+
+. 
+. use `income',clear
+(India Human Development Survey-II (IHDS-II), 2011-12, Household)
+
+. merge 1:1 decile using `exp'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                               100  (_merge==3)
+    -----------------------------------------
+
+. gen e_i = exp/income
+(1 missing value generated)
+
+. drop _merge
+
+. rename decile exp_p
+
+. 
+. scatter e_i exp_p
+
+. replace e_i = (1+e_i)/2 if e_i<1 //assumption for households with income lower than expenditure. 
+(24 real changes made)
+
+. 
+. keep exp_p e_i
+
+. rename e_i hat_ei
+
+. 
+. save "${r_output}\hat_ei",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\hat_ei.dta saved
+
+. 
+. //compare the two hat_ie (all at percentile level and urban at hh level )
+. use  "${r_output}\hat_ei",clear
+(India Human Development Survey-II (IHDS-II), 2011-12, Household)
+
+. merge 1:1 exp_p using "${r_output}\hat_ei_u"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                               100  (_merge==3)
+    -----------------------------------------
+
+. label var hat_ei_u "Urban Per Capita Level"
+
+. label var hat_ei "All Percentile Level"
+
+. label var exp_p "Exp. Percentile Level"
+
+. scatter  hat_ei hat_ei_u exp_p,title("8. Exp. to Income Ratio by Percentile (Compare Dif. Methods)")
+
+. 
+. graph export  "${r_output}\scatter_6.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\scatter_6.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\scatter_6.png"
+
+. 
+. *********compare the HDS and NSS on expenditure*********
+. use "${r_output}\hds",clear
+(India Human Development Survey-II (IHDS-II), 2011-12, Household)
+
+. 
+. rename urban2011 urban
+
+. rename indwt pwt
+
+. gen mpce_hds =  exp_ind/12 //convert the annual exp to month per capita exp. 
+
+. 
+. keep mpce_hds urban pwt
+
+. 
+. append using "${r_input}\poverty68.dta"
+
+. replace urban = sector - 1 if urban == .
+(101,662 real changes made)
+
+. rename mpce_mrp mpce_nss
+
+. 
+. keep mpce_nss mpce_hds urban pwt 
+
+. sum mpce_nss mpce_hds
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    mpce_nss |    101,662    2078.751    2107.922      44.11   94253.73
+    mpce_hds |     42,152    2239.074    2530.509          0   83934.09
+
+. 
+. foreach survey in nss hds {
+  2. gen mpce_`survey'_ln = ln(mpce_`survey')
+  3. }
+(42,152 missing values generated)
+(101,685 missing values generated)
+
+. 
+. twoway kdensity mpce_nss_ln [aw=pwt] || kdensity mpce_hds_ln [aw=pwt], title(9. Log Exp. for NSS and HDS (All)) 
+
+. graph export  "${r_output}\kdensity_7.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\kdensity_7.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\kdensity_7.png"
+
+. 
+. twoway kdensity mpce_nss_ln [aw=pwt] if urban == 1|| kdensity mpce_hds_ln [aw=pwt] if urban == 1, title(10. Log Exp. for NSS and HDS (Urban) ) 
+
+. graph export  "${r_output}\kdensity_8.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\kdensity_8.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\kdensity_8.png"
+
+. 
+. qqplot mpce_nss_ln mpce_hds_ln, title("11. Quantile-Quantile Plot (All)")
+
+. graph export  "${r_output}\qq_9.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\qq_9.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\qq_9.png"
+
+. 
+. qqplot mpce_nss_ln mpce_hds_ln if urban == 1, title("12.Quantile-Quantile Plot (Urban)")
+
+. graph export  "${r_output}\qq_10.png", replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\qq_10.png written in PNG format)
+
+. putpdf paragraph, halign(center)
+
+. putpdf image  "${r_output}\qq_10.png"
+
+. 
+. 
+. putpdf save "${r_output}\income_exp_figues.pdf", replace
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS68\03_HDS_income_stats.log
+  log type:  text
+ closed on:  16 Feb 2021, 02:25:20
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

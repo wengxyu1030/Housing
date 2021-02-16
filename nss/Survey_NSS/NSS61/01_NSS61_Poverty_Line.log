@@ -1,8 +1,9 @@
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\01_NSS61_Poverty_Line.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Surve
+> y_NSS\NSS61\01_NSS61_Poverty_Line.log
   log type:  text
- opened on:   8 Feb 2021, 04:51:49
+ opened on:  15 Feb 2021, 05:36:14
 
 . set linesize 255
 
@@ -44,13 +45,16 @@
 . 
 .     *estimate housing related expenditure:
 .           
-.           *Rent house rent, garage rent(10: code = 529, 30 days recall period)
+.           *Rent house rent, garage rent
 .           gen double rent = B10_q4*(B10_q1 == "520")
 (121 missing values generated)
 
 .           
-.           *Rent all
+.           *Rent all (10: code = 529,539; 30 days recall period)
 .           gen double rent_all = B10_q4*(B10_q1 == "529")
+(121 missing values generated)
+
+.           gen double rent_imputed = B10_q4*(B10_q1 == "539")
 (121 missing values generated)
 
 .           
@@ -60,7 +64,7 @@
 
 .           
 .           *Collapse at household level for water ant rent
-.           foreach var in rent rent_all convy { 
+.           foreach var in rent rent_all rent_imputed convy { 
   2.           egen double total_`var' = sum(`var'), by(HHID)
   3.           } 
 
@@ -156,11 +160,15 @@
 . drop _merge
 
 . 
-.         *Total rent and coveyance expenditure (all rent)
+.         *Total rent and coveyance expenditure (house, garage rent only)
 .         egen double exp_rc = rowtotal(total_rent total_convy) //using rent_all instead of just house rent to keep consistency with the poverty measure
 
 . 
-.         *Total rent and coveyance expenditure (house, garage rent only)
+.         *Total rent and coveyance expenditure (impurws house, garage rent only for urban)
+.         egen double exp_rc_imputed = rowtotal(total_rent_imputed total_convy) //using rent_all instead of just house rent to keep consistency with the poverty measure
+
+. 
+.         *Total rent and coveyance expenditure (all rent)
 .         egen double exp_rc_all = rowtotal(total_rent_all total_convy) 
 
 . 
@@ -168,6 +176,17 @@
 .         gen double exp_rc_pp = exp_rc/hh_size 
 
 .         gen double exp_rc_al_pp = exp_rc_all/hh_size 
+
+.         gen double exp_rc_imp_pp = exp_rc_imputed/hh_size
+
+.         
+.         sum exp_rc_imp_pp exp_rc_pp exp_rc_al_pp [aw = pwt]
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
+-------------+-----------------------------------------------------------------
+exp_rc_imp~p | 124,644   981610620    85.84175   273.9996          0      24550
+   exp_rc_pp | 124,644   981610620    48.83689    146.629          0    24881.5
+exp_rc_al_pp | 124,644   981610620    50.18851   150.8708          0    24881.5
 
 .         
 .         *Light and Fuel exp. per capita
@@ -316,7 +335,8 @@ mpce_mrp  | min(mpce_mrp)  max(mpce_mrp)
       100 |      4793.905       29156.71
 ----------------------------------------
 
-. table mpce_10 [aw = pwt] ,c(min mpce_mrp max mpce_mrp) //the same class for 579Rs(20-30 percentile), however higher value of MPCE for every class compared to the method paper.
+. table mpce_10 [aw = pwt] ,c(min mpce_mrp max mpce_mrp) //the same class for 579Rs(20-30 percentile), however higher value of MPCE fo
+> r every class compared to the method paper.
 
 ----------------------------------------
 10        |
@@ -337,58 +357,123 @@ mpce_mrp  | min(mpce_mrp)  max(mpce_mrp)
 ----------------------------------------
 
 . 
+. *Urban MPCE classes (copy from the method note, as the decile estimate from raw data is different)
+. gen mpce_10_cp = .
+(45,346 missing values generated)
+
+. replace mpce_10_cp = 1 if mpce_mrp < 395
+(3,538 real changes made)
+
+. replace mpce_10_cp = 2 if inrange(mpce_mrp,395,485)
+(4,001 real changes made)
+
+. replace mpce_10_cp = 3 if inrange(mpce_mrp,485,580)
+(4,816 real changes made)
+
+. replace mpce_10_cp = 4 if inrange(mpce_mrp,580,675)
+(3,928 real changes made)
+
+. 
 . *Share of the rent and conveyance, fuel, cereal. 
-. foreach var in rc rc_al fl cl dg {
+. foreach var in rc rc_al rc_imp fl cl dg {
   2. gen exp_`var'_ratio = exp_`var'_pp/mpce_mrp *100 
   3. }
 
 . 
-. table mpce_10 [aw = pwt], c(med exp_rc_al_ratio med exp_rc_ratio med exp_fl_ratio med exp_cl_ratio) //(2.5/2.4), 11.6, 15.9 benchmark to rent 3.5, fuel 12.2, cereal 16.7 
+. table mpce_10 [aw = pwt], c(med exp_rc_al_ratio med exp_rc_ratio med exp_rc_imp_ratio med exp_fl_ratio med exp_cl_ratio) //(2.5/2.4)
+> , 11.6, 15.9 benchmark to rent 5.3, fuel 12.2, cereal 16.7 
 
-----------------------------------------------------------------------
+--------------------------------------------------------------------------------
 10        |
 quantiles |
 of        |
-mpce_mrp  | med(exp_rc~o)  med(exp_rc~o)  med(exp_fl~o)  med(exp_cl~o)
-----------+-----------------------------------------------------------
-        1 |      .9556804       .9393156       11.91007       22.64552
-        2 |      1.751502       1.685244       11.43766       18.28362
-        3 |      2.527704       2.440949       11.56957       15.93481
-        4 |       3.77907       3.664896       11.17817       14.57763
-        5 |      5.037502       4.861301       10.71626       12.97324
-        6 |      6.472869       6.268315       10.08763       11.27494
-        7 |      8.022295       7.919991       9.943698       9.979345
-        8 |      8.803617        8.37721       9.317051       8.583309
-        9 |      10.23269       9.706953       8.478655       6.980756
-       10 |      12.71017       11.54401       7.024995       4.388699
-----------------------------------------------------------------------
+mpce_mrp  | med(exp_r~o)  med(exp_r~o)  med(exp_r~o)  med(exp_f~o)  med(exp_c~o)
+----------+---------------------------------------------------------------------
+        1 |     .9556804      .9393156      16.34147      11.91007      22.64552
+        2 |     1.751502      1.685244      16.72538      11.43766      18.28362
+        3 |     2.527704      2.440949      17.83032      11.56957      15.93481
+        4 |      3.77907      3.664896      18.07723      11.17817      14.57763
+        5 |     5.037502      4.861301      18.82088      10.71626      12.97324
+        6 |     6.472869      6.268315      19.59739      10.08763      11.27494
+        7 |     8.022295      7.919991      20.61778      9.943698      9.979345
+        8 |     8.803617       8.37721      23.26909      9.317051      8.583309
+        9 |     10.23269      9.706953      24.88276      8.478655      6.980756
+       10 |     12.71017      11.54401      24.53824      7.024995      4.388699
+--------------------------------------------------------------------------------
+
+. table mpce_10 [aw = pwt], c(mean exp_rc_al_ratio mean exp_rc_ratio mean exp_rc_imp_ratio mean exp_fl_ratio mean exp_cl_ratio) 
+
+--------------------------------------------------------------------------------
+10        |
+quantiles |
+of        |
+mpce_mrp  | mean(exp_~o)  mean(exp_~o)  mean(exp_~o)  mean(exp_~o)  mean(exp_~o)
+----------+---------------------------------------------------------------------
+        1 |      2.65737       2.58648      18.68955      12.53768      23.34218
+        2 |     4.171913      4.084175        18.416      12.10374      18.94047
+        3 |      5.14807      5.063894      19.93725      12.10766      16.60414
+        4 |     6.660446      6.578484       19.8568      11.69098      14.89029
+        5 |     7.793182      7.683421       20.7878      11.06625      13.32876
+        6 |     8.892971      8.696153      21.72164      10.63037      11.76894
+        7 |     10.55523      10.38757      22.94514      10.24519      10.28287
+        8 |     11.30829      11.04018      25.45695      9.723346       8.93277
+        9 |     13.37072      12.92393      27.05029       8.90188      7.216309
+       10 |     16.29642       15.4492      30.08031      7.548206      4.651037
+--------------------------------------------------------------------------------
+
+. 
+. table mpce_10_cp [aw = pwt], c(med exp_rc_al_ratio med exp_rc_ratio med exp_rc_imp_ratio med exp_fl_ratio med exp_cl_ratio) //(2.5/2
+> .4), 11.6, 15.9 benchmark to rent 5.3, fuel 12.2, cereal 16.7 
+
+--------------------------------------------------------------------------------
+mpce_10_c |
+p         | med(exp_r~o)  med(exp_r~o)  med(exp_r~o)  med(exp_f~o)  med(exp_c~o)
+----------+---------------------------------------------------------------------
+        1 |      .854022      .8209619      16.39336      12.16815      23.04223
+        2 |     1.474801       1.40484      16.26324       11.4036       19.6208
+        3 |      2.04318      2.011279      17.28278      11.49269      16.79233
+        4 |     3.221676      3.158497      18.07723      11.39715      15.13298
+--------------------------------------------------------------------------------
+
+. table mpce_10_cp [aw = pwt], c(mean exp_rc_al_ratio mean exp_rc_ratio mean exp_rc_imp_ratio mean exp_fl_ratio med exp_cl_ratio) 
+
+--------------------------------------------------------------------------------
+mpce_10_c |
+p         | mean(exp_~o)  mean(exp_~o)  mean(exp_~o)  mean(exp_~o)  med(exp_c~o)
+----------+---------------------------------------------------------------------
+        1 |     2.439341      2.393128      19.02721       12.7743      23.04223
+        2 |     3.741322      3.627713       17.9514      12.09242       19.6208
+        3 |     4.714315      4.637085      19.36585      12.02786      16.79233
+        4 |     5.934046      5.855623       19.7804      11.99752      15.13298
+--------------------------------------------------------------------------------
 
 . 
 . *Absolute exp. for rent and conveyance 
-. table mpce_10 [aw = pwt], c(med exp_rc_al_pp med exp_rc_pp med exp_fl_pp med exp_cl_pp) //(14.4/14)， 66, 91 at the MPCE class, benchmark to rent 30.68， fuel 70.4, cereal 96.5
+. table mpce_10 [aw = pwt], c(med exp_rc_al_pp med exp_rc_pp med exp_rc_imp_pp med exp_fl_pp med exp_cl_pp) //(14.4/14)， 66, 91 at th
+> e MPCE class, benchmark to rent 30.68， fuel 70.4, cereal 96.5
 
-----------------------------------------------------------------------
+--------------------------------------------------------------------------------
 10        |
 quantiles |
 of        |
-mpce_mrp  | med(exp_rc~p)  med(exp_rc~p)  med(exp_fl~p)  med(exp_cl~p)
-----------+-----------------------------------------------------------
-        1 |     3.3333333      3.3333333           41.6      79.571429
-        2 |     8.3333333              8           54.2           86.4
-        3 |        14.375             14      66.285714             91
-        4 |            25             25      74.933333           96.6
-        5 |            40      38.333333          83.75      100.66667
-        6 |     58.571429             57             93          102.8
-        7 |          87.5             85          107.5          107.5
-        8 |         112.5            110          122.3            112
-        9 |           175            165         143.75          117.5
-       10 |           370          330.4        199.425          125.5
-----------------------------------------------------------------------
+mpce_mrp  | med(exp_r~p)  med(exp_r~p)  med(exp_r~p)  med(exp_f~p)  med(exp_c~p)
+----------+---------------------------------------------------------------------
+        1 |    3.3333333     3.3333333     56.444444          41.6     79.571429
+        2 |    8.3333333             8            80          54.2          86.4
+        3 |       14.375            14           100     66.285714            91
+        4 |           25            25           120     74.933333          96.6
+        5 |           40     38.333333     146.36364         83.75     100.66667
+        6 |    58.571429            57           175            93         102.8
+        7 |         87.5            85           220         107.5         107.5
+        8 |        112.5           110           300         122.3           112
+        9 |          175           165     416.66667        143.75         117.5
+       10 |          370         330.4           700       199.425         125.5
+--------------------------------------------------------------------------------
 
 . 
 . log close
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\01_NSS61_Poverty_Line.log
   log type:  text
- closed on:   8 Feb 2021, 04:54:01
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ closed on:  15 Feb 2021, 05:38:27
+--------------------------------------------------------------------------------------------------------------------------------------

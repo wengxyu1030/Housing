@@ -30,12 +30,7 @@ di "${r_output}"
 set more off 
 clear 
 
-putpdf clear
 putpdf begin
-
-log using "${script}\03_HDS_income_stats.log",replace
-set linesize 255
-
 *******************************************
 *******Estimate income expenditure ratio
 *******************************************
@@ -149,11 +144,7 @@ return list
  eststo reg_5 //remove both income and expenditure outlier. 
  
  predict fitted
- scatter income_ind_ln exp_ind_ln,msize(tiny) || line fitted exp_ind_ln, title("3. Linear prediction of log income on log exp. (Urban)",size(12pt))
- 
- graph export  "${r_output}\fit_1.png", replace
- putpdf paragraph, halign(center)
- putpdf image  "${r_output}\fit_1.png"
+ scatter income_ind_ln exp_ind_ln,msize(tiny) || line fitted exp_ind_ln
 
  esttab reg_1 reg_2 reg_3 reg_4 reg_5, nose not label b("%9.2f") r2 ///
  stats(N r2 , label(Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
@@ -161,42 +152,11 @@ return list
  nonumbers mtitles("Linear" "Log Linear" "Excl. Exp. Outlier""Excl. Income Outliner""Excl. both Outliner") ///
  addnotes("Regressions are weighted by survey weights.")
  
-**model with square term
+**model with square and cubic terms
 foreach var in exp_ind_ln exp_ind {
 gen `var'2 = `var'^2
 gen `var'3 = `var'^3
 }
-
- reg income_ind exp_ind2  [aw = indwt] if urban2011 == 1
- eststo reg_1 //absolute value 
- 
- reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if urban2011 == 1
- eststo reg_2 //log on both side
- 
- sum exp_ind_ln [aw = indwt],de
- reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if inrange(exp_ind_ln, r(p10), r(p90)) & urban2011 == 1
- eststo reg_3  //remove expenditure outlier
-
- sum income_ind_ln [aw = indwt],de
- reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if inrange(income_ind_ln, r(p10), r(p90)) & urban2011 == 1
- eststo reg_4 //remove income outlier
- 
- reg income_ind_ln exp_ind_ln exp_ind_ln2  [aw = indwt] if inrange(income_ind_ln,income_lb,income_ub) & inrange(exp_ind_ln,exp_lb,exp_ub) & urban2011 == 1
- eststo reg_5 //remove both income and expenditure outlier. 
- predict fitted_sq
- scatter income_ind_ln exp_ind_ln,msize(tiny) || scatter fitted_sq exp_ind_ln, title("4.1 Polynomial prediction of log income on log exp-square term. (Urban)",size(12pt))
- 
- graph export  "${r_output}\fit_2.png", replace
- putpdf paragraph, halign(center)
- putpdf image  "${r_output}\fit_2.png"
- 
- esttab reg_1 reg_2 reg_3 reg_4 reg_5, nose not label b("%9.2f") r2 ///
- stats(N r2 , label(Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
- title("Regression of Income on Expenditure (Square Term)") ///
- nonumbers mtitles("Polynomial" "Log Polynomial" "Excl. Exp. Outlier""Excl. Income Outliner""Excl. both Outliner") ///
- addnotes("Regressions are weighted by survey weights.") 
- 
-**model with square and cubic terms
 
  reg income_ind exp_ind2 exp_ind3 [aw = indwt] if urban2011 == 1
  eststo reg_1 //absolute value 
@@ -214,18 +174,16 @@ gen `var'3 = `var'^3
  
  reg income_ind_ln exp_ind_ln exp_ind_ln2 exp_ind_ln3 [aw = indwt] if inrange(income_ind_ln,income_lb,income_ub) & inrange(exp_ind_ln,exp_lb,exp_ub) & urban2011 == 1
  eststo reg_5 //remove both income and expenditure outlier. 
- predict fitted_cubic
- scatter income_ind_ln exp_ind_ln,msize(tiny) || scatter fitted_cubic exp_ind_ln, title("4.2 Polynomial prediction of log income on log exp-square and cubic. (Urban)",size(12pt))
- 
- graph export  "${r_output}\fit_3.png", replace
- putpdf paragraph, halign(center)
- putpdf image  "${r_output}\fit_3.png"
+ predict fitted_poly
+ scatter income_ind_ln exp_ind_ln,msize(tiny) || scatter fitted_poly exp_ind_ln
  
  esttab reg_1 reg_2 reg_3 reg_4 reg_5, nose not label b("%9.2f") r2 ///
  stats(N r2 , label(Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
  title("Regression of Income on Expenditure (Square and Cubic Term)") ///
- nonumbers mtitles("Polynomial" "Log Polynomial" "Excl. Exp. Outlier""Excl. Income Outliner""Excl. both Outliner") ///
+ nonumbers mtitles("Linear" "Polynomial" "Excl. Exp. Outlier""Excl. Income Outliner""Excl. both Outliner") ///
  addnotes("Regressions are weighted by survey weights.") 
+ 
+
  
 *********the relation between income and exp (descriptive stats)*********
 gen exp_in = exp_ind/income_ind
@@ -238,7 +196,7 @@ table exp_p_10 [aw = indwt]  if urban2011 == 1 ,c(mean exp_in med exp_in sd exp_
 gen exp_in_ln = ln(exp_in)
 
 graph box exp_in_ln [aw=indwt],over(exp_p_10) m(1,msize(tiny)) ///
-title("5. Log of Exp. to Income. Ratio by Decile (All)",size(12pt)) ///
+title("3. Log of Exp. to Income. Ratio by Decile (All)",size(12pt)) ///
 ytitle("Log Exp. to Income Ratio") yline(0, lcolor(red)) 
 graph export  "${r_output}\box_3.png", replace
 putpdf paragraph, halign(center)
@@ -246,7 +204,7 @@ putpdf image  "${r_output}\box_3.png"
 
 egen exp_in_med_100 = median(exp_in),by(exp_p_100)
 graph box exp_in_ln [aw=indwt] if urban2011 == 1,over(exp_p_10) m(1,msize(tiny)) ///
-title("6. Log of Exp. to Income. Ratio by Decile (Urban)",size(12pt)) ///
+title("4. Log of Exp. to Income. Ratio by Decile (Urban)",size(12pt)) ///
 ytitle("Log Exp. to Income Ratio") yline(0, lcolor(red)) 
 
 graph export  "${r_output}\box_4.png", replace
@@ -255,7 +213,7 @@ putpdf image  "${r_output}\box_4.png"
 
 graph box exp_in_ln [aw=indwt] if urban2011 == 1,over(exp_p_100) m(1,msize(tiny)) ///
 medtype(marker) medmarker(msymbol(diamond) msize(tiny)) yline(0, lcolor(blue)) ///
-title("7. Log Exp. to Income. Ratio by Percentile (Urban)",size(12pt)) ///
+title("5. Log Exp. to Income. Ratio by Percentile (Urban)",size(12pt)) ///
 ytitle("Log Exp. to Income Ratio")
 
 graph export  "${r_output}\box_5.png", replace
@@ -270,7 +228,7 @@ preserve
 
 collapse (median) exp_in [aw = indwt] if urban2011 == 1,by(exp_p_100) //egen with weight for median to be discussed. 
 rename (exp_p_100 exp_in) (exp_p hat_ei_u)
-save "${r_output}\hat_ei_u",replace
+save "${r_output}\hat_ie_u",replace
 
 restore
 
@@ -312,15 +270,15 @@ replace e_i = (1+e_i)/2 if e_i<1 //assumption for households with income lower t
 keep exp_p e_i
 rename e_i hat_ei
 
-save "${r_output}\hat_ei",replace
+save "${r_output}\hat_ie",replace
 
 //compare the two hat_ie (all at percentile level and urban at hh level )
-use  "${r_output}\hat_ei",clear
-merge 1:1 exp_p using "${r_output}\hat_ei_u"
+use  "${r_output}\hat_ie",clear
+merge 1:1 exp_p using "${r_output}\hat_ie_u"
 label var hat_ei_u "Urban Per Capita Level"
 label var hat_ei "All Percentile Level"
 label var exp_p "Exp. Percentile Level"
-scatter  hat_ei hat_ei_u exp_p,title("8. Exp. to Income Ratio by Percentile (Compare Dif. Methods)")
+scatter  hat_ei hat_ei_u exp_p,title("6. Exp. to Income Ratio by Percentile (Compare Dif. Methods)")
 
 graph export  "${r_output}\scatter_6.png", replace
 putpdf paragraph, halign(center)
@@ -346,26 +304,25 @@ foreach survey in nss hds {
 gen mpce_`survey'_ln = ln(mpce_`survey')
 }
 
-twoway kdensity mpce_nss_ln [aw=pwt] || kdensity mpce_hds_ln [aw=pwt], title(9. Log Exp. for NSS and HDS (All)) 
+twoway kdensity mpce_nss_ln [aw=pwt] || kdensity mpce_hds_ln [aw=pwt], title(7. Log Exp. for NSS and HDS (All)) 
 graph export  "${r_output}\kdensity_7.png", replace
 putpdf paragraph, halign(center)
 putpdf image  "${r_output}\kdensity_7.png"
 
-twoway kdensity mpce_nss_ln [aw=pwt] if urban == 1|| kdensity mpce_hds_ln [aw=pwt] if urban == 1, title(10. Log Exp. for NSS and HDS (Urban) ) 
+twoway kdensity mpce_nss_ln [aw=pwt] if urban == 1|| kdensity mpce_hds_ln [aw=pwt] if urban == 1, title(8. Log Exp. for NSS and HDS (Urban) ) 
 graph export  "${r_output}\kdensity_8.png", replace
 putpdf paragraph, halign(center)
 putpdf image  "${r_output}\kdensity_8.png"
 
-qqplot mpce_nss_ln mpce_hds_ln, title("11. Quantile-Quantile Plot (All)")
+qqplot mpce_nss_ln mpce_hds_ln, title("9. Quantile-Quantile Plot (All)")
 graph export  "${r_output}\qq_9.png", replace
 putpdf paragraph, halign(center)
 putpdf image  "${r_output}\qq_9.png"
 
-qqplot mpce_nss_ln mpce_hds_ln if urban == 1, title("12.Quantile-Quantile Plot (Urban)")
+qqplot mpce_nss_ln mpce_hds_ln if urban == 1, title("10.Quantile-Quantile Plot (Urban)")
 graph export  "${r_output}\qq_10.png", replace
 putpdf paragraph, halign(center)
 putpdf image  "${r_output}\qq_10.png"
 
 
 putpdf save "${r_output}\income_exp_figues.pdf", replace
-log close
