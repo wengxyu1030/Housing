@@ -2,7 +2,7 @@
 *** AFH 
 *** NSS68-Residual Income Approach (2012)
 *** Prepared by Aline Weng
-*** Date:2/26/2021
+*** Date:3/1/2021
 ***************************
 
 /*
@@ -23,7 +23,7 @@ cd "${root}"
 global r_input "${root}\Raw Data & Dictionaries"
 global r_output "${root}\Data Output Files"
 
-//log using "${script}\NSS68\03_NSS68_Residual_Income_New.log",replace
+log using "${script}\NSS68\03_NSS68_Residual_Income_New.log",replace
 set linesize 255
 
 ***************************************************************
@@ -99,7 +99,13 @@ drop _merge
       label var decile "Exp. decile"
 
       label var hhsize "Household size"
-
+	  
+	  *check how national poverty line constructed //? can I get the weighted mean of poverty line (vary by state and sector)
+	  preserve
+	  use "${r_input}\poverty68.dta",clear
+	  keep if sector == 2
+	  tab pline_ind_11 //1000
+      restore
 **************************************************************
 *Step 2: Construct budget standards **************************
 **************************************************************
@@ -114,6 +120,8 @@ table decile [aw = pwt], c(mean rent_mpce mean mpce_mrp) row // for both renters
 table decile if renter == 1 [aw = pwt], c(med rent_pc med mpce_mrp med rent_mpce) row // only for renters 
 
 *collapse at state and declie level
+tab poor [aw = pwt] if urban == 1 //13.7% poverty rate in urban India: 2th decile MPCE class
+
 //ssc inst _gwtmean
 forvalues i = 2/6 {
 gen rent_pc_d`i' = rent_pc * (decile == `i')
@@ -122,11 +130,17 @@ drop rent_pc_d`i'
 }
 
 *check the double poverty line and the 6th decile. 
-table decile [aw = pwt], c(mean mpce_mrp med mpce_mrp) row 
+table decile [aw = pwt], c(mean mpce_mrp min mpce_mrp max mpce_mrp) row 
+
+local mpce_pline = 1030.445 //mean mpce_mrp at poverty line mpce class (decile 2, urban)
+local mpce_pline_15 = `mpce_pline'*1.5 //1.5 times mean poverty line mpce class (urban)
+
+di  `mpce_pline_15' //4th decile mpce class (urban)
+
 
 *generate the non-housing poverty line for each state at different budget standard
 gen pline_nhs_1 = pline_1- rent_pc_2 // poverty line and double poverty line (only double pline not rent)
-gen pline_nhs_2 = pline_2- rent_pc_6 //6th decile is where the double poverty line mpce class doubled 
+gen pline_nhs_2 = pline_2- rent_pc_4 //4th decile is where the double poverty line mpce class doubled 
 
 *estimate income based on expenditure //Picketty approach. 
 xtile exp_100 = mpce_mrp [aw=pwt], nq(100)
@@ -137,10 +151,10 @@ forvalues i = 0(1)2 {
 gen income_a`i' = (mpce_mrp * alpha_a`i'_u) //the income unit is consistent to budget standard
 }
 
-xtile decile_ic = income_a1 [aw = pwt] , n(10) //decile for income
-xtile qt_ic = income_a1 [aw = pwt] , n(5) //quintile for income
+xtile decile_ic = income_a2 [aw = pwt] , n(10) //decile for income: with the assumption that there's no income smaller than expenditure 
+xtile qt_ic = income_a2 [aw = pwt] , n(5) //quintile for income
 
-gen rent_ic = rent_pc/income_a1*100 //share of rent on income
+gen rent_ic = rent_pc/income_a2*100 //share of rent on income
 
 drop rent_pc_*
 save "${r_output}\nss68_ria_master.dta",replace
@@ -166,86 +180,102 @@ forvalues  q = 0(1)2 {
 gen rent_income_ratio_a`q' = income_a`q'*0.3
 }
 
-label var rent_ria_income_a1_1 "Low Cost Budget Standard"
-label var rent_ria_income_a1_2 "Modest Budget Standard"
-label var rent_income_ratio_a1 "30% Rule"
+label var rent_ria_income_a2_1 "Low Cost Budget Standard"
+label var rent_ria_income_a2_2 "Modest Budget Standard"
+label var rent_income_ratio_a2 "30% Rule"
 
 *Identify the different affordability group
-egen rent_pc_max = rowmax(rent_ria_income_a1_1 rent_ria_income_a1_2 rent_income_ratio_a1)
-egen rent_pc_min = rowmin(rent_ria_income_a1_1 rent_ria_income_a1_2 rent_income_ratio_a1)
-
-gen ria_1 = (rent_pc > rent_ria_income_a1_1)
-gen ria_2 = (rent_pc > rent_ria_income_a1_2)
-gen ratio = (rent_pc > rent_income_ratio_a1)
+gen ria_1 = (rent_pc > rent_ria_income_a2_1)
+gen ria_2 = (rent_pc > rent_ria_income_a2_2)
+gen ratio = (rent_pc > rent_income_ratio_a2)
 tostring (ria_1 ria_2 ratio),gen(ria_1_tx ria_2_tx ratio_tx)
 
-gen afd_grp = ria_1_tx + ria_2_tx + ratio_tx
+gen afd_grp = ria_1_tx + ria_2_tx //focus only on ria1 and ria2
 tab afd_grp [aw = pwt] //different section
 
 seperate rent_pc,by(afd_grp)
-forvalues i = 1(1)6 {
-label var rent_pc`i' "Group`i'" 
-}
+label var rent_pc1 "Affordable" 
+label var rent_pc2 "Unaffordable between MBS & LBS"
+label var rent_pc3 "Unaffordable at LBS"
 
 *Plot the curve
-
-//x is mpce  & inrange(mpce_mrp,0, 200)
-twoway line rent_ria_1 rent_ria_2 rent_ratio mpce_mrp if renter == 1 & state == 33 & inrange(mpce_mrp,0,4e3) || scatter rent_pc mpce_mrp if renter == 1 &  inrange(mpce_mrp,0, 4e3) & state == 33, ///
-msize(tiny) ytitle("Maximum Housing Exp. (Per Capita)") xtitle("Monthly Expenditure(Per Capita)") title("Maximum affordable rent payments (Tamil Nadu)") xline(`r(p50)') 
-
-//x is income per capita
-twoway line rent_ria_income_a1_1 rent_ria_income_a1_2 rent_income_ratio_a1 income_a1 if renter == 1 & inrange(mpce_mrp,0, 4e3) & state == 33 || scatter rent_pc income_a1 if renter == 1 & inrange(mpce_mrp,0, 4e3) & state == 33, ///
-msize(tiny) ytitle("Maximum Housing Exp. (Per Capita)") xtitle("Monthly Income(Per Capita)") title("Maximum affordable rent payments (Tamil Nadu)") xline(`r(p50)') 
-
-//x is income per capita (beta version)
-foreach var in rent_ria_income_a1_1 rent_ria_income_a1_2 {
+//x is income per capita 
+foreach var in rent_ria_income_a2_1 rent_ria_income_a2_2 {
 replace `var' = . if `var' <= 0
 }
 
-format rent_ria_income_a1_1 rent_ria_income_a1_2 income_a1 %9.0fc
+format rent_ria_income_a2_1 rent_ria_income_a2_2 income_a2 %9.0fc
 
-sum income_a1 [aw = pwt] ,de f
-twoway line rent_ria_income_a1_1 rent_ria_income_a1_2 rent_income_ratio_a1 income_a1 if renter == 1 & inrange(income_a1,0, 3.2e3) & state == 33 || ///
-scatter rent_pc1 rent_pc2 rent_pc3 rent_pc4 rent_pc5 rent_pc6 income_a1 if renter == 1 & inrange(income_a1,0, 3.2e3) & state == 33, graphregion(color(white)) ///
-msize(tiny tiny tiny tiny tiny tiny) ytitle("Maximum Housing Exp. (PC. in Rsd.)") xtitle("Monthly Income (PC. in Rsd.)") title("Maximum affordable rent payments (Tamil Nadu)") ///
-xline(`r(p50)', lpattern(dash))  legend(cols(3) label(1 "Low Budget") label(2 "Modest Budget")) ///
-xlabel(640 `" "640" "(p10)" "' 1032 `" "1,032" "(p25)" "' 1846 `" "1,846" "(p50)" "' 3146 `" "3,146" "(p75)" "') //text(2e3 `r(p50)' "50th Percentile", color(black))
+sum income_a2 [aw = pwt] ,de f //?how to set the y scale to 0-1e3? 
+twoway line rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 income_a2 if renter == 1 & inrange(income_a2,0, `r(p90)') & state == 33,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs4) || ///
+scatter rent_pc1 rent_pc2 rent_pc3 income_a2 if renter == 1 & inrange(income_a2,0, `r(p90)') & state == 33, mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+msize(tiny tiny tiny tiny tiny tiny) ytitle("Maximum Housing Exp. (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu)") ///
+xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(2) label(1 "LBS") label(2 "MBS")) ///
+xlabel(909 `" "909" "(p10)" "' 1225 `" "1,255" "(p25)" "' 1866 `" "1,866" "(p50)" "' 3416 `" "3,416" "(p75)" "' 6174 `" "6,147" "(p90)" "') //text(2e3 `r(p50)' "50th Percentile", color(black))
 
-
-*find the households living in unaffordable houses
+*produce the table
 foreach var in ria_1 ria_2 ratio {
-replace `var' = `var'*100
-gen exp_`var' = (rent_pc > rent_`var')*100
+replace `var' = `var'*100 //unaffordability with income measure.
+gen exp_`var' = (rent_pc > rent_`var')*100 //unaffordability with expenditure measure.
 }
-
-//table of unaffordability using expenditure
-table decile [aw = pwt],c(mean exp_ria_1 mean exp_ria_2 mean exp_ratio) row format(%15.2f)
-
-//table of unaffordability using income
-table decile_ic [aw = pwt], c(mean ria_1 mean ria_2 mean ratio) row format(%15.2f)
 
 replace renter = renter*100
+egen renter_q = mean(renter),by(qt_ic) //overall share of renter hh in urban
+egen renter_al = mean(renter) //share of renter hh by urban quintile 
 
-foreach var in ria_1 ria_2 ratio {
-replace `var' = `var'*100
+forvalue i = 1/2 {
+egen pline_nhs_`i'_nat = wtmean(pline_nhs_`i'), weight(pwt)  //weighted mean by state non-housing poverty line. 
 }
 
-global var_tab "ria_1 ria_2 ratio rent_ic income_a1"
+foreach var in poor poor_double {
+replace `var' = `var'*100 //poverty rate in %
+}
+
+gen pline_15 = pline *1.5 //1.5 time poverty line at 4th decile mpce class.  
+
+gen poor_income_1 = (income_a2 < pline)*100
+gen poor_income_2 = (income_a2 < pline_15)*100
+
+//labels
+label var renter_q "Renters (%)"
+label var renter_al "Renters (%)"
+label var pline "PC Poverty Line (Tendulkar) (mean)*"
+label var pline_15 "PC 1.5 Poverty Line (mean)" //??check national poverty line estimate. 
+label var pline_nhs_1_nat "PC Non-housing PL (Tendulkar)^"
+label var pline_nhs_2_nat "PC Non-housing 1.5 PL (Tendulkar)"
+label var mpce_mrp "Monthly PC Expenditure (mean)"
+label var income_a2 "Monthly PC Income (mean)"
+label var poor "Below Poverty Line (Exp. < PL)"
+label var poor_double "Below 1.5 Poverty Line (Exp. < DPL)"
+
+label var poor_income_1 "Below Poverty Line (income < PL)"
+label var poor_income_2 "Below 1.5 Poverty Line (income < 1.5PL)**"
+
+label var rent_pc "PC Rent(mean)"
+label var rent_ic "PC Rent to Income(%, mean)"
+label var ratio "Unaffordable at 30% Rule"
+
+label var rent_ria_income_a2_1 "Max Residual Housing at PLBS (mean)"
+label var rent_ria_income_a2_2 "Max Residual Housing at 1.5PLBS (mean)"
+label var ria_1 "Unaffordable at PLBS (%)"
+label var ria_2 "Unaffordable at 1.5PLBS (%)"
+
+//produce esttab table
+global var_tab "renter_al pline pline_15 pline_nhs_1_nat pline_nhs_2_nat mpce_mrp income_a2 poor poor_double poor_income_1 poor_income_2 rent_pc rent_ic ratio rent_ria_income_a2_1 rent_ria_income_a2_2 ria_1 ria_2"
 qui eststo total : estpost summarize $var_tab [aw = pwt] if renter ==100,de
+replace renter_al = renter_q
 forvalues i = 1/5 {
 qui eststo q`i' : estpost summarize $var_tab [aw = pwt] if qt_ic == `i' & renter ==100,de
 }
 
-label var ria_1 "RIA, Low Budget Standard"
-label var ria_2 "RIA, Modest Budget Standard"
-label var ratio "30% Rule"
-label var rent_ic "Rent to Income(%)"
-label var income_a1 "Monthly Income (mean,PC. in Rsd.)"
-
 esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
  mtitles( "Urban" "Urban-Q1" "Urban-Q2" "Urban-Q3" "Urban-Q4" "Urban-Q5") stats(N, label("Observations") fmt(%15.1gc)) ///
  title("Rental affordability using different affordability measures in urban India (percent of population)") ///
- addnotes("Notes: Renter is defined as tenure status as hired" )
+ addnotes("Notes: Renter is defined as tenure status as hired" ///
+          "       * weighted mean by state" ///
+		  "       Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times" ///
+		  "       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (double poverty line) to arrive at non-housing poverty lines" ///
+		  "       ** use picketty to get income (horizontal transformation A2 (preferred – floor)")
 
 /*
 stats (esttab): 
@@ -405,14 +435,14 @@ gen own_ria_`i'_hh = own_ria_`i' *hhsize
 label var own_ria_1_pc "Low Cost Budget Standard"
 label var own_ria_1_hh "Low Cost Budget Standard"
 
-label var own_ria_income_a1_1_hh "Low Cost Budget Standard"
-label var own_ria_income_a1_1_pc "Low Cost Budget Standard"
+label var own_ria_income_a2_1_hh "Low Cost Budget Standard"
+label var own_ria_income_a2_1_pc "Low Cost Budget Standard"
 
 label var own_ria_2_pc "Modest Budget Standard"
 label var own_ria_2_hh "Modest Budget Standard"
 
-label var own_ria_income_a1_2_hh "Modest Budget Standard"
-label var own_ria_income_a1_2_pc "Modest Budget Standard"
+label var own_ria_income_a2_2_hh "Modest Budget Standard"
+label var own_ria_income_a2_2_pc "Modest Budget Standard"
 
 *The max housing exp with ratio approach 
 gen own_ratio_pc = mpce_mrp*0.3
@@ -434,8 +464,8 @@ sum mpce_mrp [aw = pwt],de
 twoway line own_ria_1_pc own_ria_2_pc own_ratio_pc mpce_mrp if owner == 1 & inrange(mpce_mrp,0, 200) & state == 33 || scatter rent_impt_pc mpce_mrp if owner == 1 & inrange(mpce_mrp,0, 200) & state == 33, ///
 msize(tiny) ytitle("Maximum Mortgage Payment(Per Capita)") xtitle("Monthly Exp.(Per Capita)") title("Maximum affordable mortgage and imputed rent for housing owner (Tamil Nadu Urban)", size(small)) xline(`r(p50)') //looking at Tamil Nadu state level 
 
-sum income_a1 [aw = pwt],de
-twoway line own_ria_income_a1_1_pc own_ria_income_a1_2_pc own_income_ratio_a1_pc income_a1 if owner == 1 & inrange(income_a1,0, 200) & state == 33 || scatter rent_impt_pc income_a1 if owner == 1 & inrange(income_a1,0, 200) & state == 33, ///
+sum income_a2 [aw = pwt],de
+twoway line own_ria_income_a2_1_pc own_ria_income_a2_2_pc own_income_ratio_a2_pc income_a2 if owner == 1 & inrange(income_a2,0, 200) & state == 33 || scatter rent_impt_pc income_a2 if owner == 1 & inrange(income_a2,0, 200) & state == 33, ///
 msize(tiny) ytitle("Maximum Mortgage Payment(Per Capita)") xtitle("Monthly Income(Per Capita)") title("Maximum affordable mortgage and imputed rent for housing owner (Tamil Nadu Urban)", size(small)) xline(`r(p50)') //looking at Tamil Nadu state level 
 
 *Plot the curve (by household type)
@@ -455,11 +485,11 @@ line own_ria_1_hh own_ria_2_hh own_ratio_hh mhce if owner == 1 & state == 33 & h
 xtitle("Household Monthly Exp.") ytitle("Maximum Monthly Mortgage Payment") title("Maximum affordable mortgage payments in USD(Tamil Nadu: 3-member Household)", size(small)) xline(`r(p50)') 
 
 //income
-sum income_a1_hh [aw = hhwt],de
+sum income_a2_hh [aw = hhwt],de
 line own_ria_1_hh own_ria_2_hh own_ratio_hh mhce if owner == 1 & state == 33 & hh_type == "4" & own_ria_2_hh >= 0 , ///
 xtitle("Household Monthly Exp. ") ytitle("Maximum Monthly Mortgage Payment") title("Maximum affordable mortgage payments in USD(Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)') 
 
-sum income_a1_hh [aw = hhwt],de
+sum income_a2_hh [aw = hhwt],de
 line own_ria_1_hh own_ria_2_hh own_ratio_hh mhce if owner == 1 & state == 33 & hh_type == "3" & own_ria_2_hh >= 0, ///
 xtitle("Household Monthly Exp.") ytitle("Maximum Monthly Mortgage Paymen") title("Maximum affordable mortgage payments in USD(Tamil Nadu: 3-member Household)", size(small)) xline(`r(p50)') 
 
@@ -495,6 +525,5 @@ sum mhce [aw = hhwt],de
 line max_hse_val_1 max_hse_val_2 max_hse_val_ratio mhce if owner == 1 & state == 33 & hh_type == "4", ///
 xtitle("Household Monthly Exp.") ytitle("Maximum Monthly Mortgage Paymen") title("Maximum affordable housing value (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)') //looking at  
 
+log close
 
-
-//change everthing in dollar. 
