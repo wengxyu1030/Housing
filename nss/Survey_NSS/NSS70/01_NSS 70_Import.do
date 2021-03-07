@@ -40,7 +40,9 @@ drop if _merge == 2
 gen mega_dc = (_merge == 3)
 label var mega_dc "district with more than million population"
 
-keep HHID date_survey mega_dc
+rename State state
+
+keep HHID date_survey mega_dc state
 save "${r_output}\b2",replace
 
 
