@@ -30,7 +30,7 @@ di "${r_output}"
 global r_output_68 "${root_68}\Data Output Files"
 di "${r_output_68}"
 
-log using "${script}\residual_income\03_2_NSS68_Residual_Income_Owner.log",replace
+log using "${script}\residual_income\03_2_NSS70_Residual_Income_Owner.log",replace
 set linesize 255
 
 ***************************************************************

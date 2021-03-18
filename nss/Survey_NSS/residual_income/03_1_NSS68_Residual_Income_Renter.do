@@ -23,7 +23,7 @@ cd "${root}"
 global r_input "${root}\Raw Data & Dictionaries"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\residual_income\03_NSS68_Residual_Income_Renter.log",replace
+log using "${script}\residual_income\03_1_NSS68_Residual_Income_Renter.log",replace
 set linesize 255
 
 ***************************************************************
