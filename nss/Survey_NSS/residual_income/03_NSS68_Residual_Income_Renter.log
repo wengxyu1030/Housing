@@ -1,11 +1,8 @@
---------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WB
-> G\7_Housing\survey_all\Housing_git\nss\Sur
-> vey_NSS\NSS68\03_NSS68_Residual_Income_New
-> .log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_NSS68_Residual_Income_Renter.log
   log type:  text
- opened on:   8 Mar 2021, 09:21:58
+ opened on:  18 Mar 2021, 10:23:34
 
 . set linesize 255
 
@@ -501,7 +498,7 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
 
 . label var ria_1 "Unaffordable at NHBS (%)"
 
-. label var ria_2 "Unaffordable at 1.55NHBS (%)"
+. label var ria_2 "Unaffordable at 1.5NHBS (%)"
 
 . 
 . //produce esttab table
@@ -549,7 +546,7 @@ Max PC Rent at NHBS (mean)                    2,903.1        -56.8        355.4 
 Unaffordable at 30% Rule (%)                      3.6          1.8          3.2          5.4          2.8          3.9
 Max PC Rent at 1.5NHBS (mean)                 1,879.6     -1,037.2       -663.5       -121.9        966.2      6,379.3
 Unaffordable at NHBS (%)                         11.0         84.1         19.5          0.4          0.0          0.0
-Unaffordable at 1.55NHBS (%)                     47.9        100.0        100.0         92.9         17.1          0.0
+Unaffordable at 1.5NHBS (%)                      47.9        100.0        100.0         92.9         17.1          0.0
 ----------------------------------------------------------------------------------------------------------------------
 Observations                                   11,842        1,146        1,520        1,930        2,996        4,250
 ----------------------------------------------------------------------------------------------------------------------
@@ -616,9 +613,10 @@ Notes: Renter is defined as tenure status as hired
 
 . twoway line rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
 > scatter rent_pc1 rent_pc2 rent_pc3 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33, mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
-> msize(tiny tiny tiny tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu)") ///
+> msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu)") ///
 > xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
-> note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS") ///
+> note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
+>      "      The income percentile is for renters only weighted by household weight.") ///
 > xlabel(909 `" "909" "(p10)" "' 1225 `" "1,255" "(p25)" "' 1866 `" "1,866" "(p50)" "' 3416 `" "3,416" "(p75)" "' 6174 `" "6,147" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
@@ -629,7 +627,7 @@ Notes: Renter is defined as tenure status as hired
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS68\03_NSS68_Residual_Income_New.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_NSS68_Residual_Income_Renter.log
   log type:  text
- closed on:   8 Mar 2021, 09:23:28
+ closed on:  18 Mar 2021, 10:24:56
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

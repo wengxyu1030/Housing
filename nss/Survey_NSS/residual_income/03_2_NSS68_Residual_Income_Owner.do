@@ -3,7 +3,7 @@
 *** AFH 
 *** NSS70-Residual Income Approach (2013)
 *** Prepared by Aline Weng
-*** Date:3/5/2021
+*** Date:3/18/2021
 ***************************
 
 /*
@@ -30,7 +30,7 @@ di "${r_output}"
 global r_output_68 "${root_68}\Data Output Files"
 di "${r_output_68}"
 
-//log using "${script}\NSS68\03_2_NSS68_Residual_Income_New.log",replace
+log using "${script}\residual_income\03_2_NSS68_Residual_Income_Owner.log",replace
 set linesize 255
 
 ***************************************************************
@@ -117,36 +117,23 @@ gen own_ria_`i'_hh = income - pline_nhs_`i'*hhsize
 gen pline_nhs_`i'_hh = pline_nhs_`i'*hhsize
 }
 
-label var own_ria_1_pc "Low Cost Budget Standard"
-label var own_ria_1_hh "Low Cost Budget Standard"
+label var own_ria_1_pc "Max Residual HH Monthly Mortgage at NHBS (mean)" //per capita
+label var own_ria_1_hh "Max Residual HH Monthly Mortgage at NHBS (mean)" //hh. 
 
-label var own_ria_2_pc "Modest Budget Standard"
-label var own_ria_2_hh "Modest Budget Standard"
+label var own_ria_2_pc "Max Residual HH Monthly Mortgage at 1.5NHBS (mean)" //per capita
+label var own_ria_2_hh "Max Residual HH Monthly Mortgage at 1.5NHBS (mean)" //hh.
 
 *The max housing exp with ratio approach 
 gen own_ratio_pc = (income/hhsize)*0.3
-label var own_ratio_pc "30% Rule"
+label var own_ratio_pc "Max Residual HH Monthly Mortgage at 30% Rule" //per capita
 
 gen own_ratio_hh = income*0.3
-label var own_ratio_hh "30% Rule"
-
-/*
-*Plot the curve (by household type)
-
-sum income [aw = hhwgt],de
-line own_ria_1_hh own_ria_2_hh own_ratio_hh income if owner == 100 & state == "33" & hh_type == "4" & own_ria_2_hh >= 0 & inrange(income,0, `r(p50)'), ///
-xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") title("Maximum affordable mortgage payments in USD(Tamil Nadu: 4-member household)", size(small)) 
-
-sum income [aw = hhwgt],de
-line own_ria_1_hh own_ria_2_hh own_ratio_hh income if owner == 100 & state == "33" & hh_type == "5" & own_ria_2_hh >= 0 & inrange(income,0, `r(p50)'), ///
-xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Paymen") title("Maximum affordable mortgage payments in USD(Tamil Nadu: 5-member Household)", size(small)) 
-*/
-
+label var own_ratio_hh "Max Residual HH Monthly Mortgage at 30% Rule" //hh.
 
 *convert the maximun mortgage to house value
 /*
 PV = mortgage amount
-PMT = monthly payment (is not fixed, can not just plug in the own_ria_1_hh)
+PMT = monthly payment (own_ria_1_hh, own_ria_2_hh, own_ratio_1_hh)
 i = monthly interest rate
 (nss70: Average interest rate for all India housing mortgage holder,
 housing loan with immovable property as secure type: 11%)
@@ -172,35 +159,39 @@ label var max_hse_val_1 "LBS"
 label var max_hse_val_2 "MBS"
 label var max_hse_val_ratio "30% Rule"
 
-label var building_dwelling "Value of house (owners only)"
+label var building_dwelling "Housing Value (million)"
 
-format max_hse_val* max_loan* %15.0fc
+*merge with mortgage payment information
+merge 1:m HHID using "${r_output}\b14_hse_mortgage"
+bysort HHID: egen repay_mt_2_max = max(repay_mt_2) //Less conservative (let's label 2) housing loan with mortgage
+bysort HHID: keep if _n == 1 //maximum monthly mortgage repay
 
-sum income [aw = hhwgt],de //percentile among urban housing owner. 
-twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if owner == 100 & state == "33" & ///
-hh_type == "4" & inrange(income,0,`r(p90)') || scatter building_dwelling income if owner == 100 & state == "33" & ///
-hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) ///
-xtitle("Household Monthly Income") ytitle("Maximum affordable housing value") ///
-title("Maximum affordable housing value (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)')
+gen ratio_pay = (repay_mt_2_max > own_ratio_hh)*100
+label var ratio "Unaffordable at 30% Rule (%)"
 
-sum income [aw = hhwgt],de //percentile among urban housing owner. 
-twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if owner == 100 & state == "33" & ///
-hh_type == "5" & inrange(income,0,`r(p90)') || scatter building_dwelling income if owner == 100 & state == "33" & ///
-hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) ///
-xtitle("Household Monthly Income") ytitle("Maximum affordable housing value") ///
-title("Maximum affordable housing value (Tamil Nadu: 5-member household)", size(small)) xline(`r(p50)',lpattern("dashed"))
+gen ria_1_pay = (repay_mt_2_max > own_ria_1_hh)*100
+label var ria_1 "Unaffordable at NHBS (%)"
+
+gen ria_2_pay = (repay_mt_2_max > own_ria_2_hh)*100
+label var ria_2 "Unaffordable at 1.5NHBS (%)"
+
+tostring (ria_1_pay ria_2_pay ratio_pay),gen(ria_1_pay_tx ria_2_pay_tx ratio_pay_tx) //Identify the different affordability group
+gen afd_grp_pay = ria_1_pay_tx + ria_2_pay_tx //focus only on ria1 and ria2
+tab afd_grp_pay [aw = hhwgt] //different section
+seperate repay_mt_2_max,by(afd_grp_pay) //group households by housing value
+label var repay_mt_2_max1 "Affordable Housing" 
+label var repay_mt_2_max2 "Intermediate Unaffordable Housing"
+label var repay_mt_2_max3 "Unaffordable Housing"
 
 *affordability table for owner
-
 egen owner_type = wtmean(owner),weight(hhwgt) by(hh_type) //overall share of owner hh in urban , 
 egen owner_al = wtmean(owner),weight(hhwgt) //share of owner hh by household type 
 label var owner_type "Owners (%)"
 label var owner_al "Owners (%)"
 
-label var hhsize "Household Size (mean, onwers only) "
+label var hhsize "Household Size (mean) "
 label var wealth "Total HH Wealth"
-label var income "Imputed HH Income*"
-//*mapping wealth to income from Nadeem using distance based approach
+label var income "Imputed HH Income*" //*mapping wealth to income from Nadeem using distance based approach
 
 gen pline_hh = pline*hhsize
 label var pline_hh "HH Poverty Line**"
@@ -214,39 +205,156 @@ label var poor "%HH Poor at PL"
 gen poor_15 = (income < pline_hh_15)*100
 label var poor_15 "%HH Poor at 1.5PL"
 
-label var pline_nhs_1_hh "HH NHBS^"
-label var pline_nhs_2_hh "HH 1.5NHBS^"
-//^mean of non-housing poverty line by state for urban sector
+label var pline_nhs_1_hh "HH Non-Housing Budget Standard (NHBS)^"
+label var pline_nhs_2_hh "HH 1.5NHBS^" //^mean of non-housing poverty line by state for urban sector
 
-label var max_hse_val_1 "Max Residual HH Monthly Mortgage at NHBS (mean)"
-label var max_hse_val_2 "Max Residual HH Monthly Mortgage at 1.5NHBS (mean)"
+label var max_hse_val_1 "Max Housing Value at NHBS (mean, million)"
+label var max_hse_val_2 "Max Housing Value at 1.5NHBS (mean, million)"
 
 gen ratio = (building_dwelling > max_hse_val_ratio)*100
-label var ratio "%unaffordable at 30% Rule"
+label var ratio "Unaffordable at 30% Rule (%)"
 
 gen ria_1 = (building_dwelling > max_hse_val_1)*100
-label var ria_1 "%unaffordable at NHBS"
+label var ria_1 "Unaffordable at NHBS (%)"
 
 gen ria_2 = (building_dwelling > max_hse_val_2)*100
-label var ria_2 "%unaffordable at 1.5NHBS"
+label var ria_2 "Unaffordable at 1.5NHBS (%)"
 
-//produce esttab table
-global var_tab "owner_al building_dwelling hhsize wealth income pline_hh pline_hh_15 poor poor_15 pline_nhs_1_hh pline_nhs_2_hh max_hse_val_1 max_hse_val_2 ratio ria_1 ria_2"
+tostring (ria_1 ria_2 ratio),gen(ria_1_tx ria_2_tx ratio_tx) //Identify the different affordability group
+gen afd_grp = ria_1_tx + ria_2_tx //focus only on ria1 and ria2
+tab afd_grp [aw = hhwgt] //different section
+seperate building_dwelling,by(afd_grp) //group households by housing value
+label var building_dwelling1 "Affordable Housing" 
+label var building_dwelling2 "Intermediate Unaffordable Housing"
+label var building_dwelling3 "Unaffordable Housing"
+
+*change unit to million 
+foreach var of varlist building_dwelling max_hse_val* {
+replace `var' = `var'/1e6
+}
+
+save "${r_output}\nss70_ria_master_final.dta",replace
+
+********************produce esttab table
+use "${r_output}\nss70_ria_master_final.dta",clear
+
+*calculate housing value median. 
+foreach var of varlist building_dwelling max_hse_val* {
+
+//median of all hh
+gen `var'_md_al = .
+summarize `var' [aw = hhwgt] if owner ==100,de
+replace `var'_md_al = r(p50) if owner ==100
+
+//median by housing type
+gen `var'_md = . 
+quietly foreach i in 0 3 4 5 6 { 
+    summarize `var' [aw = hhwgt] if hh_type_grp == `i' & owner == 100, detail 
+    replace `var'_md = r(p50) if hh_type_grp == `i' & owner == 100
+	} 
+}
+
+label var max_hse_val_1_md_al "Max Housing Value at NHBS (median, million)"
+label var max_hse_val_2_md_al "Max Housing Value at 1.5NHBS (median, million)"
+label var building_dwelling_md_al "Housing Value (median, million)"
+
+
+global var_tab "owner_al building_dwelling_md_al hhsize wealth income pline_hh pline_hh_15 poor poor_15 pline_nhs_1_hh pline_nhs_2_hh max_hse_val_1_md_al max_hse_val_2_md_al own_ria_1_hh own_ria_2_hh ratio ria_1 ria_2"
 
 qui eststo total : estpost summarize $var_tab [aw = hhwgt] if owner ==100,de  
+
 replace owner_al = owner_type
+foreach var of varlist building_dwelling max_hse_val_1 max_hse_val_2 {
+replace `var'_md_al = `var'_md
+}
+
 foreach i in 0 3 4 5 6 {
 qui eststo grp`i' : estpost summarize $var_tab [aw = hhwgt] if hh_type_grp == `i' & owner == 100,de
 }
 
 esttab total grp0 grp3 grp4 grp5 grp6, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
- mtitles( "Urban" "Urban (1-2)" "Urban (3)" "Urban (4)" "Urban (5)" "Urban (>=6)" ) stats(N, label("Observations") fmt(%15.1gc)) ///
- title("Owner affordability using different affordability measures in urban India") ///
+ mtitles( "All HH" "Size 1-2" "Size 3" "Size 4" "Size 5" "Size >=6" ) stats(N, label("Observations") fmt(%15.1gc)) ///
+ title("Owner affordability using different affordability measures in urban India (owners only)") ///
  addnotes("Notes: Homeowners are households own residential building used as dwelling by household members." ///
           "       * mapping wealth to income using distance based approach." ///
           "       ** Tendulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state." ///
 		  "       Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times" ///
 		  "       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 * poverty line) to arrive at non-housing poverty lines." )
+
+**************plot the affordability curve: maximum monthly mortgage payment value and income
+use "${r_output}\nss70_ria_master_final.dta",clear
+keep if owner == 100 //only on housing owners. 
+
+foreach var of varlist own_ria_* repay_mt_2* {
+replace `var' = . if `var' <= 0
+//replace `var' = . if `var' > 2e3
+}
+
+format own_ria_* repay_mt_2*  %15.0fc
+
+sum income [aw = hhwgt],de
+twoway line own_ria_1_hh own_ria_2_hh own_ratio_hh income if state == "33" & ///
+hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
+scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
+hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
+title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
+     "      The income percentile is for housing owners only weighted by household weight.") ///
+xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+
+sum income [aw = hhwgt],de
+twoway line own_ria_1_hh own_ria_2_hh own_ratio_hh income if state == "33" & ///
+hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
+scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
+hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
+title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
+     "      The income percentile is for housing owners only weighted by household weight.") ///
+xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+
+***********plot the affordability curve: maximum affordable housing value and income
+use "${r_output}\nss70_ria_master_final.dta",clear
+keep if owner == 100 //only on housing owners. 
+
+format max_hse_val* max_loan* %15.1fc
+
+sum building_dwelling [aw = hhwgt],de
+
+foreach var of varlist building_dwelling* {
+replace `var' = `var'/1e6 //change the housing value unit to million 
+}
+
+foreach var of varlist max_hse_val_* building_dwelling* {
+replace `var' = . if `var' > 2 //around 80 percentile housing value
+replace `var' = . if `var' <= 0
+}
+
+sum income [aw = hhwgt],de //percentile among urban housing owner. 
+twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if state == "33" & ///
+hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) ///
+|| scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
+hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
+title("Maximum affordable housing value (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
+     "      The income percentile is for housing owners only weighted by household weight.") ///
+xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+
+sum income [aw = hhwgt],de //percentile among urban housing owner. 
+twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if state == "33" & ///
+hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
+hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
+title("Maximum affordable housing value (Tamil Nadu: 5-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
+     "      The income percentile is for housing owners only weighted by household weight.") ///
+xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
 
 log close
 

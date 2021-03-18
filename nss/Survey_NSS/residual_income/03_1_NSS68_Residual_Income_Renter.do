@@ -23,7 +23,7 @@ cd "${root}"
 global r_input "${root}\Raw Data & Dictionaries"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\NSS68\03_NSS68_Residual_Income_New.log",replace
+log using "${script}\residual_income\03_NSS68_Residual_Income_Renter.log",replace
 set linesize 255
 
 ***************************************************************
@@ -245,7 +245,7 @@ label var rent_ria_income_a2_2 "Max PC Rent at 1.5NHBS (mean)"
 
 label var ratio "Unaffordable at 30% Rule (%)"
 label var ria_1 "Unaffordable at NHBS (%)"
-label var ria_2 "Unaffordable at 1.55NHBS (%)"
+label var ria_2 "Unaffordable at 1.5NHBS (%)"
 
 //produce esttab table
 global var_tab "renter_al pline pline_15 pline_nhs_1_nat pline_nhs_2_nat mpce_mrp income_a2 poor poor_double poor_income_1 poor_income_2 rent_pc rent_ic rent_ria_income_a2_1 ratio rent_ria_income_a2_2 ria_1 ria_2"
@@ -280,9 +280,10 @@ format rent_ria_income_a2_1 rent_ria_income_a2_2 income_a2 %9.0fc
 sum income_a2 [aw = pwt] ,de f //?how to set the y scale to 0-1e3? 
 twoway line rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
 scatter rent_pc1 rent_pc2 rent_pc3 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33, mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
-msize(tiny tiny tiny tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu)") ///
+msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu)") ///
 xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
-note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS") ///
+note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
+     "      The income percentile is for renters only weighted by household weight.") ///
 xlabel(909 `" "909" "(p10)" "' 1225 `" "1,255" "(p25)" "' 1866 `" "1,866" "(p50)" "' 3416 `" "3,416" "(p75)" "' 6174 `" "6,147" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
 
 

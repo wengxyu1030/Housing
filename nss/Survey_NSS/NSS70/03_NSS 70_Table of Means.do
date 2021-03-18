@@ -148,6 +148,7 @@ gen date_loan = ym(year,month)
 format date_loan %tmMCY
 
 merge m:1 HHID using "${root}\Data Output Files\NSS70_All.dta"
+drop _merge
 
 gen loan_age = date_survey - date_loan //laon from borrow to date of survey, in month.
 replace loan_age = . if loan_age < 0 
