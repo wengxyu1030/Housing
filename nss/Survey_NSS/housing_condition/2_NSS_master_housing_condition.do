@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Generate table for housing condition for all nss 
-* Date: Jan. 20, 2021
-* Version 4.2
+* Date: March 29, 2021
+* Version 4.3
 * Last Editor: Aline 
 ****************************************************************************
 
@@ -54,6 +54,8 @@ foreach var in `var_list' {
 }
 
 save "${r_output}\NSS_housing_condition_final.dta",replace
+
+
 
 use "${r_output}\NSS_housing_condition_final.dta",clear
 
@@ -262,5 +264,8 @@ forvalues q = 1(1)3 {
 	stats(mkt N r2 , label(Region Observations R2 ) fmt( %9.0gc %9.0gc %9.2f)) ///
 	title("Regression of Housing Condition Equality between Q1 and Q5 on Year (mean and median)") ///
 	addnotes("Regressions are weighted by survey weights. Regressions include housing condition indicator fixed effects.")
-	
+
+
+**housekeeping
+erase "${r_output}\NSS_housing_condition_final_dt.dta"
 log close

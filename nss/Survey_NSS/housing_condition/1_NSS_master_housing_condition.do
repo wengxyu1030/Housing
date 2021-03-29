@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Generate data for table on housing condition for all nss (this version use manual weight)
-* Date: Jan. 20, 2021
-* Version 4.2
+* Date: March 29, 2021
+* Version 4.3
 * Last Editor: Aline 
 ****************************************************************************
 
@@ -96,6 +96,7 @@ local if3 "==0" //Rural
  }
 
 //generate the weighted mean and not weighted median by survey and location (more than 10 min)
+local nss_round "49 58 65 69 76" 
 foreach survey in `nss_round' {
  forvalues i = 1(4)5 {
   forvalues q = 1(1)3 {
@@ -108,10 +109,11 @@ foreach survey in `nss_round' {
  }
 }
 
-local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
-local nss_round "49 58 65 69 76" 
+
 
 //generate the delta
+local var_list hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+local nss_round "49 58 65 69 76" 
 foreach var in `var_list' {
  foreach stat in mn md {
   forvalues q = 1(1)3 {
