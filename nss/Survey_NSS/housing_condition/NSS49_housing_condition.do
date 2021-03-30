@@ -279,4 +279,4 @@ clonevar san_distance = B7_q8 //Access of the household to latrine
 
 *******save file*****  
 
-save "${r_output}/nss49",replace
+save "${r_output}/nss49_housing_condition",replace
