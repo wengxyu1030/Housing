@@ -51,4 +51,4 @@ clonevar san_source = b5_26 //type of latrine used by the household
 clonevar san_distance = b5_25 //Access of the household to latrine
 
 *******save file*****  
-save "${r_output}/nss76_housing_condition",replace
+save "${r_output}/nss76",replace

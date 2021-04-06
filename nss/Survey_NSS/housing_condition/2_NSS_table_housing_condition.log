@@ -1,8 +1,9 @@
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\2_NSS_table_housing_condition.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Sur
+> vey_NSS\housing_condition\2_NSS_table_housing_condition.log
   log type:  text
- opened on:  29 Mar 2021, 08:53:20
+ opened on:   6 Apr 2021, 10:16:44
 
 . set linesize 255
 
@@ -587,7 +588,8 @@ Notes: The value is missing if the information was not surveyed in the NSS round
 . gen id = _n
 
 . 
-. local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_private
+. local var_summary hh_size in_room in_wall_permanent in_roof_permanent in_floor_permanent in_all_permanent in_sep_kitch in_flat in_size in_ppl_room in_ppl_area h20_improved san_improved san_flush_
+> private
 
 . 
 . local j = 1
@@ -761,5 +763,5 @@ Regressions are weighted by survey weights. Regressions include housing conditio
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\housing_condition\2_NSS_table_housing_condition.log
   log type:  text
- closed on:  29 Mar 2021, 09:05:43
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ closed on:   6 Apr 2021, 10:27:20
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
