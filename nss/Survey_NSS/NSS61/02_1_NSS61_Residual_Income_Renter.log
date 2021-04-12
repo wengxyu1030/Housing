@@ -1,107 +1,120 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_1_NSS68_Residual_Income_Renter.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\02_1_NSS61_Residual_Income_Renter.log
   log type:  text
- opened on:  12 Apr 2021, 03:20:46
+ opened on:  12 Apr 2021, 03:24:42
 
 . set linesize 255
 
 . 
 . ***************************************************************
-. *Step 1: Data Cleaning ****************************************
+. *Step 1: Data Cleaning **************************************** 
 . ***************************************************************
-. 
-. use "${r_input}\bk_12.dta",clear
+. use "${r_input}\Block 10_Monthly expenditure on miscellaneous goods and services including medical (non-institutional), rents and taxes.dta",clear
 
-. merge m:1 ID using "${r_input}\bk_3.dta"
-(label state already defined)
-(label B1_v04 already defined)
-(label B1_v05 already defined)
+. merge m:1 HHID using "${r_input}\Block 3.dta"
 
     Result                           # of obs.
     -----------------------------------------
-    not matched                             0
-    matched                         3,562,593  (_merge==3)
+    not matched                           121
+        from master                         0  (_merge==1)
+        from using                        121  (_merge==2)
+
+    matched                         2,378,390  (_merge==3)
     -----------------------------------------
 
 . drop _merge
 
-.    
-. /* poverty line is by state and by sector */
-.           
-.           *Fuel and light (12: 18, 30 days recall period)
-.           gen double fuel = B12_v06*(B12_v01 == 18)
-
-.         
-.           egen double total_fuel = sum(fuel), by(ID)
-
-.           bys ID: keep if _n == 1 // keep only one observation for each HH
-(3,460,931 observations deleted)
-
-.         
-.       merge 1:m ID using "${r_input}\bk_10.dta"
-(note: variable B1_v00 was byte, now int to accommodate using data's values)
-(label B1_v05 already defined)
-(label B1_v04 already defined)
-(label state already defined)
-
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                            33
-        from master                        33  (_merge==1)
-        from using                          0  (_merge==2)
-
-    matched                         2,362,394  (_merge==3)
-    -----------------------------------------
-
-.       drop _merge
-
-.      
-.           *water charge(10: 540, 30 days recall period)
-.           gen water = B10_v03*(B10_v02 == 540)
-(33 missing values generated)
-
-.           
-.           *Rent charge (10: 529 all rent included, 30 days recall period)
-.           gen rent = B10_v03*(B10_v02 == 529)
-(33 missing values generated)
-
-.           
-.           *Imputed rent
-.           gen rent_impt = B10_v03*(B10_v02 == 539)
-(33 missing values generated)
-
-.           
-.           foreach var in water rent rent_impt { 
-  2.           egen double total_`var' = sum(`var'), by(ID)
-  3.           drop `var'
-  4.           } 
-
-.           
-.           bys ID: keep if _n == 1 // keep only one observation for each HH
-(2,260,765 observations deleted)
-
-.           
-.           *Identify renter, owner (de jure)
-.           gen renter = ( B3_v18 == 2 )
-
-.           label var renter "Renter"
-
-.           
-.           gen owner = ( B3_v18 == 1 )
-
-.           label var owner "Owner"
-
-.         
-. rename ID hhid
-
-. merge 1:1 hhid using "${r_input}\poverty68.dta"
-(label state already defined)
+. merge m:1 HHID using "${r_input}\Block 3 Part 2_Household Characteristics.dta"
 
     Result                           # of obs.
     -----------------------------------------
     not matched                             0
-    matched                           101,662  (_merge==3)
+    matched                         2,378,511  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. 
+. gen hhsize = B3_q1
+
+. label var hhsize "Household size"
+
+.    
+. /* poverty line is by state and by sector */
+. 
+.     *estimate housing related expenditure:
+.           
+.             *Rent (10: code = 529, 30 days recall period)
+.             gen double rent = B10_q4*(B10_q1 == "520")
+(121 missing values generated)
+
+.           
+.             *Water charge(10: 540, 30 days recall period)
+.             gen double water = B10_q4*(B10_q1 == "540")
+(121 missing values generated)
+
+.           
+.             *Collapse at household level for water ant rent
+.             foreach var in rent water { 
+  2.             egen double total_`var' = sum(`var'), by(HHID)
+  3.             } 
+
+.             bys HHID: keep if _n == 1 // keep only one observation for each HH
+(2,253,867 observations deleted)
+
+. 
+. merge 1:m HHID using "${r_input}\Block 6_Monthly consumption of fuel & light.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           422
+        from master                       422  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                           637,880  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+.           
+.             *Fuel and light (12: 18, 30 days recall period)
+.             gen double fuel = B6_q6*(B6_q1 == "359")
+(422 missing values generated)
+
+.         egen double total_fuel = sum(fuel), by(HHID)
+
+.             bys HHID: keep if _n == 1
+(513,658 observations deleted)
+
+. 
+.         *Total housing expenditure
+.         egen double exp_housing = rowtotal(total_rent total_fuel total_water)
+
+. 
+.     *Housing consumption per capita
+.         gen double total_exp_housing_pp = exp_housing/hhsize 
+
+.         
+.     *Identify renters, owner (de jure)
+.         gen renter = (B3_q16 == "2") //rent is positive and tenure status is hire. 
+
+.         label var renter "Renter"
+
+.         
+.         gen owner = ( B3_q16 == "1" )
+
+.         label var owner "Owner"
+
+.         
+. rename HHID hhid
+
+. merge 1:1 hhid using "${r_input}\NSS_61_Poverty_For_Aline.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           124,644  (_merge==3)
     -----------------------------------------
 
 . keep if _merge == 3
@@ -110,80 +123,42 @@
 . drop _merge
 
 . 
-.       *adjust the unit from India Rupee to USD: 1 Indian Rupee = 0.014 USD in 2/24/2021 （later）
-.           global r_u = 0.014
+.    *adjust the unit from India Rupee to USD: 1 Indian Rupee = 0.014 USD in 2/24/2021 （later）
+.    global r_u = 0.014
 
 .           
-.           foreach var of var pline mpce* total_* {
-  2.           gen `var'_usd = `var'*${r_u}
-  3.       }
-
-.    
-.       *different budget scenario: pline, double pline, triple pline.    
-.       forvalues i = 1/3 {
-  2.       gen pline_`i' = pline*`i'
-  3.       }
-
-.           
-.           sum poor poor_double [aw = pwt]
-
-    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
--------------+-----------------------------------------------------------------
-        poor | 101,662  1.1090e+09     .220403   .4145205          0          1
- poor_double | 101,662  1.1090e+09    .7561655   .4293961          0          1
-
-.           sum poor poor_double [aw = pwt] if sector == 2
-
-    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
--------------+-----------------------------------------------------------------
-        poor |  41,967   316854132    .1369894   .3438403          0          1
- poor_double |  41,967   316854132    .5658509   .4956506          0          1
-
-.          
-.           
-.       *Only focus on urban (the Tendulka approach decile is based on urban exp.)
-.       gen urban = sector - 1
-
-.           keep if urban == 1
-(59,695 observations deleted)
-
-.       label var urban "Urban"
-
-.       
-.           *Decile of the expenditure
-.       xtile decile = mpce_mrp [aw = pwt] , n(10)
-
-.       label var decile "Exp. decile"
+.    foreach var of var pline mpce* total_* {
+  2.    gen `var'_usd = `var'*${r_u}
+  3.    }
 
 . 
-.       label var hhsize "Household size"
+.    *different budget scenario: pline, double pline, triple pline.    
+.    forvalues i = 1/3 {
+  2.    gen pline_`i' = pline*`i'
+  3.    }      
 
-.           
-.           *check how national poverty line constructed //? can I get the weighted mean of poverty line (vary by state and sector)
-.           preserve
+. 
+.    *Only focus on urban (the Tendulka approach decile is based on urban exp.)
+.    gen urban = sector - 1
 
-.           use "${r_input}\poverty68.dta",clear
+.    keep if urban == 1
+(79,298 observations deleted)
 
-.           keep if sector == 2
-(59,695 observations deleted)
+.    label var urban "Urban"
 
-.           tab pline_ind_11 //1000
+.    
+.    *Decile of the expenditure
+.    xtile decile = mpce_mrp [aw = pwt] , n(10)
 
-All-India-T |
-   endulkar |
-    Poverty |
-       Line |      Freq.     Percent        Cum.
-------------+-----------------------------------
-       1000 |     41,967      100.00      100.00
-------------+-----------------------------------
-      Total |     41,967      100.00
+.    label var decile "Exp. decile"
 
-.       restore
-
+. 
+.    
+.        
 . **************************************************************
 . *Step 2: Construct budget standards **************************
 . **************************************************************
-. 
+.  
 . *remove rent budget from the original poverty line by state
 . gen rent_pc = total_rent/hhsize
 
@@ -197,18 +172,18 @@ All-India-T |
 Exp.      |
 decile    | mean(renter)
 ----------+-------------
-        1 |     .1104794
-        2 |     .1462193
-        3 |     .2064142
-        4 |     .2239182
-        5 |     .2476903
-        6 |     .2986544
-        7 |     .3686655
-        8 |     .3506711
-        9 |     .3874194
-       10 |     .4114211
+        1 |     .1014462
+        2 |     .1663058
+        3 |     .2026766
+        4 |     .2600878
+        5 |     .2610866
+        6 |     .2941036
+        7 |     .3257415
+        8 |     .3168743
+        9 |     .3368627
+       10 |      .356196
           | 
-    Total |     .2751445
+    Total |     .2621208
 ------------------------
 
 . table decile [aw = pwt], c(mean rent_mpce mean mpce_mrp) row // for both renters and owners, the poverty line budget share of rent is 2.8%, lower than the 5.3% for exp. survey in 05. 
@@ -217,18 +192,18 @@ decile    | mean(renter)
 Exp.      |
 decile    | mean(rent_m~e)  mean(mpce_mrp)
 ----------+-------------------------------
-        1 |       1.322633        745.9887
-        2 |       1.914011        1030.445
-        3 |       2.834546         1252.32
-        4 |       3.419945        1481.017
-        5 |        3.91502        1727.774
-        6 |       4.864757        2017.602
-        7 |       6.415461        2377.397
-        8 |       6.235534        2886.917
-        9 |       7.222962        3751.926
-       10 |       9.623198        7501.428
+        1 |        1.03393        349.3137
+        2 |       2.005155        473.7385
+        3 |       2.424788        570.5945
+        4 |       3.142961        668.7532
+        5 |       3.673237        778.5363
+        6 |       4.058108        912.9607
+        7 |       4.903928        1083.295
+        8 |       4.962317        1310.989
+        9 |       5.684686        1709.162
+       10 |       6.635378        3189.553
           | 
-    Total |       4.776478        2477.019
+    Total |       3.852117        1104.599
 ------------------------------------------
 
 . table decile if renter == 1 [aw = pwt], c(med rent_pc med mpce_mrp med rent_mpce) row // only for renters 
@@ -237,32 +212,30 @@ decile    | mean(rent_m~e)  mean(mpce_mrp)
 Exp.      |
 decile    |  med(rent_pc)  med(mpce_mrp)  med(rent_m~e)
 ----------+--------------------------------------------
-        1 |          87.5         794.63       11.40082
-        2 |           125        1039.84       12.19081
-        3 |      166.6667        1262.57       13.03927
-        4 |         212.5        1488.69       14.29322
-        5 |           250        1734.38       14.75954
-        6 |           300        2038.86       15.21483
-        7 |           400        2374.76       16.80566
-        8 |           500        2898.32       17.00374
-        9 |      642.8571        3672.77       17.58884
-       10 |          1300         6487.3       20.38145
+        1 |          37.5       375.8712       10.32285
+        2 |            50       478.8889       11.28518
+        3 |      66.66666          576.9       11.90791
+        4 |            80        666.475       12.15436
+        5 |           100        782.254        13.5108
+        6 |           125        912.832       13.49213
+        7 |         162.5       1083.402       14.92103
+        8 |           200       1297.472       15.04661
+        9 |      266.6667         1692.5       15.92177
+       10 |           500        2687.48       17.67705
           | 
-    Total |           375        2329.06       15.77979
+    Total |           125       1008.955        13.9007
 -------------------------------------------------------
 
 . 
 . *collapse at state and declie level
-. tab poor [aw = pwt] if urban == 1 //13.7% poverty rate in urban India (2012): 2th decile MPCE class
+. tab poor [aw = pwt] if urban == 1 //25.7% poverty rate in urban India (2004): 3th decile MPCE class
 
-Poor:Tendul |
-kar poverty |
-       line |      Freq.     Percent        Cum.
+       poor |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-   Not-poor | 36,217.966       86.30       86.30
-       Poor |  5,749.034       13.70      100.00
+   Not-poor | 33,703.098       74.32       74.32
+       Poor | 11,642.902       25.68      100.00
 ------------+-----------------------------------
-      Total |     41,967      100.00
+      Total |     45,346      100.00
 
 . 
 . //ssc inst _gwtmean
@@ -270,57 +243,56 @@ kar poverty |
   2. gen rent_pc_d`i' = rent_pc * (decile == `i')
   3. bys state: egen rent_pc_`i' = wtmean(rent_pc_d`i') , weight(pwt) //the poverty line is in the 2nd decile MPCE class
   4. drop rent_pc_d`i' 
-  5. }
+  5. }   
 
 . 
-. *check the double poverty line and the mpce in each decile. 
+. *check the double poverty line and the mpce in each decile.. 
 . table decile [aw = pwt], c(mean mpce_mrp min mpce_mrp max mpce_mrp) row 
 
 ----------------------------------------------------------
 Exp.      |
 decile    | mean(mpce_mrp)   min(mpce_mrp)   max(mpce_mrp)
 ----------+-----------------------------------------------
-        1 |       745.9887              53          908.93
-        2 |       1030.445          908.96         1142.12
-        3 |        1252.32         1142.13         1366.64
-        4 |       1481.017          1366.7         1601.71
-        5 |       1727.774         1601.73          1865.6
-        6 |       2017.602         1865.68         2189.97
-        7 |       2377.397          2190.1         2595.59
-        8 |       2886.917         2595.63         3234.61
-        9 |       3751.926         3234.77         4511.92
-       10 |       7501.428         4512.65        70132.97
+        1 |       349.3137          19.765         423.535
+        2 |       473.7385        423.5533         519.954
+        3 |       570.5945        519.9875        621.1675
+        4 |       668.7532        621.2025        720.0529
+        5 |       778.5363        720.0684        838.6557
+        6 |       912.9607         838.734         993.598
+        7 |       1083.295        993.6063        1185.777
+        8 |       1310.989        1185.808         1466.64
+        9 |       1709.162        1466.872         2034.42
+       10 |       3189.553        2034.546        29156.71
           | 
-    Total |       2477.019              53        70132.97
+    Total |       1104.599          19.765        29156.71
 ----------------------------------------------------------
 
 . 
-. local mpce_pline = 1030.445 //mean mpce_mrp at poverty line mpce class (decile 2, urban)
+. local mpce_pline = 570.6 //mean mpce_mrp at poverty line mpce class (decile 3, urban)
 
 . local mpce_pline_15 = `mpce_pline'*1.5 //1.5 times mean poverty line mpce class (urban)
 
 . 
-. di  `mpce_pline_15' //4th decile mpce class (urban)
-1545.6675
+. di  `mpce_pline_15' //6th decile mpce class (urban), different than that in the 4th decile in 2012
+855.9
 
 . 
-. 
-. *generate the non-housing poverty line for each state at different budget standard
-. gen pline_nhs_1 = pline_1- rent_pc_2 // poverty line and 1.5 poverty line (only double pline not rent)
+. *generate the non-housing poverty line for each state at different budget standard (differ than 2012)
+. gen pline_nhs_1 = pline_1- rent_pc_3 // poverty line and 1.5 poverty line (only double pline not rent)
 
-. gen pline_nhs_2 = pline_2- rent_pc_4 //4th decile is where the poverty line mpce class doubled
+. gen pline_nhs_2 = pline_2- rent_pc_6 //6th decile is where the poverty line mpce class doubled 
 
 . 
 . *estimate income based on expenditure //Picketty approach. 
 . xtile exp_100 = mpce_mrp [aw=pwt], nq(100)
 
 . 
-. merge m:1 exp_100 using "${r_input}\IDHS_Exp_To_Income_All_Urban_Rural.dta",nogen
+. merge m:1 exp_100 using "${r_input_nss68}\IDHS_Exp_To_Income_All_Urban_Rural.dta",nogen
 
     Result                           # of obs.
     -----------------------------------------
     not matched                             0
-    matched                            41,967  
+    matched                            45,346  
     -----------------------------------------
 
 . 
@@ -339,16 +311,17 @@ decile    | mean(mpce_mrp)   min(mpce_mrp)   max(mpce_mrp)
 . 
 . drop rent_pc_*
 
-. save "${r_output}\nss68_ria_master.dta",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files\nss68_ria_master.dta saved
+. save "${r_output}\nss61_ria_master.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files\nss61_ria_master.dta saved
 
+. 
 . 
 . ***************************************************************
 . *Step 3: Budget Standard for Renters **************************
 . ***************************************************************
 . 
 . *Maximum amount available for rent
-. use "${r_output}\nss68_ria_master.dta",clear
+. use "${r_output}\nss61_ria_master.dta",clear
 
 . forvalues i = 1/2 {
   2. gen rent_ria_`i' = mpce_mrp - pline_nhs_`i'
@@ -394,11 +367,11 @@ ratio_tx generated as str1
 
     afd_grp |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-         00 | 17,883.856       42.61       42.61
-         01 | 17,771.772       42.35       84.96
-         11 | 6,311.3718       15.04      100.00
+         00 |15,281.3722       33.70       33.70
+         01 | 17,489.915       38.57       72.27
+         11 | 12,574.712       27.73      100.00
 ------------+-----------------------------------
-      Total |     41,967      100.00
+      Total |     45,346      100.00
 
 . 
 . seperate rent_pc,by(afd_grp)
@@ -424,13 +397,13 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
   2. replace `var' = `var'*100 //unaffordability with income measure.
   3. gen exp_`var' = (rent_pc > rent_`var')*100 //unaffordability with expenditure measure.
   4. }
-(6,382 real changes made)
-(21,669 real changes made)
-(342 real changes made)
+(13,479 real changes made)
+(28,482 real changes made)
+(284 real changes made)
 
 . 
 . replace renter = renter*100
-(11,842 real changes made)
+(13,139 real changes made)
 
 . egen renter_q = wtmean(renter),weight(pwt) by(qt_ic) //overall share of renter hh in urban
 
@@ -445,8 +418,8 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
 . foreach var in poor poor_double {
   2. replace `var' = `var'*100 //poverty rate in %
   3. }
-(5,856 real changes made)
-(21,481 real changes made)
+(12,503 real changes made)
+(29,848 real changes made)
 
 . 
 . gen pline_15 = pline *1.5 //1.5 time poverty line at 4th decile mpce class.  
@@ -507,7 +480,7 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
 . qui eststo total : estpost summarize $var_tab [aw = pwt] if renter ==100,de 
 
 . replace renter_al = renter_q
-(41,967 real changes made)
+(45,346 real changes made)
 
 . forvalues i = 1/5 {
   2. qui eststo q`i' : estpost summarize $var_tab [aw = pwt] if qt_ic == `i' & renter ==100,de
@@ -516,42 +489,42 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
 . 
 . esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
 >  mtitles( "Urban" "Urban-Q1" "Urban-Q2" "Urban-Q3" "Urban-Q4" "Urban-Q5") stats(N, label("Observations") fmt(%15.1gc)) ///
->  title("Rental affordability using different affordability measures in urban India, 2012") ///
+>  title("Rental affordability using different affordability measures in urban India, 2004") ///
 >  addnotes("Notes: Renter is defined as tenure status as hired" ///
->           "       * Temdulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state." ///
+>           "       * Temdulkar (2004) poverty estimation weighted mean by state as the poverty line is different in every state." ///
 >                   "       Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times" ///
 >                   "       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 x poverty line) to arrive at non-housing poverty lines" ///
 >                   "       ** use picketty to get income (horizontal transformation A2 (preferred – floor)." ///
 >                   "       PL is Poverty Line, 1.5PL is 1.5 x Poverty Line. NHBS is non-housing budget standard, 1.5NHBS is 1.5 x NHBS.")
 
-Rental affordability using different affordability measures in urban India, 2012
+Rental affordability using different affordability measures in urban India, 2004
 ----------------------------------------------------------------------------------------------------------------------
                                                   (1)          (2)          (3)          (4)          (5)          (6)
                                                 Urban     Urban-Q1     Urban-Q2     Urban-Q3     Urban-Q4     Urban-Q5
 ----------------------------------------------------------------------------------------------------------------------
-Renters (%)                                      27.5         12.8         21.5         27.3         36.0         39.9
-PC Poverty Line (mean)*                       1,027.6        982.5      1,022.9      1,025.4      1,038.6      1,036.1
-PC 1.5 Poverty Line (mean)                    1,541.3      1,473.7      1,534.4      1,538.1      1,557.8      1,554.1
-PC NHBS)^                                     1,023.6      1,023.6      1,023.6      1,023.6      1,023.6      1,023.6
-PC 1.5 NHBS                                   2,046.1      2,046.1      2,046.1      2,046.1      2,046.1      2,046.1
-Monthly PC Expenditure (mean)                 3,037.9        923.2      1,376.2      1,895.2      2,634.5      5,757.8
-Monthly PC Income (mean)                      3,928.6        923.2      1,376.2      1,922.6      3,037.0      8,445.0
-Below PL (exp. < PL) (%)                          5.8         61.6          0.4          0.0          0.0          0.0
-Below 1.5PL (exp. < 1.5PL) (%)                   40.2        100.0        100.0         70.6          4.5          0.0
-Below PL (income < PL) (%)                        5.8         61.6          0.4          0.0          0.0          0.0
-Below 1.5PL (income < 1.5PL) (%)**               23.0        100.0         81.0          5.2          0.0          0.0
-PC Rent(mean) (conditional)                     580.8        114.5        198.9        300.7        458.5      1,238.0
-PC Rent to Income(%, mean) (conditional)         14.7         12.4         14.3         15.6         15.2         14.5
-Max PC Rent at NHBS (mean)                    2,903.1        -56.8        355.4        899.4      2,000.4      7,410.8
-Unaffordable at 30% Rule (%)                      3.6          1.8          3.2          5.4          2.8          3.9
-Max PC Rent at 1.5NHBS (mean)                 1,879.6     -1,037.2       -663.5       -121.9        966.2      6,379.3
-Unaffordable at NHBS (%)                         11.0         84.1         19.5          0.4          0.0          0.0
-Unaffordable at 1.5NHBS (%)                      47.9        100.0        100.0         92.9         17.1          0.0
+Renters (%)                                      26.2         13.4         23.1         27.8         32.1         34.7
+PC Poverty Line (mean)*                         582.8        566.6        580.0        583.0        585.6        588.2
+PC 1.5 Poverty Line (mean)                      874.2        849.8        870.1        874.5        878.4        882.3
+PC NHBS)^                                       581.5        581.5        581.5        581.5        581.5        581.5
+PC 1.5 NHBS                                   1,162.1      1,162.1      1,162.1      1,162.1      1,162.1      1,162.1
+Monthly PC Expenditure (mean)                 1,287.0        434.0        627.2        850.9      1,195.7      2,491.5
+Monthly PC Income (mean)                      1,635.5        434.0        627.2        861.7      1,377.2      3,632.9
+Below PL (exp. < PL) (%)                         14.8         99.8         26.2          0.1          0.0          0.0
+Below 1.5PL (exp. < 1.5PL) (%)                   60.4        100.0        100.0        100.0         46.3          0.1
+Below PL (income < PL) (%)                       14.8         99.8         26.2          0.1          0.0          0.0
+Below 1.5PL (income < 1.5PL) (%)**               40.2        100.0        100.0         58.1          0.1          0.0
+PC Rent(mean) (conditional)                     204.4         47.8         74.9        116.9        179.2        444.9
+PC Rent to Income(%, mean) (conditional)         12.6         10.9         11.9         13.6         13.1         12.5
+Max PC Rent at NHBS (mean)                    1,054.3       -131.0         48.8        280.3        793.1      3,046.3
+Unaffordable at 30% Rule (%)                      2.0          1.0          1.3          3.4          2.0          1.8
+Max PC Rent at 1.5NHBS (mean)                   474.2       -695.0       -528.6       -300.0        210.2      2,461.0
+Unaffordable at NHBS (%)                         23.0        100.0         63.6          7.1          0.0          0.0
+Unaffordable at 1.5NHBS (%)                      60.9        100.0        100.0         99.9         48.6          0.0
 ----------------------------------------------------------------------------------------------------------------------
-Observations                                   11,842        1,146        1,520        1,930        2,996        4,250
+Observations                                   13,139        1,541        2,193        2,258        2,700        4,447
 ----------------------------------------------------------------------------------------------------------------------
 Notes: Renter is defined as tenure status as hired
-       * Temdulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state.
+       * Temdulkar (2004) poverty estimation weighted mean by state as the poverty line is different in every state.
        Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times
        ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 x poverty line) to arrive at non-housing poverty lines
        ** use picketty to get income (horizontal transformation A2 (preferred – floor).
@@ -564,10 +537,10 @@ Notes: Renter is defined as tenure status as hired
 ----------------------
    Renter | mean(poor)
 ----------+-----------
-        0 |   16.69724
-      100 |   5.800058
+        0 |   29.52399
+      100 |   14.84261
           | 
-    Total |   13.69894
+    Total |    25.6757
 ----------------------
 
 . 
@@ -575,19 +548,19 @@ Notes: Renter is defined as tenure status as hired
 . //x is income per capita 
 . foreach var in rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 rent_pc1 rent_pc2 rent_pc3 {
   2. replace `var' = . if `var' <= 0
-  3. replace `var' = . if `var' > 2e3
+  3. replace `var' = . if `var' > 1e3 //the cutoff is 2e3 in 2012
   4. }
-(5,818 real changes made, 5,818 to missing)
-(14,738 real changes made, 14,738 to missing)
-(20,831 real changes made, 20,831 to missing)
-(10,266 real changes made, 10,266 to missing)
+(12,430 real changes made, 12,430 to missing)
+(13,195 real changes made, 13,195 to missing)
+(27,790 real changes made, 27,790 to missing)
+(8,653 real changes made, 8,653 to missing)
 (0 real changes made)
-(4,542 real changes made, 4,542 to missing)
-(12,501 real changes made, 12,501 to missing)
-(413 real changes made, 413 to missing)
-(11,371 real changes made, 11,371 to missing)
+(4,036 real changes made, 4,036 to missing)
+(11,040 real changes made, 11,040 to missing)
+(258 real changes made, 258 to missing)
+(11,245 real changes made, 11,245 to missing)
 (0 real changes made)
-(4,837 real changes made, 4,837 to missing)
+(10,313 real changes made, 10,313 to missing)
 (0 real changes made)
 
 . 
@@ -599,39 +572,38 @@ Notes: Renter is defined as tenure status as hired
                   Monthly PC Income (mean)
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%          578             53
- 5%          771             87
-10%          909            203       Obs              41,967
-25%        1,255            206       Sum of Wgt.   316854132
+ 1%          268             20
+ 5%          362             35
+10%          424             41       Obs              45,346
+25%          571             46       Sum of Wgt.   248505113
 
-50%        1,866                      Mean              3,075
-                        Largest       Std. Dev.         4,031
-75%        3,416        122,592
-90%        6,147        123,297       Variance       16248376
-95%        9,005        123,516       Skewness              8
-99%       17,285        127,453       Kurtosis            152
+50%          839                      Mean              1,363
+                        Largest       Std. Dev.         1,584
+75%        1,551         40,392
+90%        2,772         44,905       Variance      2,508,951
+95%        3,877         50,339       Skewness              5
+99%        7,287         52,987       Kurtosis             56
 
 . twoway line rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
 > scatter rent_pc1 rent_pc2 rent_pc3 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33, mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
-> msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu, 2012)") ///
+> msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu,2004)") ///
 > xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 > note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
 >      "      The income percentile is for renters only weighted by household weight.") ///
-> xlabel(909 `" "909" "(p10)" "' 1225 `" "1,255" "(p25)" "' 1866 `" "1,866" "(p50)" "' 3416 `" "3,416" "(p75)" "' 6174 `" "6,147" "(p90)" "',labsize(vsmall))  
+> xlabel(424 `" "424" "(p10)" "' 571 `" "571" "(p25)" "' 839 `" "839" "(p50)" "' 1551 `" "1,551" "(p75)" "' 2772 `" "2,772" "(p90)" "',labsize(vsmall))  
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
 
 . 
-. graph export "${r_output}/ria_renter_nss68.png",width(800) height(600) replace
-(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files/ria_renter_nss68.png not found)
-(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files/ria_renter_nss68.png written in PNG format)
+. graph export "${r_output}/ria_renter_nss61.png",width(800) height(600) replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files/ria_renter_nss61.png written in PNG format)
 
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_1_NSS68_Residual_Income_Renter.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\02_1_NSS61_Residual_Income_Renter.log
   log type:  text
- closed on:  12 Apr 2021, 03:21:56
+ closed on:  12 Apr 2021, 03:25:29
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

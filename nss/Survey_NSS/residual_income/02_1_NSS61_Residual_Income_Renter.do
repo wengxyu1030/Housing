@@ -1,115 +1,114 @@
 ***************************
 *** AFH 
-*** NSS68-Residual Income Approach (2012)
+*** NSS61-Residual Income Approach (2004)
 *** Prepared by Aline Weng
-*** Date:3/2/2021
+*** Date:1/25/2021
 ***************************
-
-/*
-This version is using the Tendulka approach construct the non-housing budget standard (non-housing poverty line). 
-*/
 
 clear 
 set more off 
 
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
-if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 68"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
+
+if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 61"
+if `pc' == 0 global root_nss68 "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 68"
+
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61"
+if `pc' != 0 global root_nss68 "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
+
 if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
 
 cd "${root}"
 
 global r_input "${root}\Raw Data & Dictionaries"
+global r_input_nss68 "${root_nss68}\Raw Data & Dictionaries"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\residual_income\03_1_NSS68_Residual_Income_Renter.log",replace
+log using "${script}\residual_income\02_1_NSS61_Residual_Income_Renter.log",replace
 set linesize 255
 
 ***************************************************************
-*Step 1: Data Cleaning ****************************************
+*Step 1: Data Cleaning **************************************** 
 ***************************************************************
-
-use "${r_input}\bk_12.dta",clear
-merge m:1 ID using "${r_input}\bk_3.dta"
+use "${r_input}\Block 10_Monthly expenditure on miscellaneous goods and services including medical (non-institutional), rents and taxes.dta",clear
+merge m:1 HHID using "${r_input}\Block 3.dta"
 drop _merge
+merge m:1 HHID using "${r_input}\Block 3 Part 2_Household Characteristics.dta"
+drop _merge
+
+gen hhsize = B3_q1
+label var hhsize "Household size"
    
 /* poverty line is by state and by sector */
+
+    *estimate housing related expenditure:
 	  
-	  *Fuel and light (12: 18, 30 days recall period)
-	  gen double fuel = B12_v06*(B12_v01 == 18)
+	    *Rent (10: code = 529, 30 days recall period)
+	    gen double rent = B10_q4*(B10_q1 == "520")
+	  
+	    *Water charge(10: 540, 30 days recall period)
+	    gen double water = B10_q4*(B10_q1 == "540")
+	  
+	    *Collapse at household level for water ant rent
+	    foreach var in rent water { 
+	    egen double total_`var' = sum(`var'), by(HHID)
+	    } 
+	    bys HHID: keep if _n == 1 // keep only one observation for each HH
+
+merge 1:m HHID using "${r_input}\Block 6_Monthly consumption of fuel & light.dta"
+drop _merge
+	  
+	    *Fuel and light (12: 18, 30 days recall period)
+	    gen double fuel = B6_q6*(B6_q1 == "359")
+        egen double total_fuel = sum(fuel), by(HHID)
+	    bys HHID: keep if _n == 1
+
+	*Total housing expenditure
+	egen double exp_housing = rowtotal(total_rent total_fuel total_water)
+
+    *Housing consumption per capita
+	gen double total_exp_housing_pp = exp_housing/hhsize 
 	
-	  egen double total_fuel = sum(fuel), by(ID)
-	  bys ID: keep if _n == 1 // keep only one observation for each HH
+    *Identify renters, owner (de jure)
+	gen renter = (B3_q16 == "2") //rent is positive and tenure status is hire. 
+	label var renter "Renter"
 	
-      merge 1:m ID using "${r_input}\bk_10.dta"
-      drop _merge
-     
-	  *water charge(10: 540, 30 days recall period)
-	  gen water = B10_v03*(B10_v02 == 540)
-	  
-	  *Rent charge (10: 529 all rent included, 30 days recall period)
-	  gen rent = B10_v03*(B10_v02 == 529)
-	  
-	  *Imputed rent
-	  gen rent_impt = B10_v03*(B10_v02 == 539)
-	  
-	  foreach var in water rent rent_impt { 
-	  egen double total_`var' = sum(`var'), by(ID)
-	  drop `var'
-	  } 
-	  
-	  bys ID: keep if _n == 1 // keep only one observation for each HH
-	  
-	  *Identify renter, owner (de jure)
-	  gen renter = ( B3_v18 == 2 )
-	  label var renter "Renter"
-	  
-	  gen owner = ( B3_v18 == 1 )
-	  label var owner "Owner"
+	gen owner = ( B3_q16 == "1" )
+	label var owner "Owner"
 	
-rename ID hhid
-merge 1:1 hhid using "${r_input}\poverty68.dta"
+rename HHID hhid
+merge 1:1 hhid using "${r_input}\NSS_61_Poverty_For_Aline.dta"
 keep if _merge == 3
 drop _merge
 
-      *adjust the unit from India Rupee to USD: 1 Indian Rupee = 0.014 USD in 2/24/2021 （later）
-	  global r_u = 0.014
+   *adjust the unit from India Rupee to USD: 1 Indian Rupee = 0.014 USD in 2/24/2021 （later）
+   global r_u = 0.014
 	  
-	  foreach var of var pline mpce* total_* {
-	  gen `var'_usd = `var'*${r_u}
-      }
-   
-      *different budget scenario: pline, double pline, triple pline.    
-      forvalues i = 1/3 {
-      gen pline_`i' = pline*`i'
-      }
-	  
-	  sum poor poor_double [aw = pwt]
-	  sum poor poor_double [aw = pwt] if sector == 2
-	 
-	  
-      *Only focus on urban (the Tendulka approach decile is based on urban exp.)
-      gen urban = sector - 1
-	  keep if urban == 1
-      label var urban "Urban"
-      
-	  *Decile of the expenditure
-      xtile decile = mpce_mrp [aw = pwt] , n(10)
-      label var decile "Exp. decile"
+   foreach var of var pline mpce* total_* {
+   gen `var'_usd = `var'*${r_u}
+   }
 
-      label var hhsize "Household size"
-	  
-	  *check how national poverty line constructed //? can I get the weighted mean of poverty line (vary by state and sector)
-	  preserve
-	  use "${r_input}\poverty68.dta",clear
-	  keep if sector == 2
-	  tab pline_ind_11 //1000
-      restore
+   *different budget scenario: pline, double pline, triple pline.    
+   forvalues i = 1/3 {
+   gen pline_`i' = pline*`i'
+   }	  
+
+   *Only focus on urban (the Tendulka approach decile is based on urban exp.)
+   gen urban = sector - 1
+   keep if urban == 1
+   label var urban "Urban"
+   
+   *Decile of the expenditure
+   xtile decile = mpce_mrp [aw = pwt] , n(10)
+   label var decile "Exp. decile"
+
+   
+       
 **************************************************************
 *Step 2: Construct budget standards **************************
 **************************************************************
-
+ 
 *remove rent budget from the original poverty line by state
 gen rent_pc = total_rent/hhsize
 gen rent_mpce = rent_pc/mpce_mrp*100 //share of rent on total expenditure per capita (renters)
@@ -120,32 +119,31 @@ table decile [aw = pwt], c(mean rent_mpce mean mpce_mrp) row // for both renters
 table decile if renter == 1 [aw = pwt], c(med rent_pc med mpce_mrp med rent_mpce) row // only for renters 
 
 *collapse at state and declie level
-tab poor [aw = pwt] if urban == 1 //13.7% poverty rate in urban India (2012): 2th decile MPCE class
+tab poor [aw = pwt] if urban == 1 //25.7% poverty rate in urban India (2004): 3th decile MPCE class
 
 //ssc inst _gwtmean
 forvalues i = 2/6 {
 gen rent_pc_d`i' = rent_pc * (decile == `i')
 bys state: egen rent_pc_`i' = wtmean(rent_pc_d`i') , weight(pwt) //the poverty line is in the 2nd decile MPCE class
 drop rent_pc_d`i' 
-}
+}   
 
-*check the double poverty line and the mpce in each decile. 
+*check the double poverty line and the mpce in each decile.. 
 table decile [aw = pwt], c(mean mpce_mrp min mpce_mrp max mpce_mrp) row 
 
-local mpce_pline = 1030.445 //mean mpce_mrp at poverty line mpce class (decile 2, urban)
+local mpce_pline = 570.6 //mean mpce_mrp at poverty line mpce class (decile 3, urban)
 local mpce_pline_15 = `mpce_pline'*1.5 //1.5 times mean poverty line mpce class (urban)
 
-di  `mpce_pline_15' //4th decile mpce class (urban)
+di  `mpce_pline_15' //6th decile mpce class (urban), different than that in the 4th decile in 2012
 
-
-*generate the non-housing poverty line for each state at different budget standard
-gen pline_nhs_1 = pline_1- rent_pc_2 // poverty line and 1.5 poverty line (only double pline not rent)
-gen pline_nhs_2 = pline_2- rent_pc_4 //4th decile is where the poverty line mpce class doubled
+*generate the non-housing poverty line for each state at different budget standard (differ than 2012)
+gen pline_nhs_1 = pline_1- rent_pc_3 // poverty line and 1.5 poverty line (only double pline not rent)
+gen pline_nhs_2 = pline_2- rent_pc_6 //6th decile is where the poverty line mpce class doubled 
 
 *estimate income based on expenditure //Picketty approach. 
 xtile exp_100 = mpce_mrp [aw=pwt], nq(100)
 
-merge m:1 exp_100 using "${r_input}\IDHS_Exp_To_Income_All_Urban_Rural.dta",nogen
+merge m:1 exp_100 using "${r_input_nss68}\IDHS_Exp_To_Income_All_Urban_Rural.dta",nogen
 
 forvalues i = 0(1)2 {
 gen income_a`i' = (mpce_mrp * alpha_a`i'_u) //the income unit is consistent to budget standard
@@ -157,14 +155,15 @@ xtile qt_ic = income_a2 [aw = pwt] , n(5) //quintile for income
 gen rent_ic = rent_pc/income_a2*100 //share of rent on income
 
 drop rent_pc_*
-save "${r_output}\nss68_ria_master.dta",replace
+save "${r_output}\nss61_ria_master.dta",replace
+
 
 ***************************************************************
 *Step 3: Budget Standard for Renters **************************
 ***************************************************************
 
 *Maximum amount available for rent
-use "${r_output}\nss68_ria_master.dta",clear
+use "${r_output}\nss61_ria_master.dta",clear
 forvalues i = 1/2 {
 gen rent_ria_`i' = mpce_mrp - pline_nhs_`i'
 
@@ -257,9 +256,9 @@ qui eststo q`i' : estpost summarize $var_tab [aw = pwt] if qt_ic == `i' & renter
 
 esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
  mtitles( "Urban" "Urban-Q1" "Urban-Q2" "Urban-Q3" "Urban-Q4" "Urban-Q5") stats(N, label("Observations") fmt(%15.1gc)) ///
- title("Rental affordability using different affordability measures in urban India, 2012") ///
+ title("Rental affordability using different affordability measures in urban India, 2004") ///
  addnotes("Notes: Renter is defined as tenure status as hired" ///
-          "       * Temdulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state." ///
+          "       * Temdulkar (2004) poverty estimation weighted mean by state as the poverty line is different in every state." ///
 		  "       Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times" ///
 		  "       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 x poverty line) to arrive at non-housing poverty lines" ///
 		  "       ** use picketty to get income (horizontal transformation A2 (preferred – floor)." ///
@@ -272,7 +271,7 @@ table renter [aw = pwt], c(mean poor) row //double check the poverty rate: pover
 //x is income per capita 
 foreach var in rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 rent_pc1 rent_pc2 rent_pc3 {
 replace `var' = . if `var' <= 0
-replace `var' = . if `var' > 2e3
+replace `var' = . if `var' > 1e3 //the cutoff is 2e3 in 2012
 }
 
 format rent_ria_income_a2_1 rent_ria_income_a2_2 income_a2 %9.0fc
@@ -280,13 +279,12 @@ format rent_ria_income_a2_1 rent_ria_income_a2_2 income_a2 %9.0fc
 sum income_a2 [aw = pwt] ,de f //?how to set the y scale to 0-1e3? 
 twoway line rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
 scatter rent_pc1 rent_pc2 rent_pc3 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33, mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
-msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu, 2012)") ///
+msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu,2004)") ///
 xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
      "      The income percentile is for renters only weighted by household weight.") ///
-xlabel(909 `" "909" "(p10)" "' 1225 `" "1,255" "(p25)" "' 1866 `" "1,866" "(p50)" "' 3416 `" "3,416" "(p75)" "' 6174 `" "6,147" "(p90)" "',labsize(vsmall))  
+xlabel(424 `" "424" "(p10)" "' 571 `" "571" "(p25)" "' 839 `" "839" "(p50)" "' 1551 `" "1,551" "(p75)" "' 2772 `" "2,772" "(p90)" "',labsize(vsmall))  
 
-graph export "${r_output}/ria_renter_nss68.png",width(800) height(600) replace
+graph export "${r_output}/ria_renter_nss61.png",width(800) height(600) replace
 
 log close
-

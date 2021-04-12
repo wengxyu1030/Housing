@@ -1,9 +1,8 @@
---------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\02_NSS61_Residua
-> l_Income_Affordability.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\02_NSS61_Residual_Income_Affordability.log
   log type:  text
- opened on:  10 Feb 2021, 05:21:43
+ opened on:  12 Apr 2021, 02:13:53
 
 . set linesize 255
 
@@ -65,6 +64,202 @@
 . 
 . merge 1:m HHID using "${r_input}\Block 6_Monthly consumption of fuel & light.dta"
 
+    Result                           # o
+> f obs.
+    ------------------------------------
+> -----
+    not matched                         
+>   422
+        from master                     
+>   422  (_merge==1)
+        from using                      
+>     0  (_merge==2)
+
+    matched                           63
+> 7,880  (_merge==3)
+    ------------------------------------
+> -----
+
+. drop _merge
+
+.           
+.           *Fuel and light (12: 18, 30 
+> days recall period)
+.           gen double fuel = B6_q6*(B6_
+> q1 == "359")
+(422 missing values generated)
+
+.           egen double total_fuel = sum
+> (fuel), by(HHID)
+
+.           bys HHID: keep if _n == 1
+(513,658 observations deleted)
+
+. 
+.         *Total housing expenditure
+.         egen double exp_housing = rowtotal(total_rent total_fuel total_water)
+
+. 
+.     *Housing consumption per capita
+.         gen double total_exp_housing_pp = exp_housing/hh_size 
+
+. 
+end of do-file
+
+.     *Identify renters, owner (de jure)
+
+. 
+. gen renter = (B3_q16 == "2") //rent is positive and tenure status is hire. 
+unknown function ()
+r(133);
+
+.     *Identify renters, owner (de jure)
+
+. 
+. gen renter = (B3_q16 == "2") //rent is positive and tenure status is hire. 
+unknown function ()
+r(133);
+
+. gen renter = (B3_q16 == "2")
+
+. tab b3_q16
+variable b3_q16 not found
+r(111);
+
+. tab B3_q16
+
+   Dwelling |
+  unit code |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    103,328       82.92       82.92
+          2 |     15,792       12.67       95.60
+          3 |         65        0.05       95.65
+          9 |      5,420        4.35      100.00
+------------+-----------------------------------
+      Total |    124,605      100.00
+
+. gen owner = ( B3_q16 == "1" )
+
+. 
+. label var owner "Owner"
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. ******************************************************************************
+. *Step 2: Estimate the non-housing expenditure for household at national pline
+. ******************************************************************************
+. rename HHID hhid
+
+. merge 1:1 hhid using "${r_input}\NSS_61_Poverty_For_Aline.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           124,644  (_merge==3)
+    -----------------------------------------
+
+. keep if _merge == 3
+(0 observations deleted)
+
+. drop _merge
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+.       *adjust the unit from India Rupee to USD: 1 Indian Rupee = 0.014 USD in 2/24/2021 （later）
+.           global r_u = 0.014
+
+.           
+.           foreach var of var pline mpce* total_* {
+  2.           gen `var'_usd = `var'*${r_u}
+  3.       }
+
+.           
+. 
+end of do-file
+
+.    *different budget scenario: pline, double pline, triple pline.    
+
+. 
+.    forvalues i = 1/3 {
+  2. 
+.    gen pline_`i' = pline*`i'
+  3. 
+.    }
+
+.    *Only focus on urban (the Tendulka approach decile is based on urban exp.)
+
+. 
+.    gen urban = sector - 1
+
+. 
+.    keep if urban == 1
+(79,298 observations deleted)
+
+. 
+.    label var urban "Urban"
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. use "${r_input}\Block 10_Monthly expenditure on miscellaneous goods and services including medical
+>  (non-institutional), rents and taxes.dta",clear
+
+. merge m:1 HHID using "${r_input}\Block 3.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           121
+        from master                         0  (_merge==1)
+        from using                        121  (_merge==2)
+
+    matched                         2,378,390  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge m:1 HHID using "${r_input}\Block 3 Part 2_Household Characteristics.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                         2,378,511  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. 
+. gen hhsize = B3_q1
+
+. label var hhsize "Household size"
+
+.    
+. /* poverty line is by state and by sector */
+. 
+.     *estimate housing related expenditure:
+.           
+.           *Rent (10: code = 529, 30 days recall period)
+.           gen double rent = B10_q4*(B10_q1 == "520")
+(121 missing values generated)
+
+.           
+.           *Water charge(10: 540, 30 days recall period)
+.           gen double water = B10_q4*(B10_q1 == "540")
+(121 missing values generated)
+
+.           
+.           *Collapse at household level for water ant rent
+.           foreach var in rent water { 
+  2.           egen double total_`var' = sum(`var'), by(HHID)
+  3.           } 
+
+.           bys HHID: keep if _n == 1 // keep only one observation for each HH
+(2,253,867 observations deleted)
+
+. 
+. merge 1:m HHID using "${r_input}\Block 6_Monthly consumption of fuel & light.dta"
+
     Result                           # of obs.
     -----------------------------------------
     not matched                           422
@@ -92,16 +287,34 @@
 
 . 
 .     *Housing consumption per capita
-.         gen double total_exp_housing_pp = exp_housing/hh_size 
+.         gen double total_exp_housing_pp = exp_housing/hhsize 
 
 .         
-.     *Identify renters
-.         gen renter = (total_rent > 0 & !mi(total_rent)) & B3_q16 == "2" //rent is positive and tenure status is hire. 
+.     *Identify renters, owner (de jure)
+.         gen renter = (B3_q16 == "2") //rent is positive and tenure status is hire. 
+
+.         label var owner "Renter"
+variable owner not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+.         label var renter "Renter"
+
+.         
+.         gen owner = ( B3_q16 == "1" )
+
+.         label var owner "Owner"
 
 . 
-. ******************************************************************************
-. *Step 2: Estimate the non-housing expenditure for household at national pline
-. ******************************************************************************
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
 . rename HHID hhid
 
 . merge 1:1 hhid using "${r_input}\NSS_61_Poverty_For_Aline.dta"
@@ -117,492 +330,582 @@
 
 . drop _merge
 
-.    
+. 
+.    *adjust the unit from India Rupee to USD: 1 Indian Rupee = 0.014 USD in 2/24/2021 （later）
+.    global r_u = 0.014
+
+.           
+.    foreach var of var pline mpce* total_* {
+  2.    gen `var'_usd = `var'*${r_u}
+  3.    }
+
+. 
 .    *different budget scenario: pline, double pline, triple pline.    
 .    forvalues i = 1/3 {
   2.    gen pline_`i' = pline*`i'
-  3.    }
+  3.    }      
 
-.    
-.    *Non-housing consumption per capita
-.    gen double exp_non_housing_pp = mpce_mrp - total_exp_housing_pp //all poverty line data are compiled using the MRP metho
-
-.    
-.    *Expenditure quintile (for all india, urban and rural sector)
-.    xtile mpce_qt = mpce_mrp [aw = hhwt] , n(5)
-
-.    xtile mpce_qt_tn = mpce_mrp [aw = hhwt] if state == 33, n(5)
-
-.    
-.    *take log of expenditure
-.    gen mpce_mrp_ln = ln(mpce_mrp)
-
-.    
-.    *only focusing on urban households
-.    gen urban = (sector == 2) 
+. 
+.    *Only focus on urban (the Tendulka approach decile is based on urban exp.)
+.    gen urban = sector - 1
 
 .    keep if urban == 1
 (79,298 observations deleted)
 
+.    label var urban "Urban"
+
 .    
-. save "${r_output}\ria_1.dta",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files\ria_1.dta saved
+.    *Decile of the expenditure
+.    xtile decile = mpce_mrp [aw = pwt] , n(10)
+
+.    label var decile "Exp. decile"
 
 . 
-. //get the poverty line by state for the urban sector
-. use "${r_output}\ria_1.dta",replace
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. *remove rent budget from the original poverty line by state
+. gen rent_pc = total_rent/hhsize
+
+. gen rent_mpce = rent_pc/mpce_mrp*100 //share of rent on total expenditure per capita (renters)
 
 . 
-. keep if urban == 1
-(0 observations deleted)
+. 
+. 
+end of do-file
 
-. gen state_n = state
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. *stats for renters
+. table decile [aw = pwt], c(mean renter ) row 
+
+------------------------
+Exp.      |
+decile    | mean(renter)
+----------+-------------
+        1 |     .1014462
+        2 |     .1663058
+        3 |     .2026766
+        4 |     .2600878
+        5 |     .2610866
+        6 |     .2941036
+        7 |     .3257415
+        8 |     .3168743
+        9 |     .3368627
+       10 |      .356196
+          | 
+    Total |     .2621208
+------------------------
+
+. table decile [aw = pwt], c(mean rent_mpce mean mpce_mrp) row // for both renters and owners, the p
+> overty line budget share of rent is 2.8%, lower than the 5.3% for exp. survey in 05. 
+
+------------------------------------------
+Exp.      |
+decile    | mean(rent_m~e)  mean(mpce_mrp)
+----------+-------------------------------
+        1 |        1.03393        349.3137
+        2 |       2.005155        473.7385
+        3 |       2.424788        570.5945
+        4 |       3.142961        668.7532
+        5 |       3.673237        778.5363
+        6 |       4.058108        912.9607
+        7 |       4.903928        1083.295
+        8 |       4.962317        1310.989
+        9 |       5.684686        1709.162
+       10 |       6.635378        3189.553
+          | 
+    Total |       3.852117        1104.599
+------------------------------------------
+
+. table decile if renter == 1 [aw = pwt], c(med rent_pc med mpce_mrp med rent_mpce) row // only for 
+> renters 
+
+-------------------------------------------------------
+Exp.      |
+decile    |  med(rent_pc)  med(mpce_mrp)  med(rent_m~e)
+----------+--------------------------------------------
+        1 |          37.5       375.8712       10.32285
+        2 |            50       478.8889       11.28518
+        3 |      66.66666          576.9       11.90791
+        4 |            80        666.475       12.15436
+        5 |           100        782.254        13.5108
+        6 |           125        912.832       13.49213
+        7 |         162.5       1083.402       14.92103
+        8 |           200       1297.472       15.04661
+        9 |      266.6667         1692.5       15.92177
+       10 |           500        2687.48       17.67705
+          | 
+    Total |           125       1008.955        13.9007
+-------------------------------------------------------
 
 . 
-. collapse (mean) pline_1 pline_2 pline_3,by(state state_n) 
+. 
+end of do-file
 
-. gen _Istate_ = 1
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. *collapse at state and declie level
+. tab poor [aw = pwt] if urban == 1 //13.7% poverty rate in urban India: 2th decile MPCE class
+
+       poor |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   Not-poor | 33,703.098       74.32       74.32
+       Poor | 11,642.902       25.68      100.00
+------------+-----------------------------------
+      Total |     45,346      100.00
 
 . 
-. reshape wide _Istate_,i(state pline_1 pline_2 pline_3) j(state_n)
-(note: j = 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35)
+. 
+end of do-file
 
-Data                               long   ->   wide
------------------------------------------------------------------------------
-Number of obs.                       35   ->      35
-Number of variables                   6   ->      39
-j variable (35 values)          state_n   ->   (dropped)
-xij variables:
-                               _Istate_   ->   _Istate_1 _Istate_2 ... _Istate_35
------------------------------------------------------------------------------
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
 
-. qui mvencode _all, mv(0) //change missing values to zero
+. //ssc inst _gwtmean
+. forvalues i = 2/6 {
+  2. gen rent_pc_d`i' = rent_pc * (decile == `i')
+  3. bys state: egen rent_pc_`i' = wtmean(rent_pc_d`i') , weight(pwt) //the poverty line is in the 2
+> nd decile MPCE class
+  4. drop rent_pc_d`i' 
+  5. }
 
 . 
-. reshape long pline_,i(state) j(levels)
-(note: j = 1 2 3)
+. 
+end of do-file
 
-Data                               wide   ->   long
------------------------------------------------------------------------------
-Number of obs.                       35   ->     105
-Number of variables                  39   ->      38
-j variable (3 values)                     ->   levels
-xij variables:
-                pline_1 pline_2 pline_3   ->   pline_
------------------------------------------------------------------------------
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. table decile [aw = pwt], c(mean mpce_mrp min mpce_mrp max mpce_mrp) row 
+
+----------------------------------------------------------
+Exp.      |
+decile    | mean(mpce_mrp)   min(mpce_mrp)   max(mpce_mrp)
+----------+-----------------------------------------------
+        1 |       349.3137          19.765         423.535
+        2 |       473.7385        423.5533         519.954
+        3 |       570.5945        519.9875        621.1675
+        4 |       668.7532        621.2025        720.0529
+        5 |       778.5363        720.0684        838.6557
+        6 |       912.9607         838.734         993.598
+        7 |       1083.295        993.6063        1185.777
+        8 |       1310.989        1185.808         1466.64
+        9 |       1709.162        1466.872         2034.42
+       10 |       3189.553        2034.546        29156.71
+          | 
+    Total |       1104.599          19.765        29156.71
+----------------------------------------------------------
 
 . 
-. rename pline mpce_mrp
+. 
+end of do-file
 
-. gen exp_non_housing_pp = . 
-(105 missing values generated)
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. local mpce_pline = 570.6 //mean mpce_mrp at poverty line mpce class (decile 3, urban)
+
+. local mpce_pline_15 = `mpce_pline'*1.5 //1.5 times mean poverty line mpce class (urban)
 
 . 
-. save "${r_output}\temp.dta",replace
-(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files\temp.dta not found)
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files\temp.dta saved
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. di  `mpce_pline_15' //4th decile mpce class (urban)
+
 
 . 
-. //fit renter's non-housing and total expenditure to linear model
-. use "${r_output}\ria_1.dta",replace
+. 
+end of do-file
 
-. gen state_r = state 
+. do "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_inco
+> me\02_1_NSS61_Residual_Income_Renter.do"
+
+. ***************************
+. *** AFH 
+. *** NSS61-Residual Income Approach (2004)
+. *** Prepared by Aline Weng
+. *** Date:1/25/2021
+. ***************************
+. 
+. clear 
+
+. set more off 
 
 . 
-. drop if renter != 1 //only focusing on renters. 
-(33,036 observations deleted)
+. if "`c(username)'" == "wb308830" local pc = 0
+
+. if "`c(username)'" != "wb308830" local pc = 1
+
+. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 61"
+
+. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61"
+
+. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
+> Survey_NSS"
 
 . 
-. xi: reg exp_non_housing_pp mpce_mrp i.state, noconstant
-i.state           _Istate_1-35        (naturally coded; _Istate_1 omitted)
-
-      Source |       SS           df       MS      Number of obs   =    12,310
--------------+----------------------------------   F(35, 12275)    =  14910.94
-       Model |  2.5977e+10        35   742209946   Prob > F        =    0.0000
-    Residual |   611003072    12,275  49776.2177   R-squared       =    0.9770
--------------+----------------------------------   Adj R-squared   =    0.9770
-       Total |  2.6588e+10    12,310  2159898.55   Root MSE        =    223.11
-
-------------------------------------------------------------------------------
-exp_non_ho~p |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
--------------+----------------------------------------------------------------
-    mpce_mrp |   .7913327   .0016677   474.52   0.000     .7880638    .7946016
-   _Istate_2 |  -21.61414   17.80261    -1.21   0.225    -56.51005    13.28178
-   _Istate_3 |  -54.59585   11.97696    -4.56   0.000    -78.07259   -31.11912
-   _Istate_4 |  -201.5341    18.7956   -10.72   0.000    -238.3764   -164.6917
-   _Istate_5 |  -28.73775    14.8301    -1.94   0.053    -57.80708    .3315755
-   _Istate_6 |  -42.07799   13.89312    -3.03   0.002    -69.31068    -14.8453
-   _Istate_7 |  -245.6922   12.32752   -19.93   0.000     -269.856   -221.5283
-   _Istate_8 |  -37.55252   12.72604    -2.95   0.003    -62.49757   -12.60748
-   _Istate_9 |  -26.52276   9.477772    -2.80   0.005    -45.10068   -7.944836
-  _Istate_10 |  -39.45893   13.84979    -2.85   0.004    -66.60669   -12.31117
-  _Istate_11 |  -100.3771   20.57379    -4.88   0.000     -140.705   -60.04924
-  _Istate_12 |  -42.57536   24.84915    -1.71   0.087    -91.28359    6.132874
-  _Istate_13 |   -13.8335   21.73535    -0.64   0.524     -56.4382     28.7712
-  _Istate_14 |  -34.10796   32.24193    -1.06   0.290    -97.30721    29.09129
-  _Istate_15 |   -24.7435   14.88935    -1.66   0.097    -53.92897     4.44197
-  _Istate_16 |  -68.48261   20.35472    -3.36   0.001    -108.3811   -28.58415
-  _Istate_17 |  -78.56498   17.08681    -4.60   0.000    -112.0578   -45.07214
-  _Istate_18 |  -42.77552   13.62892    -3.14   0.002    -69.49034    -16.0607
-  _Istate_19 |  -6.055578    8.31434    -0.73   0.466    -22.35299    10.24184
-  _Istate_20 |  -7.165238   13.95964    -0.51   0.608    -34.52833    20.19786
-  _Istate_21 |  -45.00997    12.7672    -3.53   0.000    -70.03568   -19.98426
-  _Istate_22 |  -8.637083   16.08247    -0.54   0.591    -40.16126    22.88709
-  _Istate_23 |  -11.35428   11.15193    -1.02   0.309    -33.21383    10.50526
-  _Istate_24 |  -17.14884   10.52764    -1.63   0.103    -37.78468    3.486997
-  _Istate_25 |  -74.68183   47.78868    -1.56   0.118    -168.3552     18.9915
-  _Istate_26 |  -176.0989   31.37666    -5.61   0.000    -237.6021   -114.5957
-  _Istate_27 |  -13.41505   6.683477    -2.01   0.045    -26.51571   -.3143802
-  _Istate_28 |  -55.51658   6.821497    -8.14   0.000    -68.88778   -42.14537
-  _Istate_29 |  -99.85166   7.737185   -12.91   0.000    -115.0178   -84.68557
-  _Istate_30 |  -55.93159   29.15264    -1.92   0.055    -113.0754    1.212169
-  _Istate_31 |    30.4693   44.71777     0.68   0.496    -57.18457    118.1232
-  _Istate_32 |   11.84376    14.8478     0.80   0.425    -17.26026    40.94778
-  _Istate_33 |  -71.64378   5.869732   -12.21   0.000    -83.14938   -60.13818
-  _Istate_34 |  -15.78843   16.81693    -0.94   0.348    -48.75226     17.1754
-  _Istate_35 |   -13.6177   16.87987    -0.81   0.420     -46.7049    19.46951
-------------------------------------------------------------------------------
+. cd "${root}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61
 
 . 
-. //estimate the non-housing expenditure budget standard (non-housing expenditure poverty line)
-. use "${r_output}\temp.dta",clear
+. global r_input "${root}\Raw Data & Dictionaries"
 
-. predict exp_non_housing_pp_line_
-(option xb assumed; fitted values)
+. global r_output "${root}\Data Output Files"
 
 . 
-. rename mpce_mrp pline_
+. log using "${script}\NSS61\02_NSS61_Residual_Income_Affordability.log",replace
+log file already open
+r(604);
 
-. keep state levels pline exp_non_housing_pp_line_
+end of do-file
 
-. reshape wide pline exp_non_housing_pp_line_, i(state) j(level)
-(note: j = 1 2 3)
+r(604);
 
-Data                               long   ->   wide
------------------------------------------------------------------------------
-Number of obs.                      105   ->      35
-Number of variables                   4   ->       7
-j variable (3 values)            levels   ->   (dropped)
-xij variables:
-                                 pline_   ->   pline_1 pline_2 pline_3
-               exp_non_housing_pp_line_   ->   exp_non_housing_pp_line_1 exp_non_housing_pp_line_2 exp_non_housing_pp_line_3
------------------------------------------------------------------------------
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
 
-. 
-. save "${r_output}\ria_non_housing_line.dta",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files\ria_non_housing_line.dta saved
+. table decile [aw = pwt], c(mean mpce_mrp min mpce_mrp max mpce_mrp) row 
+no variables defined
+r(111);
 
-. erase "${r_output}\temp.dta"
+end of do-file
 
-. 
-. //merge the alternative poverty lines to the master data.    
-. merge 1:m state using "${r_output}\ria_1.dta"
-(label state already defined)
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. use "${r_input}\Block 10_Monthly expenditure on miscellaneous goods and services including medical
+>  (non-institutional), rents and taxes.dta",clear
+
+. merge m:1 HHID using "${r_input}\Block 3.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           121
+        from master                         0  (_merge==1)
+        from using                        121  (_merge==2)
+
+    matched                         2,378,390  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge m:1 HHID using "${r_input}\Block 3 Part 2_Household Characteristics.dta"
 
     Result                           # of obs.
     -----------------------------------------
     not matched                             0
-    matched                            45,346  (_merge==3)
+    matched                         2,378,511  (_merge==3)
     -----------------------------------------
 
+. drop _merge
+
 . 
-. keep if _merge == 3 //only on urban sector
+. gen hhsize = B3_q1
+
+. label var hhsize "Household size"
+
+.    
+. /* poverty line is by state and by sector */
+. 
+.     *estimate housing related expenditure:
+.           
+.             *Rent (10: code = 529, 30 days recall period)
+.             gen double rent = B10_q4*(B10_q1 == "520")
+(121 missing values generated)
+
+.           
+.             *Water charge(10: 540, 30 days recall period)
+.             gen double water = B10_q4*(B10_q1 == "540")
+(121 missing values generated)
+
+.           
+.             *Collapse at household level for water ant rent
+.             foreach var in rent water { 
+  2.             egen double total_`var' = sum(`var'), by(HHID)
+  3.             } 
+
+.             bys HHID: keep if _n == 1 // keep only one observation for each HH
+(2,253,867 observations deleted)
+
+. 
+. merge 1:m HHID using "${r_input}\Block 6_Monthly consumption of fuel & light.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           422
+        from master                       422  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                           637,880  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+.           
+.             *Fuel and light (12: 18, 30 days recall period)
+.             gen double fuel = B6_q6*(B6_q1 == "359")
+(422 missing values generated)
+
+.         egen double total_fuel = sum(fuel), by(HHID)
+
+.             bys HHID: keep if _n == 1
+(513,658 observations deleted)
+
+. 
+.         *Total housing expenditure
+.         egen double exp_housing = rowtotal(total_rent total_fuel total_water)
+
+. 
+.     *Housing consumption per capita
+.         gen double total_exp_housing_pp = exp_housing/hhsize 
+
+.         
+.     *Identify renters, owner (de jure)
+.         gen renter = (B3_q16 == "2") //rent is positive and tenure status is hire. 
+
+.         label var renter "Renter"
+
+.         
+.         gen owner = ( B3_q16 == "1" )
+
+.         label var owner "Owner"
+
+.         
+. rename HHID hhid
+
+. merge 1:1 hhid using "${r_input}\NSS_61_Poverty_For_Aline.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           124,644  (_merge==3)
+    -----------------------------------------
+
+. keep if _merge == 3
 (0 observations deleted)
 
-. drop _merge  
-
-. drop if renter != 1 //only focusing on renters. 
-(33,036 observations deleted)
+. drop _merge
 
 . 
-.         *find the affordable housings
-.         forvalues i = 1/3 {
-  2.     gen affordable_`i' = (exp_non_housing_pp > exp_non_housing_pp_line_`i')*100
-  3.     tab affordable_`i' [aw = hhwt]
-  4.         
-.         gen unaffordable_`i' = (affordable_`i' == 0)*100
-  5.     }
+.    *adjust the unit from India Rupee to USD: 1 Indian Rupee = 0.014 USD in 2/24/2021 （later）
+.    global r_u = 0.014
 
-affordable_ |
-          1 |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          0 | 1,076.7175        8.75        8.75
-        100 | 11,233.283       91.25      100.00
-------------+-----------------------------------
-      Total |     12,310      100.00
-
-affordable_ |
-          2 |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          0 |  6,163.406       50.07       50.07
-        100 |  6,146.594       49.93      100.00
-------------+-----------------------------------
-      Total |     12,310      100.00
-
-affordable_ |
-          3 |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          0 | 9,208.1914       74.80       74.80
-        100 | 3,101.8086       25.20      100.00
-------------+-----------------------------------
-      Total |     12,310      100.00
+.           
+.    foreach var of var pline mpce* total_* {
+  2.    gen `var'_usd = `var'*${r_u}
+  3.    }
 
 . 
-. // hosue keeping
-. forvalues i = 1/3 {
-  2. label var unaffordable_`i' "Hs. in Unaffordable Housing `i'pline"
-  3. label var affordable_`i' "Hs. in Affordable Housing `i'pline"
-  4. }
+.    *different budget scenario: pline, double pline, triple pline.    
+.    forvalues i = 1/3 {
+  2.    gen pline_`i' = pline*`i'
+  3.    }      
 
 . 
-. label var exp_non_housing_pp "Mth. PC. Non-Housing Exp."
+.    *Only focus on urban (the Tendulka approach decile is based on urban exp.)
+.    gen urban = sector - 1
 
-. label var total_exp_housing_pp "Mth. PC. Housing Exp."
+.    keep if urban == 1
+(79,298 observations deleted)
+
+.    label var urban "Urban"
+
+.    
+.    *Decile of the expenditure
+.    xtile decile = mpce_mrp [aw = pwt] , n(10)
+
+.    label var decile "Exp. decile"
 
 . 
-. save "${r_output}\ria_final.dta",replace
-file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files\ria_final.dta saved
-
-. 
-. ******************************************************************************
-. *Step 3: stats by consumption quintile 
-. ******************************************************************************
+.    
+.        
+. **************************************************************
+. *Step 2: Construct budget standards **************************
+. **************************************************************
 .  
-. * distribution of owner and renter consumption expenditure in urban area: renters are in higher quintiles. 
-. use "${r_output}\ria_1.dta",clear //with both renter and owner. 
+. *remove rent budget from the original poverty line by state
+. gen rent_pc = total_rent/hhsize
+
+. gen rent_mpce = rent_pc/mpce_mrp*100 //share of rent on total expenditure per capita (renters)
 
 . 
-. twoway kdensity mpce_mrp_ln [aw = hhwt] if renter == 1 || kdensity mpce_mrp_ln [aw = hhwt] if renter == 0, ///
-> legend(order(1 "Renter" 2 "Owner")) title("Table 2. Kdensity of Log Monthly per capita Consumer Expenditure (MPCE) for India Urban Household (2004)", size(tiny)) xtitle("Log MPCE") ytitle("Kdensity")
-
-. graph export "${r_output}/kdensity_tenure_mpce.png",replace
-(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files/kdensity_tenure_mpce.png written in PNG format)
-
-. 
-. gen tn = (state == 33)
-
-.  
-. table renter [aw = hhwt], c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
-
-------------------------------------------
-   renter | mean(mpce_mrp)   med(mpce_mrp)
-----------+-------------------------------
-        0 |        1179.00          875.83
-        1 |        1532.40         1169.79
-          | 
-    Total |        1287.09          968.00
-------------------------------------------
-
-. table mpce_qt [aw = hhwt], c(mean renter) format(%9.2f) row
+. *stats for renters
+. table decile [aw = pwt], c(mean renter ) row 
 
 ------------------------
-5         |
-quantiles |
-of        |
-mpce_mrp  | mean(renter)
+Exp.      |
+decile    | mean(renter)
 ----------+-------------
-        1 |         0.08
-        2 |         0.16
-        3 |         0.23
-        4 |         0.29
-        5 |         0.39
+        1 |     .1014462
+        2 |     .1663058
+        3 |     .2026766
+        4 |     .2600878
+        5 |     .2610866
+        6 |     .2941036
+        7 |     .3257415
+        8 |     .3168743
+        9 |     .3368627
+       10 |      .356196
           | 
-    Total |         0.31
+    Total |     .2621208
 ------------------------
 
-. 
-. table renter if tn == 1 [aw = hhwt], c(mean mpce_mrp median mpce_mrp) format(%9.2f) row
+. table decile [aw = pwt], c(mean rent_mpce mean mpce_mrp) row // for both renters and owners, the p
+> overty line budget share of rent is 2.8%, lower than the 5.3% for exp. survey in 05. 
 
 ------------------------------------------
-   renter | mean(mpce_mrp)   med(mpce_mrp)
+Exp.      |
+decile    | mean(rent_m~e)  mean(mpce_mrp)
 ----------+-------------------------------
-        0 |        1146.03          827.45
-        1 |        1541.45         1148.41
+        1 |        1.03393        349.3137
+        2 |       2.005155        473.7385
+        3 |       2.424788        570.5945
+        4 |       3.142961        668.7532
+        5 |       3.673237        778.5363
+        6 |       4.058108        912.9607
+        7 |       4.903928        1083.295
+        8 |       4.962317        1310.989
+        9 |       5.684686        1709.162
+       10 |       6.635378        3189.553
           | 
-    Total |        1322.88          965.17
+    Total |       3.852117        1104.599
 ------------------------------------------
 
-. table mpce_qt_tn if tn == 1 [aw = hhwt], c(mean renter) format(%9.2f) row
+. table decile if renter == 1 [aw = pwt], c(med rent_pc med mpce_mrp med rent_mpce) row // only for 
+> renters 
 
-------------------------
-5         |
-quantiles |
-of        |
-mpce_mrp  | mean(renter)
-----------+-------------
-        1 |         0.18
-        2 |         0.32
-        3 |         0.37
-        4 |         0.45
-        5 |         0.55
+-------------------------------------------------------
+Exp.      |
+decile    |  med(rent_pc)  med(mpce_mrp)  med(rent_m~e)
+----------+--------------------------------------------
+        1 |          37.5       375.8712       10.32285
+        2 |            50       478.8889       11.28518
+        3 |      66.66666          576.9       11.90791
+        4 |            80        666.475       12.15436
+        5 |           100        782.254        13.5108
+        6 |           125        912.832       13.49213
+        7 |         162.5       1083.402       14.92103
+        8 |           200       1297.472       15.04661
+        9 |      266.6667         1692.5       15.92177
+       10 |           500        2687.48       17.67705
           | 
-    Total |         0.45
-------------------------
+    Total |           125       1008.955        13.9007
+-------------------------------------------------------
 
 . 
-. *affordability and the share of housing expenditure to total expenditure (RIA and Ratio Approach)
-. use "${r_output}\ria_final.dta",replace
+. *collapse at state and declie level
+. tab poor [aw = pwt] if urban == 1 //25.7% poverty rate in urban India (2004): 3th decile MPCE clas
+> s
+
+       poor |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   Not-poor | 33,703.098       74.32       74.32
+       Poor | 11,642.902       25.68      100.00
+------------+-----------------------------------
+      Total |     45,346      100.00
 
 . 
-. //housing expenditure/total expenditure
-. gen h_t_exp_mn = total_exp_housing_pp/mpce_mrp*100 
-
-. label var h_t_exp_mn "Mean of Housing Exp. / Total Exp. (%)"
-
-. 
-. egen h_t_exp_r_md_q = median(h_t_exp_mn),by(mpce_qt)
-
-. egen h_t_exp_r_md_all = median(h_t_exp_mn)
+. //ssc inst _gwtmean
+. forvalues i = 2/6 {
+  2. gen rent_pc_d`i' = rent_pc * (decile == `i')
+  3. bys state: egen rent_pc_`i' = wtmean(rent_pc_d`i') , weight(pwt) //the poverty line is in the 2
+> nd decile MPCE class
+  4. drop rent_pc_d`i' 
+  5. }   
 
 . 
-. egen h_t_exp_r_md_q_tn = median(h_t_exp_mn) if state == 33,by(mpce_qt_tn)
-(10616 missing values generated)
+end of do-file
 
-. egen h_t_exp_r_md_all_tn = median(h_t_exp_mn) if state == 33
-(10616 missing values generated)
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
 
-. 
-. foreach var in h_t_exp_r_md_all {
-  2. label var `var' "Med.of Housing Exp. / Total Exp. (%)" 
-  3. label var `var'_tn "Med.of Housing Exp. / Total Exp. (%)" 
-  4. }
+. *check the double poverty line and the 6th decile. 
+. table decile [aw = pwt], c(mean mpce_mrp min mpce_mrp max mpce_mrp) row 
 
-. 
-. //poverty rate (national)
-. replace poor = poor*100
-(2,066 real changes made)
-
-. label var poor "Poverty Rate (%)"
-
-. 
-. //affordability tabel by quintile
-. global var_tab_1 "h_t_exp_mn unaffordable_1 unaffordable_2 unaffordable_3 poor"
-
-. 
-. qui eststo total : estpost summarize h_t_exp_r_md_all $var_tab_1 [aw = hhwt],de
-
-. replace h_t_exp_r_md_all = h_t_exp_r_md_q 
-(12,310 real changes made)
+----------------------------------------------------------
+Exp.      |
+decile    | mean(mpce_mrp)   min(mpce_mrp)   max(mpce_mrp)
+----------+-----------------------------------------------
+        1 |       349.3137          19.765         423.535
+        2 |       473.7385        423.5533         519.954
+        3 |       570.5945        519.9875        621.1675
+        4 |       668.7532        621.2025        720.0529
+        5 |       778.5363        720.0684        838.6557
+        6 |       912.9607         838.734         993.598
+        7 |       1083.295        993.6063        1185.777
+        8 |       1310.989        1185.808         1466.64
+        9 |       1709.162        1466.872         2034.42
+       10 |       3189.553        2034.546        29156.71
+          | 
+    Total |       1104.599          19.765        29156.71
+----------------------------------------------------------
 
 . 
-. qui eststo total_tn : estpost summarize h_t_exp_r_md_all_tn $var_tab_1 [aw = hhwt] if state == 33,de
+. local mpce_pline = 570.6 //mean mpce_mrp at poverty line mpce class (decile 3, urban)
 
-. replace h_t_exp_r_md_all_tn = h_t_exp_r_md_q_tn
-(1,694 real changes made)
-
-. 
-. forvalues i = 1/5 {
-  2. qui eststo q`i' : estpost summarize h_t_exp_r_md_all $var_tab_1 [aw = hhwt] if mpce_qt == `i',de
-  3. qui eststo q`i'_tn : estpost summarize h_t_exp_r_md_all_tn $var_tab_1 [aw = hhwt] if mpce_qt_tn == `i' & state == 33,de
-  4. }
+. local mpce_pline_15 = `mpce_pline'*1.5 //1.5 times mean poverty line mpce class (urban)
 
 . 
-. //table for all India
-. esttab total q1 q2 q3 q4 q5, cells(mean(fmt(%15.1fc))) label collabels(none) /// 
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
->  title("Table 1. Percent of Renter Households with Unaffordable Housing Expenditure by Expenditure Quintile in Urban India (2004)") varwidth(40) ///
->  addnote("Notes: The data source is NSS 68th Round Household Consumer Expenditure." ///
->  "       Households weighted by survey weights." ///
->  "       The analysis is using the Residual Income Approach." ///
->  "       The affordability at 1pline is estimated using renters' non-housing expenses drawn from India's urban national poverty threshold by state as the budget standard." ///
->  "       The affordabiiity at 2pline and 3pline are estimated utilizing the similar approach but with the double and triple poverty thresholds." ///
->  "       Renters are identified as households paying positive rent." ///
->  "       The owner non-housing consumer expenditure is not in the scope as the mortgage payment data is not collected in the the survey.")
-
-Table 1. Percent of Renter Households with Unaffordable Housing Expenditure by Expenditure Quintile in Urban India (2004)
-----------------------------------------------------------------------------------------------------------------------
-                                                  (1)          (2)          (3)          (4)          (5)          (6)
-                                                  All           Q1           Q2           Q3           Q4           Q5
-----------------------------------------------------------------------------------------------------------------------
-Med.of Housing Exp. / Total Exp. (%)             24.0         23.6         24.3         24.7         24.3         23.6
-Mean of Housing Exp. / Total Exp. (%)            25.1         24.7         24.3         24.2         25.6         25.2
-Hs. in Unaffordable Housing 1pline                8.7        100.0         86.4         25.2          2.1          0.0
-Hs. in Unaffordable Housing 2pline               50.1        100.0        100.0        100.0         97.8         17.1
-Hs. in Unaffordable Housing 3pline               74.8        100.0        100.0        100.0        100.0         57.7
-Poverty Rate (%)                                  9.9        100.0         99.8         34.1          0.1          0.0
-----------------------------------------------------------------------------------------------------------------------
-Observations                                   12,310          309          997        1,676        2,723        6,605
-----------------------------------------------------------------------------------------------------------------------
-Notes: The data source is NSS 68th Round Household Consumer Expenditure.
-       Households weighted by survey weights.
-       The analysis is using the Residual Income Approach.
-       The affordability at 1pline is estimated using renters' non-housing expenses drawn from India's urban national poverty threshold by state as the budget standard.
-       The affordabiiity at 2pline and 3pline are estimated utilizing the similar approach but with the double and triple poverty thresholds.
-       Renters are identified as households paying positive rent.
-       The owner non-housing consumer expenditure is not in the scope as the mortgage payment data is not collected in the the survey.
+. di  `mpce_pline_15' //4th decile mpce class (urban)
+855.9
 
 . 
-. //table for TN: higher affordability than india. 
-. esttab total_tn q1_tn q2_tn q3_tn q4_tn q5_tn, cells(mean(fmt(%15.1fc))) label collabels(none) /// 
->  mtitles("All" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) /// 
->  title("Table 2. Percent of Renter Households with Unaffordable Housing Expenditure by Expenditure Quintile in Urban Tamil Nadu (2004)") varwidth(40) ///
->  addnote("Notes: The data source is NSS 68th Round Household Consumer Expenditure." ///
->  "       Households weighted by survey weights." ///
->  "       The analysis is using the Residual Income Approach." ///
->  "       The affordability at 1pline is estimated using renters' non-housing expenses drawn from India's urban national poverty threshold by state as the budget standard." ///
->  "       The affordabiiity at 2pline and 3pline are estimated utilizing the similar approach but with the double and triple poverty thresholds." ///
->  "       Renters are identified as households paying positive rent." ///
->  "       The owner non-housing consumer expenditure is not in the scope as the mortgage payment data is not collected in the the survey.")
+. 
+end of do-file
 
-Table 2. Percent of Renter Households with Unaffordable Housing Expenditure by Expenditure Quintile in Urban Tamil Nadu (2004)
-----------------------------------------------------------------------------------------------------------------------
-                                                  (1)          (2)          (3)          (4)          (5)          (6)
-                                                  All           Q1           Q2           Q3           Q4           Q5
-----------------------------------------------------------------------------------------------------------------------
-Med.of Housing Exp. / Total Exp. (%)             26.4         28.6         27.7         26.5         26.2         25.7
-Mean of Housing Exp. / Total Exp. (%)            27.6         25.8         26.7         27.6         27.5         27.8
-Hs. in Unaffordable Housing 1pline                7.3        100.0         56.9          4.9          0.2          0.0
-Hs. in Unaffordable Housing 2pline               49.7        100.0        100.0        100.0         85.4          5.5
-Hs. in Unaffordable Housing 3pline               73.7        100.0        100.0        100.0        100.0         46.4
-Poverty Rate (%)                                 10.0        100.0        100.0          1.8          0.0          0.0
-----------------------------------------------------------------------------------------------------------------------
-Observations                                    1,694           79          269          286          341          719
-----------------------------------------------------------------------------------------------------------------------
-Notes: The data source is NSS 68th Round Household Consumer Expenditure.
-       Households weighted by survey weights.
-       The analysis is using the Residual Income Approach.
-       The affordability at 1pline is estimated using renters' non-housing expenses drawn from India's urban national poverty threshold by state as the budget standard.
-       The affordabiiity at 2pline and 3pline are estimated utilizing the similar approach but with the double and triple poverty thresholds.
-       Renters are identified as households paying positive rent.
-       The owner non-housing consumer expenditure is not in the scope as the mortgage payment data is not collected in the the survey.
+. do "C:\Users\wb500886\AppData\Local\Temp\statacmd.tmp"
+
+. ***************************
+. *** AFH 
+. *** NSS68-Residual Income Approach (2012)
+. *** Prepared by Aline Weng
+. *** Date:3/2/2021
+. ***************************
+. 
+. /*
+> This version is using the Tendulka approach construct the non-housing budget standard (non-housing
+>  poverty line). 
+> */
+. 
+. clear 
+
+. set more off 
 
 . 
-. * k-density for affordability: housing/expenditure around. 
-. gen exp_non_housing_pp_ln = ln(exp_non_housing_pp)
+. if "`c(username)'" == "wb308830" local pc = 0
+
+. if "`c(username)'" != "wb308830" local pc = 1
+
+. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 68"
+
+. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
+
+. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\
+> Survey_NSS"
 
 . 
-. sum pline_1 pline_2 pline_3 if state == 33
-
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-     pline_1 |      1,694      559.77           0     559.77     559.77
-     pline_2 |      1,694     1119.54           0    1119.54    1119.54
-     pline_3 |      1,694     1679.31           0    1679.31    1679.31
+. cd "${root}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68
 
 . 
-. forvalues i = 1/3 {
-  2. qui sum pline_`i' if state == 33
-  3. local pline_`i'_ln = ln(r(mean))
-  4. dis `pline_`i'_ln'
-  5. }
-6.327526
-7.0206732
-7.4261383
+. global r_input "${root}\Raw Data & Dictionaries"
+
+. global r_output "${root}\Data Output Files"
 
 . 
-. kdensity exp_non_housing_pp_ln if state == 33 [aw=hhwt], xline(`pline_1_ln' `pline_2_ln' `pline_3_ln') ///
-> title("NSS61 - 2004, Residual Income vs. Minimum Standard by Scenario in Urban Tamil Nadu", size(small)) ///
-> xtitle("Ln of Non-housing Exp. PC.")
+. log using "${script}\residual_income\03_1_NSS68_Residual_Income_Renter.log",replace
+log file already open
+r(604);
 
-. 
-. graph export "${r_output}/kdensity_tn.png",replace
-(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data Output Files/kdensity_tn.png written in PNG format)
+end of do-file
 
-. 
-.  
+r(604);
+
 . log close
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\02_NSS61_Residual_Income_Affordability.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS61\
+> 02_NSS61_Residual_Income_Affordability.log
   log type:  text
- closed on:  10 Feb 2021, 05:22:31
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ closed on:  12 Apr 2021, 02:34:32
+----------------------------------------------------------------------------------------------------
