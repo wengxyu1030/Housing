@@ -1,7 +1,7 @@
 ****************************************************************************
 * Description: Import NSS70 from Raw Files and save dta to Output Folder
-* Date: Jan 12, 2020
-* Version 2
+* Date: April 12, 2021
+* Version 3
 * Last Editor: Aline
 ****************************************************************************
 
@@ -65,7 +65,7 @@ save "${r_output}\b3",replace
 *gender from b4 (4)
 use "${r_input}\Visit 1 _Block 4_Demographic and other particulars of household members.dta",clear
 *Keep head 
-keep if b4q1 == "01" // keep heads only 
+keep if b4q3 == "1" // keep heads only 
 ren b4q5 head_age 
 
 ren  b4q4 head_gender 
