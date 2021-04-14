@@ -274,7 +274,7 @@ qui eststo grp`i' : estpost summarize $var_tab [aw = hhwgt] if hh_type_grp == `i
 
 esttab total grp0 grp3 grp4 grp5 grp6, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
  mtitles( "All HH" "Size 1-2" "Size 3" "Size 4" "Size 5" "Size >=6" ) stats(N, label("Observations") fmt(%15.1gc)) ///
- title("Owner affordability using different affordability measures in urban India (owners only)") ///
+ title("Owner affordability using different affordability measures in urban India, 2013") ///
  addnotes("Notes: Homeowners are households own residential building used as dwelling by household members." ///
           "       * mapping wealth to income using distance based approach." ///
           "       ** Tendulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state." ///
@@ -298,11 +298,12 @@ hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranber
 scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
 hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
-title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
 xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size4_mortgage_nss70.png",width(800) height(600) replace
 
 sum income [aw = hhwgt],de
 twoway line own_ria_1_hh own_ria_2_hh own_ratio_hh income if state == "33" & ///
@@ -310,11 +311,12 @@ hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranber
 scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
 hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
-title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
 xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size5_mortgage_nss70.png",width(800) height(600) replace
 
 ***********plot the affordability curve: maximum affordable housing value and income
 use "${r_output}\nss70_ria_master_final.dta",clear
@@ -339,22 +341,24 @@ hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranber
 || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
 hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
-title("Maximum affordable housing value (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable housing value (Tamil Nadu: 4-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
 xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size4_house_nss70.png",width(800) height(600) replace
 
 sum income [aw = hhwgt],de //percentile among urban housing owner. 
 twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if state == "33" & ///
 hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
 hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
-title("Maximum affordable housing value (Tamil Nadu: 5-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable housing value (Tamil Nadu: 5-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
 xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size5_house_nss70.png",width(800) height(600) replace
 
 log close
 

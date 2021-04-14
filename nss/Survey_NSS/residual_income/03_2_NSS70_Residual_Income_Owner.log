@@ -1,9 +1,8 @@
---------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing
-> _git\nss\Survey_NSS\residual_income\03_2_NSS70_Residual_Income_Owner.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_2_NSS70_Residual_Income_Owner.log
   log type:  text
- opened on:  18 Mar 2021, 11:36:11
+ opened on:  14 Apr 2021, 08:57:40
 
 . set linesize 255
 
@@ -718,14 +717,14 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 . 
 . esttab total grp0 grp3 grp4 grp5 grp6, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
 >  mtitles( "All HH" "Size 1-2" "Size 3" "Size 4" "Size 5" "Size >=6" ) stats(N, label("Observations") fmt(%15.1gc)) ///
->  title("Owner affordability using different affordability measures in urban India (owners only)") ///
+>  title("Owner affordability using different affordability measures in urban India, 2013") ///
 >  addnotes("Notes: Homeowners are households own residential building used as dwelling by household members." ///
 >           "       * mapping wealth to income using distance based approach." ///
 >           "       ** Tendulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state." ///
 >                   "       Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times" ///
 >                   "       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 * poverty line) to arrive at non-housing poverty lines." )
 
-Owner affordability using different affordability measures in urban India (owners only)
+Owner affordability using different affordability measures in urban India, 2013
 ----------------------------------------------------------------------------------------------------------------------
                                                   (1)          (2)          (3)          (4)          (5)          (6)
                                                All HH     Size 1-2       Size 3       Size 4       Size 5     Size >=6
@@ -773,7 +772,7 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 (5,154 real changes made, 5,154 to missing)
 (13,288 real changes made, 13,288 to missing)
 (13,288 real changes made, 13,288 to missing)
-(13,283 real changes made, 13,283 to missing)
+(13,272 real changes made, 13,272 to missing)
 (13,877 real changes made, 13,877 to missing)
 (7,483 real changes made, 7,483 to missing)
 (3,821 real changes made, 3,821 to missing)
@@ -805,7 +804,7 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 > scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
 > hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 > msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
-> title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 > legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 > note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
 >      "      The income percentile is for housing owners only weighted by household weight.") ///
@@ -814,6 +813,10 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
+
+. graph export "${r_output}/ria_owner_size4_mortgage_nss70.png",width(800) height(600) replace
+(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_mortgage_nss70.png not found)
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_mortgage_nss70.png written in PNG format)
 
 . 
 . sum income [aw = hhwgt],de
@@ -838,7 +841,7 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 > scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
 > hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 > msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
-> title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 > legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 > note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
 >      "      The income percentile is for housing owners only weighted by household weight.") ///
@@ -847,6 +850,10 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
+
+. graph export "${r_output}/ria_owner_size5_mortgage_nss70.png",width(800) height(600) replace
+(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_mortgage_nss70.png not found)
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_mortgage_nss70.png written in PNG format)
 
 . 
 . ***********plot the affordability curve: maximum affordable housing value and income
@@ -935,7 +942,7 @@ variable building_dwelling3 was long now double
 > || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
 > hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 > msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
-> title("Maximum affordable housing value (Tamil Nadu: 4-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> title("Maximum affordable housing value (Tamil Nadu: 4-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 > legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 > note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
 >      "      The income percentile is for housing owners only weighted by household weight.") ///
@@ -944,6 +951,10 @@ variable building_dwelling3 was long now double
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
+
+. graph export "${r_output}/ria_owner_size4_house_nss70.png",width(800) height(600) replace
+(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_house_nss70.png not found)
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_house_nss70.png written in PNG format)
 
 . 
 . sum income [aw = hhwgt],de //percentile among urban housing owner. 
@@ -967,7 +978,7 @@ variable building_dwelling3 was long now double
 > hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
 > hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 > msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
-> title("Maximum affordable housing value (Tamil Nadu: 5-member household)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> title("Maximum affordable housing value (Tamil Nadu: 5-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 > legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 > note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
 >      "      The income percentile is for housing owners only weighted by household weight.") ///
@@ -977,10 +988,14 @@ variable building_dwelling3 was long now double
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
 
+. graph export "${r_output}/ria_owner_size5_house_nss70.png",width(800) height(600) replace
+(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_house_nss70.png not found)
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_house_nss70.png written in PNG format)
+
 . 
 . log close
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_2_NSS70_Residual_Income_Owner.log
   log type:  text
- closed on:  18 Mar 2021, 11:36:54
+ closed on:  14 Apr 2021, 08:58:19
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
