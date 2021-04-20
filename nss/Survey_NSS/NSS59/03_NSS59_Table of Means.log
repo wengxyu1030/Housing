@@ -1,0 +1,647 @@
+----------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS59\03_NSS59_Table of 
+> Means.log
+  log type:  text
+ opened on:  20 Apr 2021, 10:20:22
+
+. set linesize 255
+
+. ****************************************************************************
+. * Summary table for asset and liability: Table 0
+. ****************************************************************************
+. use "${root}\Data Output Files\NSS59_All.dta",clear
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. *whether the households have asset of debt
+. gen asset_dm = (asset > 0)*100
+
+. gen debt_dm = (total_debt > 0)*100 
+
+. 
+. *narrow the scope to households with positive debt/asset 
+. gen asset_pos =  asset if asset > 0
+(103 missing values generated)
+
+. gen total_debt_pos = total_debt if total_debt > 0
+(101,259 missing values generated)
+
+. 
+. *home ownership
+. gen own_home = (building_dwelling > 0)*100
+
+. replace own_home = 0 if mi(building_dwelling)
+(0 real changes made)
+
+. 
+. *urban hosuehold unit
+. replace urban = urban*100
+(52,093 real changes made)
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. /*
+> Quantile of wealth
+> Asset: Real Estate, Total Asset
+> Liability: Mortgage, Total Liabilities
+> */
+. 
+. global var_tab "asset asset_pos asset_dm total_debt total_debt_pos debt_dm own_home urban hhsize head_female head_age"
+
+. //mdesc $var_tab
+. 
+. table qtl [aw = hhwgt], c(med wealth) format(%15.0fc)
+
+---------------------------
+5         |
+quantiles |
+of wealth |     med(wealth)
+----------+----------------
+        1 |          11,976
+        2 |          53,851
+        3 |         117,767
+        4 |         244,703
+        5 |         697,702
+---------------------------
+
+. 
+. //not restrcting the sample to positive asset or liability.
+. 
+. qui eststo total : estpost summarize $var_tab [aw = hhwgt] ,de
+
+. qui eststo urban : estpost summarize $var_tab [aw = hhwgt] if urban == 100,de
+
+. qui eststo mega : estpost summarize $var_tab [aw = hhwgt] if mega_dc == 1,de
+mega_dc not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. forvalues i = 1/5 {
+  2. qui eststo q`i' : estpost summarize $var_tab [aw = hhwgt] if qtl == `i',de
+  3. }
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. use "${root}\Data Output Files\NSS59_All.dta",clear
+
+. 
+. *whether the households have asset of debt
+. gen asset_dm = (asset > 0)*100
+
+. gen debt_dm = (total_debt > 0)*100 
+
+. 
+. *narrow the scope to households with positive debt/asset 
+. gen asset_pos =  asset if asset > 0
+(103 missing values generated)
+
+. gen total_debt_pos = total_debt if total_debt > 0
+(101,259 missing values generated)
+
+. 
+. *home ownership
+. gen own_home = (building_dwelling > 0)*100
+
+. replace own_home = 0 if mi(building_dwelling)
+(0 real changes made)
+
+. 
+. *urban hosuehold unit
+. replace urban = urban*100
+(52,093 real changes made)
+
+. 
+. /*
+> Quantile of wealth
+> Asset: Real Estate, Total Asset
+> Liability: Mortgage, Total Liabilities
+> */
+. 
+. global var_tab "asset asset_pos asset_dm total_debt total_debt_pos debt_dm own_home urban hhsize head_female head_age"
+
+. //mdesc $var_tab
+. 
+. table qtl [aw = hhwgt], c(med wealth) format(%15.0fc)
+
+---------------------------
+5         |
+quantiles |
+of wealth |     med(wealth)
+----------+----------------
+        1 |          11,976
+        2 |          53,851
+        3 |         117,767
+        4 |         244,703
+        5 |         697,702
+---------------------------
+
+. 
+. //not restrcting the sample to positive asset or liability.
+. 
+. qui eststo total : estpost summarize $var_tab [aw = hhwgt] ,de
+
+. qui eststo urban : estpost summarize $var_tab [aw = hhwgt] if urban == 100,de
+
+. qui eststo rural : estpost summarize $var_tab [aw = hhwgt] if urban == 0,de
+
+. 
+. forvalues i = 1/5 {
+  2. qui eststo q`i' : estpost summarize $var_tab [aw = hhwgt] if qtl == `i',de
+  3. }
+
+. 
+. label var asset "Average HH. Assets"
+
+. label var asset_pos "Average Assets for HHs. Owning Assets"
+
+. 
+. label var total_debt "Average HH. Debt"
+
+. label var total_debt_pos "Average Debt for Indebted HHs."
+
+. 
+. label var asset_dm "Own Asset (%)"
+
+. label var debt_dm "In Debt (%)"
+
+. 
+. label var own_home "Dwelling Ownership (%)"
+
+. 
+. label var urban "Urban Household (%)"
+
+. label var hhsize "Household Size"
+
+. label var head_age "Household Head Age"
+
+. label var head_female "Female Household Head (%)"
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. *household feature
+. esttab total urban mega rural q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
+>  mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
+>  title("Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)") ///
+>  addnotes("Notes: Wealth is defined as total assests net total debt." ///
+>           "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling." ///
+>                   "       Mega cities are identified as districts located in U.A. with population more than 1e6 (based on census).")
+estimation result mega not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. *household feature
+. esttab total urban rural q1 q2 q3 q4 q5, cells(mean(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
+>  mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
+>  title("Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)") ///
+>  addnotes("Notes: Wealth is defined as total assests net total debt." ///
+>           "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling." )
+
+Table 0.1 Summary Statistics of Assets and Liabilities by Wealth Quintile (mean)
+------------------------------------------------------------------------------------------------------------------------------------------------
+                                                  (1)          (2)          (3)          (4)          (5)          (6)          (7)          (8)
+                                                  All        Urban    Mega City        Rural           Q1           Q2           Q3           Q4
+------------------------------------------------------------------------------------------------------------------------------------------------
+Average HH. Assets                            308,420      418,536      267,087       17,115       58,146      125,029      262,618    1,079,342
+Average Assets for HHs. Owning Assets         308,729      419,268      267,281       17,202       58,146      125,029      262,618    1,079,342
+Own Asset (%)                                     100          100          100           99          100          100          100          100
+Average HH. Debt                                8,755       11,993        7,539        5,835        3,674        5,052        8,077       21,136
+Average Debt for Indebted HHs.                 36,275       67,320       28,443       27,019       15,874       20,044       32,210       82,393
+In Debt (%)                                        24           18           27           22           23           25           25           26
+Dwelling Ownership (%)                             85           65           93           52           88           93           95           97
+Urban Household (%)                                27          100            0           34           18           21           25           38
+Household Size                                      5            5            5            4            4            5            5            6
+Female Household Head (%)                          11           11           11           15           12           10            9            8
+Household Head Age                                 44           44           45           38           42           44           47           51
+------------------------------------------------------------------------------------------------------------------------------------------------
+Observations                                  143,285       52,093       91,192       29,761       26,608       26,899       28,598       31,419
+------------------------------------------------------------------------------------------------------------------------------------------------
+Notes: Wealth is defined as total assests net total debt.
+       HHs. with asset on residential building that used as dwelling is defined as owning dwelling.
+
+. 
+. esttab total urban rural q1 q2 q3 q4 q5, cells(p50(fmt(%15.0fc))) label collabels(none) varwidth(40) ///
+>  mtitles("All" "Urban" "Mega City" "Rural" "Q1" "Q2" "Q3" "Q4" "Q5") stats(N, label("Observations") fmt(%15.0gc)) ///
+>  title("Table 0.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)") ///
+>  addnotes("Notes: Wealth is defined as total assests net total debt." ///
+>           "       HHs. with asset on residential building that used as dwelling is defined as owning dwelling" )
+
+Table 0.2 Summary Statistics of Assets and Liabilities by Wealth Quintile (med)
+------------------------------------------------------------------------------------------------------------------------------------------------
+                                                  (1)          (2)          (3)          (4)          (5)          (6)          (7)          (8)
+                                                  All        Urban    Mega City        Rural           Q1           Q2           Q3           Q4
+------------------------------------------------------------------------------------------------------------------------------------------------
+Average HH. Assets                            122,901      145,772      116,881       14,560       56,601      121,751      251,451      716,551
+Average Assets for HHs. Owning Assets         123,135      146,391      117,057       14,601       56,601      121,751      251,451      716,551
+Own Asset (%)                                     100          100          100          100          100          100          100          100
+Average HH. Debt                                    0            0            0            0            0            0            0            0
+Average Debt for Indebted HHs.                 13,500       23,500       11,611       10,000        8,690       10,200       15,000       32,550
+In Debt (%)                                         0            0            0            0            0            0            0            0
+Dwelling Ownership (%)                            100          100          100          100          100          100          100          100
+Urban Household (%)                                 0          100            0            0            0            0            0            0
+Household Size                                      5            4            5            4            4            5            5            5
+Female Household Head (%)                           0            0            0            0            0            0            0            0
+Household Head Age                                 43           42           43           35           40           42           45           50
+------------------------------------------------------------------------------------------------------------------------------------------------
+Observations                                  143,285       52,093       91,192       29,761       26,608       26,899       28,598       31,419
+------------------------------------------------------------------------------------------------------------------------------------------------
+Notes: Wealth is defined as total assests net total debt.
+       HHs. with asset on residential building that used as dwelling is defined as owning dwelling
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. use "${r_input}\Visit 1_Block 15pt2 part 2.dta",clear
+
+. merge 1:1 HHID B15_2_q1 using "${r_input}\Visit 1_Block 15pt2 part 1.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             6
+        from master                         6  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            97,281  (_merge==3)
+    -----------------------------------------
+
+. 
+end of do-file
+
+. tab B15_2_q1
+
+Srl. No. of |
+       loan |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         01 |     71,639       73.64       73.64
+         02 |     15,556       15.99       89.63
+         03 |      6,214        6.39       96.01
+         04 |      2,178        2.24       98.25
+         05 |        886        0.91       99.16
+         06 |        395        0.41       99.57
+         07 |        195        0.20       99.77
+         08 |         99        0.10       99.87
+         09 |         55        0.06       99.93
+         10 |         34        0.03       99.96
+         11 |         18        0.02       99.98
+         12 |         11        0.01       99.99
+         13 |          5        0.01      100.00
+         14 |          2        0.00      100.00
+------------+-----------------------------------
+      Total |     97,287      100.00
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. use "${r_input}\Visit 1_Block 15pt2 part 2.dta",clear
+
+. merge 1:1 HHID B15_2_q1 using "${r_input}\Visit 1_Block 15pt2 part 1.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             6
+        from master                         6  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            97,281  (_merge==3)
+    -----------------------------------------
+
+. 
+. *debt, borrowed amount, repay amount.
+. gen debt = B15_2_q24 //outstanding amout at end of June 2012
+(43,565 missing values generated)
+
+. gen debt_todt = B15_2_q24 //outstanding amout at the date of survey
+(43,565 missing values generated)
+
+. gen borrow = B15_2_q5 //original borrowed amount
+(30 missing values generated)
+
+. gen repay = B15_2_q16 //amount (`) repaid (including interest) during 01.01.2003 to date of survey
+(66,729 missing values generated)
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. //tab b14_q12
+. gen secure_type = B15_2_q12
+(160 missing values generated)
+
+. 
+. //tab b14_q11
+. gen loan_purpose = B15_2_q11
+(109 missing values generated)
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. tab loan_purpose if (secure_type == "04"|secure_type == "05")
+
+loan_purpos |
+          e |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      3,684       23.24       23.24
+          2 |      3,164       19.96       43.20
+          3 |      1,642       10.36       53.56
+          4 |        576        3.63       57.20
+          5 |      4,788       30.21       87.40
+          6 |         24        0.15       87.55
+          7 |        225        1.42       88.97
+          8 |        150        0.95       89.92
+          9 |      1,598       10.08      100.00
+------------+-----------------------------------
+      Total |     15,851      100.00
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. tab loan_purpose if (secure_type == "04"|secure_type == "05"),sort
+
+loan_purpos |
+          e |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          5 |      4,788       30.21       30.21
+          1 |      3,684       23.24       53.45
+          2 |      3,164       19.96       73.41
+          3 |      1,642       10.36       83.77
+          9 |      1,598       10.08       93.85
+          4 |        576        3.63       97.48
+          7 |        225        1.42       98.90
+          8 |        150        0.95       99.85
+          6 |         24        0.15      100.00
+------------+-----------------------------------
+      Total |     15,851      100.00
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen mrtg_1_dm = (loan_purpose == 5 & (secure_type == "04"|secure_type == "05"))
+type mismatch
+r(109);
+
+end of do-file
+
+r(109);
+
+. tab loan_purpose
+
+loan_purpos |
+          e |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     10,114       10.41       10.41
+          2 |     10,601       10.91       21.32
+          3 |      7,046        7.25       28.57
+          4 |      4,007        4.12       32.69
+          5 |     54,224       55.80       88.49
+          6 |        250        0.26       88.75
+          7 |      1,522        1.57       90.31
+          8 |        509        0.52       90.84
+          9 |      8,905        9.16      100.00
+------------+-----------------------------------
+      Total |     97,178      100.00
+
+. tab secure_type
+
+secure_type |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         01 |     65,046       66.97       66.97
+         02 |      6,128        6.31       73.28
+         03 |      1,468        1.51       74.79
+         04 |      6,227        6.41       81.20
+         05 |      9,641        9.93       91.13
+         06 |      4,281        4.41       95.54
+         07 |        471        0.48       96.02
+         08 |        203        0.21       96.23
+         09 |        576        0.59       96.82
+         10 |      3,086        3.18      100.00
+------------+-----------------------------------
+      Total |     97,127      100.00
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen mrtg_1_dm = (loan_purpose == 5 & (secure_type == "04"|secure_type == "05"))
+type mismatch
+r(109);
+
+end of do-file
+
+r(109);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen mrtg_1_dm = (loan_purpose == "5" & (secure_type == "04"|secure_type == "05"))
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen mrtg_2_dm = (loan_purpose == "5" & (mortgage_type != "4"& mortgage_type != ""))
+mortgage_type not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen mortgage_type = B15_2_q13
+(160 missing values generated)
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen mrtg_2_dm = (loan_purpose == "5" & (mortgage_type != "4"& mortgage_type != ""))
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. *aggregate at household level. 
+. egen double debt_total = sum(debt),by(HHID)
+
+. egen double borrow_total = sum(borrow),by(HHID)
+
+. 
+end of do-file
+
+. sum B15_2_q10
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+   B15_2_q10 |     94,420    20.08883     22.1099          0        300
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. *interest rate and type
+. gen intst_rate = B15_2_q10/100/12
+(2,867 missing values generated)
+
+. gen intst_type = B15_2_q9
+(18 missing values generated)
+
+. sum intst_rate [aw = Weight_SS],de
+Weight_SS not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. sum intst_rate [aw = Weight],de
+
+                         intst_rate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              94,420
+25%     .0091667              0       Sum of Wgt.   1,176,409
+
+50%     .0133333                      Mean           .0187193
+                        Largest       Std. Dev.      .0180281
+75%          .03       .2166667
+90%          .05       .2166667       Variance        .000325
+95%          .05            .25       Skewness       2.044221
+99%           .1            .25       Kurtosis       10.44558
+
+. replace intst_rate  = . if intst_rate > r(p95)
+(2,477 real changes made, 2,477 to missing)
+
+. 
+. *loan borrowing date. 
+. gen month = real(B15_2_q2)
+(331 missing values generated)
+
+. gen year = B15_2_q3
+(6 missing values generated)
+
+. 
+. gen date_loan = ym(year,month)
+type mismatch
+r(109);
+
+end of do-file
+
+r(109);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen year = B15_2_q3
+variable year already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. destring(year),replace
+year: all characters numeric; replaced as int
+(6 missing values generated)
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. gen date_loan = ym(year,month)
+(333 missing values generated)
+
+. format date_loan %tmMCY
+
+. 
+end of do-file
+
+. do "C:\Users\wb500886\AppData\Local\Temp\STD396c_000000.tmp"
+
+. ****************************************************************************
+. * Description: Generate tables for homeowners, liability, and housing mortgage. 
+. * Date: Jan 12, 2021
+. * Version 4
+. * Last Editor: Aline
+. ****************************************************************************
+. 
+. ****************************************************************************
+. clear 
+
+. clear matrix
+
+. ****************************************************************************
+. 
+. ****************************************************************************
+. * Determine Whose Machine is running the code and set the global directory
+. ****************************************************************************
+. if "`c(username)'" == "wb308830" local pc = 0
+
+. if "`c(username)'" != "wb308830" local pc = 1
+
+. if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 59"
+
+. if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59"
+
+. if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
+
+. 
+. di "$root"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59
+
+. global r_input "${root}\Raw Data & Dictionaries"
+
+. di "${r_input}"
+C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Raw Data & Dictionaries
+
+. global r_output "${root}\Data Output Files"
+
+. 
+. log using "${script}\NSS70\03_NSS59_Table of Means.log",replace
+log file already open
+r(604);
+
+end of do-file
+
+r(604);
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\NSS59\03_NSS59_Table of Means.log
+  log type:  text
+ closed on:  20 Apr 2021, 10:50:56
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

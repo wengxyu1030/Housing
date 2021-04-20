@@ -290,7 +290,7 @@ drop _merge
 }
 
 *clean up missing value
-global asset "land building_all livestock trspt agri non_farm shares fin_other fin_retire gold fin_rec building_resid building_dwelling land_resid land_resid"
+global asset "land building_all livestock trspt agri non_farm shares fin_other fin_retire gold fin_rec building_resid building_dwelling land_resid durable"
 global debt "total_debt total_debt_todt total_secure_loan total_mrtg_loan total_gold_loan total_oth_secure_loan total_unsecure_loan"
 
 mdesc $asset 
@@ -301,15 +301,15 @@ replace `var' = 0 if mi(`var')
 }
 
 *generate asset value by type
-egen double asset = rowtotal(land building_all livestock trspt agri non_farm shares fin_other fin_retire gold fin_rec) 
+egen double asset = rowtotal(land building_all livestock trspt agri non_farm shares fin_other fin_retire gold fin_rec durable) //added durable here where the nss70 missing
 
-egen double durable_other = rowtotal(livestock trspt agri non_farm)
+egen double durable_other = rowtotal(livestock trspt agri non_farm durable) //added durable here where the nss70 missing
 
 egen double real_estate = rowtotal(building_all land)
 
 egen double real_estate_dwelling = rowtotal(building_dwelling land_resid)
 
-egen double asset_non_fin = rowtotal(real_estate gold durable_other)
+egen double asset_non_fin = rowtotal(real_estate gold durable_other durable) //added durable here where the nss70 missing
 
 egen double asset_fin = rowtotal(shares fin_other fin_rec) 
 
