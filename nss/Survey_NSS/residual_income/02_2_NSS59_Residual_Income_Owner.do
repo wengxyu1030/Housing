@@ -16,10 +16,10 @@ set more off
 
 if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
-if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 70"
-if `pc' == 0 global root_68 "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 68"
-if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70"
-if `pc' != 0 global root_68 "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
+if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 59"
+if `pc' == 0 global root_61 "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 61"
+if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59"
+if `pc' != 0 global root_61 "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61"
 if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
 
 di "$root"
@@ -27,8 +27,8 @@ global r_input "${root}\Raw Data & Dictionaries"
 di "${r_input}"
 global r_output "${root}\Data Output Files"
 di "${r_output}"
-global r_output_68 "${root_68}\Data Output Files"
-di "${r_output_68}"
+global r_output_61 "${root_61}\Data Output Files"
+di "${r_output_61}"
 
 log using "${script}\residual_income\02_2_NSS59_Residual_Income_Owner.log",replace
 set linesize 255
@@ -40,7 +40,7 @@ set linesize 255
 ***Data preparation***
 
 *Household type
-use"${r_output}\NSS70_All.dta",clear  
+use"${r_output}\NSS59_All.dta",clear  
 keep if urban == 1
 
 egen hh_cut_manual = cut(hhsize), at(0,3,4,5,6,100)
@@ -58,10 +58,10 @@ tab hh_type [aw=hhwgt]
 rename hh_cut_manual hh_type_grp
 
 keep HHID hh_type hh_type_grp
-save "${r_output}\nss70_ria_hh_type.dta",replace 
+save "${r_output}\nss59_ria_hh_type.dta",replace 
 
 ***********Combine wealth to income, non-housing poverty line**********
-use "${r_output_68}\nss68_ria_master.dta",clear 
+use "${r_output_61}\nss61_ria_master.dta",clear 
 bysort state: keep if _n == 1
 keep state pline_nhs_* pline
 
@@ -71,7 +71,7 @@ tostring state_temp, format(%02.0f) replace
 rename state state_txt
 rename state_temp state
 
-merge 1:m state using "${r_output}\NSS70_All.dta"
+merge 1:m state using "${r_output}\NSS59_All.dta"
 tab state if _merge == 2 //TELENGANA founded in 2014, after nss68(2012)
 keep if _merge == 3
 drop _merge
@@ -92,7 +92,7 @@ tab wealth_100 [aw = hhwgt]
 merge m:1 wealth_100 using "${r_input}\NSS70_IHDS_Wealth_to_Inc.dta",nogen
 drop if HHID == "" 
 
-merge 1:1 HHID using "${r_output}\nss70_ria_hh_type.dta"
+merge 1:1 HHID using "${r_output}\nss59_ria_hh_type.dta"
 keep if _merge == 3 //negative wealth households not merged from using.
 drop _merge 
 
@@ -101,10 +101,10 @@ sum income [aw = hhwgt],de
 
 gen income_pc = income/hhsize
 
-save "${r_output}\nss70_ria_master.dta",replace
+save "${r_output}\nss59_ria_master.dta",replace
 
 ***********RIA approach for housing owner**********
-use "${r_output}\nss70_ria_master.dta",clear
+use "${r_output}\nss59_ria_master.dta",clear
 
 gen owner = (building_dwelling > 0 & !mi(building_dwelling))*100
 replace owner = 0 if mi(building_dwelling)
@@ -162,7 +162,7 @@ label var max_hse_val_ratio "30% Rule"
 label var building_dwelling "Housing Value (million)"
 
 *merge with mortgage payment information
-merge 1:m HHID using "${r_output}\b14_hse_mortgage"
+merge 1:m HHID using "${r_output}\b15_hse_mortgage"
 bysort HHID: egen repay_mt_2_max = max(repay_mt_2) //Less conservative (let's label 2) housing loan with mortgage
 bysort HHID: keep if _n == 1 //maximum monthly mortgage repay
 
@@ -233,10 +233,10 @@ foreach var of varlist building_dwelling max_hse_val* {
 replace `var' = `var'/1e6
 }
 
-save "${r_output}\nss70_ria_master_final.dta",replace
+save "${r_output}\nss59_ria_master_final.dta",replace
 
 ********************produce esttab table
-use "${r_output}\nss70_ria_master_final.dta",clear
+use "${r_output}\nss59_ria_master_final.dta",clear
 
 *calculate housing value median. 
 foreach var of varlist building_dwelling max_hse_val* {
@@ -274,7 +274,7 @@ qui eststo grp`i' : estpost summarize $var_tab [aw = hhwgt] if hh_type_grp == `i
 
 esttab total grp0 grp3 grp4 grp5 grp6, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
  mtitles( "All HH" "Size 1-2" "Size 3" "Size 4" "Size 5" "Size >=6" ) stats(N, label("Observations") fmt(%15.1gc)) ///
- title("Owner affordability using different affordability measures in urban India, 2013") ///
+ title("Owner affordability using different affordability measures in urban India, 2003") ///
  addnotes("Notes: Homeowners are households own residential building used as dwelling by household members." ///
           "       * mapping wealth to income using distance based approach." ///
           "       ** Tendulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state." ///
@@ -282,7 +282,7 @@ esttab total grp0 grp3 grp4 grp5 grp6, cells(mean(fmt(%15.1fc))) label collabels
 		  "       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 * poverty line) to arrive at non-housing poverty lines." )
 
 **************plot the affordability curve: maximum monthly mortgage payment value and income
-use "${r_output}\nss70_ria_master_final.dta",clear
+use "${r_output}\nss59_ria_master_final.dta",clear
 keep if owner == 100 //only on housing owners. 
 
 foreach var of varlist own_ria_* repay_mt_2* {
@@ -292,34 +292,34 @@ replace `var' = . if `var' <= 0
 
 format own_ria_* repay_mt_2*  %15.0fc
 
-sum income [aw = hhwgt],de
+sum income [aw = hhwgt],de f
 twoway line own_ria_1_hh own_ria_2_hh own_ratio_hh income if state == "33" & ///
 hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
 scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
 hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
-title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
-xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
-graph export "${r_output}/ria_owner_size4_mortgage_nss70.png",width(800) height(600) replace
+xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size4_mortgage_nss59.png",width(800) height(600) replace
 
-sum income [aw = hhwgt],de
+sum income [aw = hhwgt],de f
 twoway line own_ria_1_hh own_ria_2_hh own_ratio_hh income if state == "33" & ///
 hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
 scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
 hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
-title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
-xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
-graph export "${r_output}/ria_owner_size5_mortgage_nss70.png",width(800) height(600) replace
+xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))   //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size5_mortgage_nss59.png",width(800) height(600) replace
 
 ***********plot the affordability curve: maximum affordable housing value and income
-use "${r_output}\nss70_ria_master_final.dta",clear
+use "${r_output}\nss59_ria_master_final.dta",clear
 keep if owner == 100 //only on housing owners. 
 
 format max_hse_val* max_loan* %15.1fc
@@ -341,24 +341,24 @@ hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranber
 || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
 hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
-title("Maximum affordable housing value (Tamil Nadu: 4-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable housing value (Tamil Nadu: 4-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
-xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
-graph export "${r_output}/ria_owner_size4_house_nss70.png",width(800) height(600) replace
+xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size4_house_nss59.png",width(800) height(600) replace
 
 sum income [aw = hhwgt],de //percentile among urban housing owner. 
 twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if state == "33" & ///
 hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
 hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
-title("Maximum affordable housing value (Tamil Nadu: 5-member household, 2013)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+title("Maximum affordable housing value (Tamil Nadu: 5-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
 legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
      "      The income percentile is for housing owners only weighted by household weight.") ///
-xlabel(4119 `" "4,119" "(p10)" "' 6612 `" "6,612" "(p25)" "' 12445 `" "12,445" "(p50)" "' 23597 `" "23,597" "(p75)" "' 39886 `" "39,886" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
-graph export "${r_output}/ria_owner_size5_house_nss70.png",width(800) height(600) replace
+xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))   //text(2e3 `r(p50)' "50th Percentile", color(black))
+graph export "${r_output}/ria_owner_size5_house_nss59.png",width(800) height(600) replace
 
 log close
 
