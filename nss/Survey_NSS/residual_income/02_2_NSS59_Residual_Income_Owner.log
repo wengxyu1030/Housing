@@ -1,0 +1,987 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\02_2_NSS59_Residual_Income_Owner.log
+  log type:  text
+ opened on:  20 Apr 2021, 11:51:45
+
+. set linesize 255
+
+. 
+. ***************************************************************
+. *Step 3: Budget Standard for Owners **************************
+. ***************************************************************
+. 
+. ***Data preparation***
+. 
+. *Household type
+. use"${r_output}\NSS59_All.dta",clear  
+
+. keep if urban == 1
+(91,192 observations deleted)
+
+. 
+. egen hh_cut_manual = cut(hhsize), at(0,3,4,5,6,100)
+
+. table hh_cut_manual, c(min hhsize max hhsize)
+
+------------------------------------
+hh_cut_ma |
+nual      | min(hhsize)  max(hhsize)
+----------+-------------------------
+        0 |           1            2
+        3 |           3            3
+        4 |           4            4
+        5 |           5            5
+        6 |           6           32
+------------------------------------
+
+. tab hh_cut_manual [aw=hhwgt]
+
+hh_cut_manu |
+         al |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 9,661.1043       18.55       18.55
+          3 | 6,665.3727       12.80       31.34
+          4 | 12,086.015       23.20       54.54
+          5 | 9,796.7136       18.81       73.35
+          6 | 13,883.795       26.65      100.00
+------------+-----------------------------------
+      Total |     52,093      100.00
+
+. 
+. gen hh_type = ""
+(52,093 missing values generated)
+
+. replace hh_type = "1-2" if hh_cut_manual == 0
+variable hh_type was str1 now str3
+(7,683 real changes made)
+
+. replace hh_type = "3" if hh_cut_manual == 3
+(6,486 real changes made)
+
+. replace hh_type = "4" if hh_cut_manual == 4
+(11,434 real changes made)
+
+. replace hh_type = "5" if hh_cut_manual == 5
+(10,006 real changes made)
+
+. replace hh_type = ">=6" if hh_cut_manual == 6
+(16,484 real changes made)
+
+. tab hh_type [aw=hhwgt]
+
+    hh_type |      Freq.     Percent        Cum.
+------------+-----------------------------------
+        1-2 | 9,661.1043       18.55       18.55
+          3 | 6,665.3727       12.80       31.34
+          4 | 12,086.015       23.20       54.54
+          5 | 9,796.7136       18.81       73.35
+        >=6 | 13,883.795       26.65      100.00
+------------+-----------------------------------
+      Total |     52,093      100.00
+
+. 
+. rename hh_cut_manual hh_type_grp
+
+. 
+. keep HHID hh_type hh_type_grp
+
+. save "${r_output}\nss59_ria_hh_type.dta",replace 
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Data Output Files\nss59_ria_hh_type.dta saved
+
+. 
+. ***********Combine wealth to income, non-housing poverty line**********
+. use "${r_output_61}\nss61_ria_master.dta",clear 
+
+. bysort state: keep if _n == 1
+(45,311 observations deleted)
+
+. keep state pline_nhs_* pline
+
+. 
+. gen state_temp = state
+
+. tostring state_temp, format(%02.0f) replace
+state_temp was float now str2
+
+. 
+. rename state state_txt
+
+. rename state_temp state
+
+. 
+. merge 1:m state using "${r_output}\NSS59_All.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           143,285  (_merge==3)
+    -----------------------------------------
+
+. tab state if _merge == 2 //TELENGANA founded in 2014, after nss68(2012)
+no observations
+
+. keep if _merge == 3
+(0 observations deleted)
+
+. drop _merge
+
+. 
+. keep if urban == 1 //only focusing on urban 
+(91,192 observations deleted)
+
+. 
+. drop if wealth < 0 //exclude negative wealth data. 
+(1,214 observations deleted)
+
+. 
+. xtile wealth_100 = wealth [aw = hhwgt],nq(100)
+
+. tab wealth_100 [aw = hhwgt]
+
+        100 |
+  quantiles |
+ of wealth  |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 | 519.587682        1.02        1.02
+          2 |  501.76898        0.99        2.01
+          3 | 530.804812        1.04        3.05
+          4 | 493.266266        0.97        4.02
+          5 |  501.77575        0.99        5.01
+          6 | 517.331712        1.02        6.02
+          7 | 498.154178        0.98        7.00
+          8 | 508.271006        1.00        8.00
+          9 | 510.433239        1.00        9.00
+         10 | 510.376901        1.00       10.01
+         11 |514.4422804        1.01       11.02
+         12 |   499.5355        0.98       12.00
+         13 |  515.89352        1.01       13.01
+         14 |501.4535975        0.99       14.00
+         15 | 510.205538        1.00       15.00
+         16 |  510.31618        1.00       16.01
+         17 | 507.674589        1.00       17.00
+         18 | 507.450336        1.00       18.00
+         19 | 516.478986        1.02       19.02
+         20 | 501.109631        0.98       20.00
+         21 | 509.404008        1.00       21.00
+         22 | 507.727232        1.00       22.00
+         23 | 509.216225        1.00       23.00
+         24 |509.8567647        1.00       24.00
+         25 | 507.598942        1.00       25.00
+         26 | 508.827346        1.00       26.00
+         27 |  508.37228        1.00       27.00
+         28 | 511.197104        1.00       28.00
+         29 | 513.783622        1.01       29.01
+         30 |504.7761982        0.99       30.01
+         31 | 508.577509        1.00       31.01
+         32 | 506.575954        1.00       32.00
+         33 | 511.958529        1.01       33.01
+         34 |  504.67318        0.99       34.00
+         35 | 509.049831        1.00       35.00
+         36 |509.2094681        1.00       36.00
+         37 | 508.306487        1.00       37.00
+         38 | 512.423087        1.01       38.01
+         39 | 505.128732        0.99       39.00
+         40 | 509.321791        1.00       40.00
+         41 |  511.16726        1.00       41.01
+         42 | 509.575562        1.00       42.01
+         43 |  505.92645        0.99       43.00
+         44 | 508.147714        1.00       44.00
+         45 | 509.417203        1.00       45.00
+         46 | 508.655172        1.00       46.00
+         47 | 508.319473        1.00       47.00
+         48 |510.0352107        1.00       48.00
+         49 | 511.020665        1.00       49.01
+         50 |504.9872603        0.99       50.00
+         51 | 512.277971        1.01       51.01
+         52 |513.8803036        1.01       52.02
+         53 | 500.290757        0.98       53.00
+         54 | 509.325267        1.00       54.00
+         55 | 509.124545        1.00       55.00
+         56 | 508.999521        1.00       56.00
+         57 | 511.619098        1.01       57.01
+         58 | 509.007178        1.00       58.01
+         59 | 505.167624        0.99       59.00
+         60 | 510.570497        1.00       60.00
+         61 | 506.480424        1.00       61.00
+         62 | 508.938908        1.00       62.00
+         63 |   509.3981        1.00       63.00
+         64 | 508.040613        1.00       64.00
+         65 | 510.586549        1.00       65.00
+         66 | 521.155635        1.02       66.03
+         67 | 494.575501        0.97       67.00
+         68 | 508.709714        1.00       68.00
+         69 | 511.423653        1.01       69.01
+         70 | 508.562563        1.00       70.00
+         71 | 506.391516        1.00       71.00
+         72 | 509.521486        1.00       72.00
+         73 | 508.787209        1.00       73.00
+         74 | 514.751751        1.01       74.01
+         75 | 503.429167        0.99       75.00
+         76 | 507.971307        1.00       76.00
+         77 | 510.221911        1.00       77.00
+         78 | 509.558806        1.00       78.01
+         79 | 506.123854        0.99       79.00
+         80 | 510.126321        1.00       80.00
+         81 | 507.696986        1.00       81.00
+         82 | 509.138623        1.00       82.00
+         83 | 510.511126        1.00       83.00
+         84 | 506.475352        1.00       84.00
+         85 | 510.944621        1.00       85.00
+         86 | 508.143808        1.00       86.00
+         87 | 508.215928        1.00       87.00
+         88 | 507.889146        1.00       88.00
+         89 | 510.243123        1.00       89.00
+         90 | 507.365184        1.00       90.00
+         91 | 509.764628        1.00       91.00
+         92 | 507.785941        1.00       92.00
+         93 | 508.877796        1.00       93.00
+         94 | 508.681153        1.00       94.00
+         95 | 513.192902        1.01       95.01
+         96 | 505.199596        0.99       96.00
+         97 | 509.845678        1.00       97.00
+         98 |583.1827362        1.15       98.15
+         99 | 433.503333        0.85       99.00
+        100 |507.7576457        1.00      100.00
+------------+-----------------------------------
+      Total |     50,879      100.00
+
+. 
+. /*
+> //not taking log can not get the result? negative value?
+> xtile wealth_100 = wealth [aw = hhwgt],nq(100) //household weight, wealth is measured at household level. [aw = hhwgt]
+> tab wealth_100 [aw = hhwgt]
+> */
+. 
+. merge m:1 wealth_100 using "${r_input}\NSS70_IHDS_Wealth_to_Inc.dta",nogen
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                            50,879  
+    -----------------------------------------
+
+. drop if HHID == "" 
+(0 observations deleted)
+
+. 
+. merge 1:1 HHID using "${r_output}\nss59_ria_hh_type.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         1,214
+        from master                         0  (_merge==1)
+        from using                      1,214  (_merge==2)
+
+    matched                            50,879  (_merge==3)
+    -----------------------------------------
+
+. keep if _merge == 3 //negative wealth households not merged from using.
+(1,214 observations deleted)
+
+. drop _merge 
+
+. 
+. gen double income = (wealth/alpha_a1_u_ip)/12 //a1 assumption with income (monthly income)
+
+. sum income [aw = hhwgt],de
+
+                           income
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     32.99815              0
+ 5%     200.5715              0
+10%     320.0012              0       Obs              50,879
+25%     737.4934              0       Sum of Wgt.  545,197.33
+
+50%      1625.04                      Mean           2814.218
+                        Largest       Std. Dev.      3405.781
+75%     3647.808       97809.44
+90%     6785.528       99421.62       Variance       1.16e+07
+95%     9295.324       104191.3       Skewness       4.722987
+99%     14581.34       177254.7       Kurtosis       70.95547
+
+. 
+. gen income_pc = income/hhsize
+
+. 
+. save "${r_output}\nss59_ria_master.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Data Output Files\nss59_ria_master.dta saved
+
+. 
+. ***********RIA approach for housing owner**********
+. use "${r_output}\nss59_ria_master.dta",clear
+
+. 
+. gen owner = (building_dwelling > 0 & !mi(building_dwelling))*100
+
+. replace owner = 0 if mi(building_dwelling)
+(0 real changes made)
+
+. tab owner [aw = hhwgt]
+
+      owner |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 | 17,532.611       34.46       34.46
+        100 | 33,346.389       65.54      100.00
+------------+-----------------------------------
+      Total |     50,879      100.00
+
+. 
+. *Maximum amount available for mortgage per capita/household
+. forvalues i = 1/2 {
+  2. gen own_ria_`i'_pc = income/hhsize - pline_nhs_`i' //hypothetical expenditure, we are using mpce (actual exp.), different from Australia
+  3. gen own_ria_`i'_hh = income - pline_nhs_`i'*hhsize
+  4. gen pline_nhs_`i'_hh = pline_nhs_`i'*hhsize
+  5. }
+
+. 
+. label var own_ria_1_pc "Max Residual HH Monthly Mortgage at NHBS (mean)" //per capita
+
+. label var own_ria_1_hh "Max Residual HH Monthly Mortgage at NHBS (mean)" //hh. 
+
+. 
+. label var own_ria_2_pc "Max Residual HH Monthly Mortgage at 1.5NHBS (mean)" //per capita
+
+. label var own_ria_2_hh "Max Residual HH Monthly Mortgage at 1.5NHBS (mean)" //hh.
+
+. 
+. *The max housing exp with ratio approach 
+. gen own_ratio_pc = (income/hhsize)*0.3
+
+. label var own_ratio_pc "Max Residual HH Monthly Mortgage at 30% Rule" //per capita
+
+. 
+. gen own_ratio_hh = income*0.3
+
+. label var own_ratio_hh "Max Residual HH Monthly Mortgage at 30% Rule" //hh.
+
+. 
+. *convert the maximun mortgage to house value
+. /*
+> PV = mortgage amount
+> PMT = monthly payment (own_ria_1_hh, own_ria_2_hh, own_ratio_1_hh)
+> i = monthly interest rate
+> (nss70: Average interest rate for all India housing mortgage holder,
+> housing loan with immovable property as secure type: 11%)
+> n = the term in number of month
+> (NSS70: Average term of loan for all India housing mortgage holder,
+> housing loan with immovable property as secure type: 102 month, change to 9 year 108 month)
+> */
+. 
+. global rate = (1+0.11)^(1/12) - 1 
+
+. di ${rate}
+.00873459
+
+. global term = 108 
+
+. global ltv = 0.7
+
+. 
+. forvalues i = 1/2 {
+  2. gen max_loan_`i' = own_ria_`i'_hh * (1 - ((1+$rate)^-$term)) / $rate
+  3. gen max_hse_val_`i' = max_loan_`i' / $ltv
+  4. }
+
+. 
+. gen max_loan_ratio = own_ratio_hh * (1 - ((1+$rate)^-$term)) / $rate
+
+. gen max_hse_val_ratio = max_loan_ratio / $ltv
+
+. 
+. label var max_hse_val_1 "LBS"
+
+. label var max_hse_val_2 "MBS"
+
+. label var max_hse_val_ratio "30% Rule"
+
+. 
+. label var building_dwelling "Housing Value (million)"
+
+. 
+. *merge with mortgage payment information
+. merge 1:m HHID using "${r_output}\b15_hse_mortgage"
+(label gender already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       109,814
+        from master                         0  (_merge==1)
+        from using                    109,814  (_merge==2)
+
+    matched                            59,119  (_merge==3)
+    -----------------------------------------
+
+. bysort HHID: egen repay_mt_2_max = max(repay_mt_2) //Less conservative (let's label 2) housing loan with mortgage
+(133096 missing values generated)
+
+. bysort HHID: keep if _n == 1 //maximum monthly mortgage repay
+(25,648 observations deleted)
+
+. 
+. gen ratio_pay = (repay_mt_2_max > own_ratio_hh)*100
+
+. label var ratio "Unaffordable at 30% Rule (%)"
+
+. 
+. gen ria_1_pay = (repay_mt_2_max > own_ria_1_hh)*100
+
+. label var ria_1 "Unaffordable at NHBS (%)"
+
+. 
+. gen ria_2_pay = (repay_mt_2_max > own_ria_2_hh)*100
+
+. label var ria_2 "Unaffordable at 1.5NHBS (%)"
+
+. 
+. tostring (ria_1_pay ria_2_pay ratio_pay),gen(ria_1_pay_tx ria_2_pay_tx ratio_pay_tx) //Identify the different affordability group
+ria_1_pay_tx generated as str3
+ria_2_pay_tx generated as str3
+ratio_pay_tx generated as str3
+
+. gen afd_grp_pay = ria_1_pay_tx + ria_2_pay_tx //focus only on ria1 and ria2
+
+. tab afd_grp_pay [aw = hhwgt] //different section
+
+afd_grp_pay |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         00 | 105,683.48       73.76       73.76
+       0100 | 985.477699        0.69       74.45
+     100100 |36,616.0375       25.55      100.00
+------------+-----------------------------------
+      Total |    143,285      100.00
+
+. seperate repay_mt_2_max,by(afd_grp_pay) //group households by housing value
+(note:  separate is spelled separate)
+
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+repay_mt_2_max1 float   %9.0g                 repay_mt_2_max, afd_grp_pay == 00
+repay_mt_2_max2 float   %9.0g                 repay_mt_2_max, afd_grp_pay == 0100
+repay_mt_2_max3 float   %9.0g                 repay_mt_2_max, afd_grp_pay == 100100
+
+. label var repay_mt_2_max1 "Affordable Housing" 
+
+. label var repay_mt_2_max2 "Intermediate Unaffordable Housing"
+
+. label var repay_mt_2_max3 "Unaffordable Housing"
+
+. 
+. *affordability table for owner
+. egen owner_type = wtmean(owner),weight(hhwgt) by(hh_type) //overall share of owner hh in urban , 
+(92406 missing values generated)
+
+. egen owner_al = wtmean(owner),weight(hhwgt) //share of owner hh by household type 
+
+. label var owner_type "Owners (%)"
+
+. label var owner_al "Owners (%)"
+
+. 
+. label var hhsize "Household Size (mean) "
+
+. label var wealth "Total HH Wealth"
+
+. label var income "Imputed HH Income*" //*mapping wealth to income from Nadeem using distance based approach
+
+. 
+. gen pline_hh = pline*hhsize
+(92,406 missing values generated)
+
+. label var pline_hh "HH Poverty Line**"
+
+. 
+. gen pline_hh_15 = 1.5*pline_hh
+(92,406 missing values generated)
+
+. label var pline_hh_15 "HH 1.5 Poverty Line"
+
+. 
+. gen poor = (income < pline_hh)*100
+
+. label var poor "%HH Poor at PL"
+
+. 
+. gen poor_15 = (income < pline_hh_15)*100
+
+. label var poor_15 "%HH Poor at 1.5PL"
+
+. 
+. label var pline_nhs_1_hh "HH Non-Housing Budget Standard (NHBS)^"
+
+. label var pline_nhs_2_hh "HH 1.5NHBS^" //^mean of non-housing poverty line by state for urban sector
+
+. 
+. label var max_hse_val_1 "Max Housing Value at NHBS (mean, million)"
+
+. label var max_hse_val_2 "Max Housing Value at 1.5NHBS (mean, million)"
+
+. 
+. gen ratio = (building_dwelling > max_hse_val_ratio)*100
+
+. label var ratio "Unaffordable at 30% Rule (%)"
+
+. 
+. gen ria_1 = (building_dwelling > max_hse_val_1)*100
+
+. label var ria_1 "Unaffordable at NHBS (%)"
+
+. 
+. gen ria_2 = (building_dwelling > max_hse_val_2)*100
+
+. label var ria_2 "Unaffordable at 1.5NHBS (%)"
+
+. 
+. tostring (ria_1 ria_2 ratio),gen(ria_1_tx ria_2_tx ratio_tx) //Identify the different affordability group
+ria_1_tx generated as str3
+ria_2_tx generated as str3
+ratio_tx generated as str3
+
+. gen afd_grp = ria_1_tx + ria_2_tx //focus only on ria1 and ria2
+
+. tab afd_grp [aw = hhwgt] //different section
+
+    afd_grp |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         00 | 106,985.82       74.67       74.67
+       0100 | 4,219.9326        2.95       77.61
+     100100 | 32,079.243       22.39      100.00
+------------+-----------------------------------
+      Total |    143,285      100.00
+
+. seperate building_dwelling,by(afd_grp) //group households by housing value
+(note:  separate is spelled separate)
+
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+building_dwel~1 long    %10.0g                building_dwelling, afd_grp == 00
+building_dwel~2 long    %10.0g                building_dwelling, afd_grp == 0100
+building_dwel~3 long    %10.0g                building_dwelling, afd_grp == 100100
+
+. label var building_dwelling1 "Affordable Housing" 
+
+. label var building_dwelling2 "Intermediate Unaffordable Housing"
+
+. label var building_dwelling3 "Unaffordable Housing"
+
+. 
+. *change unit to million 
+. foreach var of varlist building_dwelling max_hse_val* {
+  2. replace `var' = `var'/1e6
+  3. }
+variable building_dwelling was long now double
+(119,649 real changes made)
+(50,879 real changes made)
+(50,879 real changes made)
+(50,810 real changes made)
+
+. 
+. save "${r_output}\nss59_ria_master_final.dta",replace
+file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Data Output Files\nss59_ria_master_final.dta saved
+
+. 
+. ********************produce esttab table
+. use "${r_output}\nss59_ria_master_final.dta",clear
+
+. 
+. *calculate housing value median. 
+. foreach var of varlist building_dwelling max_hse_val* {
+  2. 
+. //median of all hh
+. gen `var'_md_al = .
+  3. summarize `var' [aw = hhwgt] if owner ==100,de
+  4. replace `var'_md_al = r(p50) if owner ==100
+  5. 
+. //median by housing type
+. gen `var'_md = . 
+  6. quietly foreach i in 0 3 4 5 6 { 
+  7.     summarize `var' [aw = hhwgt] if hh_type_grp == `i' & owner == 100, detail 
+  8.     replace `var'_md = r(p50) if hh_type_grp == `i' & owner == 100
+  9.         } 
+ 10. }
+(143,285 missing values generated)
+
+                   Housing Value (million)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        .0036         .00007
+ 5%         .012          .0003
+10%          .02          .0004       Obs              34,489
+25%          .05          .0004       Sum of Wgt.  357,325.46
+
+50%          .12                      Mean           .2268595
+                        Largest       Std. Dev.      .4724425
+75%         .275             16
+90%           .5             21       Variance        .223202
+95%           .8             22       Skewness       23.54677
+99%          1.5             25       Kurtosis       951.0982
+(34,489 real changes made)
+(143,285 missing values generated)
+(143,285 missing values generated)
+
+          Max Housing Value at NHBS (mean, million)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%    -.4823732      -1.363019
+ 5%    -.3247598      -1.297234
+10%    -.2447255      -1.214297       Obs              34,489
+25%    -.1393264      -1.077524       Sum of Wgt.  357,325.46
+
+50%    -.0005186                      Mean           .0858253
+                        Largest       Std. Dev.      .3878545
+75%     .2119809       9.554947
+90%     .5454761       9.626642       Variance       .1504311
+95%     .8045867       9.932091       Skewness       3.888617
+99%     1.319552       16.76334       Kurtosis       54.26066
+(34,489 real changes made)
+(143,285 missing values generated)
+(143,285 missing values generated)
+
+        Max Housing Value at 1.5NHBS (mean, million)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%    -1.192257      -3.133442
+ 5%    -.8134475      -2.863701
+10%    -.6518489      -2.779405       Obs              34,489
+25%    -.4534871      -2.575023       Sum of Wgt.  357,325.46
+
+50%     -.247978                      Mean            -.20546
+                        Largest       Std. Dev.      .4492083
+75%    -.0123734       9.349951
+90%     .2936305        9.36679       Variance       .2017881
+95%     .5544832       9.484567       Skewness        2.11635
+99%     1.099068       15.86829       Kurtosis       29.88533
+(34,489 real changes made)
+(143,285 missing values generated)
+(143,285 missing values generated)
+
+                          30% Rule
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .0127305       .0013859
+ 5%     .0210353       .0025573
+10%     .0285657       .0026175       Obs              34,489
+25%     .0428133       .0030384       Sum of Wgt.  357,325.46
+
+50%     .0778235                      Mean           .1132607
+                        Largest       Std. Dev.      .1118306
+75%     .1442358       2.923023
+90%     .2480225       2.971203       Variance       .0125061
+95%     .3228574       3.113744       Skewness       4.687987
+99%     .4810767       5.297235       Kurtosis       68.79066
+(34,489 real changes made)
+(143,285 missing values generated)
+
+. 
+. label var max_hse_val_1_md_al "Max Housing Value at NHBS (median, million)"
+
+. label var max_hse_val_2_md_al "Max Housing Value at 1.5NHBS (median, million)"
+
+. label var building_dwelling_md_al "Housing Value (median, million)"
+
+. 
+. 
+. global var_tab "owner_al building_dwelling_md_al hhsize wealth income pline_hh pline_hh_15 poor poor_15 pline_nhs_1_hh pline_nhs_2_hh max_hse_val_1_md_al max_hse_val_2_md_al own_ria_1_hh own_ria_2_hh ratio ria_1 ria_2"
+
+. 
+. qui eststo total : estpost summarize $var_tab [aw = hhwgt] if owner ==100,de  
+
+. 
+. replace owner_al = owner_type
+(143,285 real changes made, 92,406 to missing)
+
+. foreach var of varlist building_dwelling max_hse_val_1 max_hse_val_2 {
+  2. replace `var'_md_al = `var'_md
+  3. }
+(17,524 real changes made)
+(34,489 real changes made)
+(34,489 real changes made)
+
+. 
+. foreach i in 0 3 4 5 6 {
+  2. qui eststo grp`i' : estpost summarize $var_tab [aw = hhwgt] if hh_type_grp == `i' & owner == 100,de
+  3. }
+
+. 
+. esttab total grp0 grp3 grp4 grp5 grp6, cells(mean(fmt(%15.1fc))) label collabels(none) varwidth(40) ///
+>  mtitles( "All HH" "Size 1-2" "Size 3" "Size 4" "Size 5" "Size >=6" ) stats(N, label("Observations") fmt(%15.1gc)) ///
+>  title("Owner affordability using different affordability measures in urban India, 2003") ///
+>  addnotes("Notes: Homeowners are households own residential building used as dwelling by household members." ///
+>           "       * mapping wealth to income using distance based approach." ///
+>           "       ** Tendulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state." ///
+>                   "       Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times" ///
+>                   "       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 * poverty line) to arrive at non-housing poverty lines." )
+
+Owner affordability using different affordability measures in urban India, 2003
+----------------------------------------------------------------------------------------------------------------------
+                                                  (1)          (2)          (3)          (4)          (5)          (6)
+                                               All HH     Size 1-2       Size 3       Size 4       Size 5     Size >=6
+----------------------------------------------------------------------------------------------------------------------
+Owners (%)                                       65.5         39.5         61.6         63.0         73.1         82.3
+Housing Value (median, million)                   0.1          0.1          0.1          0.1          0.1          0.1
+Household Size (mean)                             5.0          1.7          3.0          4.0          5.0          7.6
+Total HH Wealth                             587,737.6    565,107.7    558,842.6    571,593.3    568,861.6    628,084.3
+Imputed HH Income*                            3,789.9      3,464.6      3,692.3      3,824.7      3,759.2      3,929.5
+HH Poverty Line**                             2,934.8        980.1      1,754.9      2,347.1      2,931.3      4,399.9
+HH 1.5 Poverty Line                           4,402.2      1,470.1      2,632.4      3,520.7      4,396.9      6,599.9
+%HH Poor at PL                                   50.2         17.4         34.7         41.7         56.1         68.7
+%HH Poor at 1.5PL                                66.4         33.6         50.9         60.2         73.1         82.9
+HH Non-Housing Budget Standard (NHBS)^        2,928.3        977.6      1,750.6      2,341.5      2,924.7      4,391.0
+HH 1.5NHBS^                                   5,852.4      1,953.7      3,498.6      4,679.4      5,845.1      8,775.7
+Max Housing Value at NHBS (median, milli         -0.0          0.1          0.1          0.0         -0.0         -0.1
+Max Housing Value at 1.5NHBS (median, mi         -0.2          0.0         -0.1         -0.2         -0.3         -0.5
+Max Residual HH Monthly Mortgage at NHBS        861.6      2,487.0      1,941.7      1,483.3        834.5       -461.4
+Max Residual HH Monthly Mortgage at 1.5N     -2,062.5      1,510.9        193.7       -854.7     -2,085.9     -4,846.1
+Unaffordable at 30% Rule (%)                     73.1         68.2         72.2         74.2         72.7         74.6
+Unaffordable at NHBS (%)                         80.8         52.9         73.2         79.2         85.2         91.1
+Unaffordable at 1.5NHBS (%)                      93.4         78.7         89.6         94.1         94.8         98.3
+----------------------------------------------------------------------------------------------------------------------
+Observations                                   34,489        3,393        3,973        7,125        7,006       12,992
+----------------------------------------------------------------------------------------------------------------------
+Notes: Homeowners are households own residential building used as dwelling by household members.
+       * mapping wealth to income using distance based approach.
+       ** Tendulkar (2012) poverty estimation weighted mean by state as the poverty line is different in every state.
+       Low Budget Standard corresponds to poverty line (Tendulkar), Moderate budget standard is 1.5 times
+       ^ methodology – renters only, removing actual rent at the 2nd (poverty line) decile of expenditure and 4th (1.5 * poverty line) to arrive at non-housing poverty lines.
+
+. 
+. **************plot the affordability curve: maximum monthly mortgage payment value and income
+. use "${r_output}\nss59_ria_master_final.dta",clear
+
+. keep if owner == 100 //only on housing owners. 
+(108,796 observations deleted)
+
+. 
+. foreach var of varlist own_ria_* repay_mt_2* {
+  2. replace `var' = . if `var' <= 0
+  3. //replace `var' = . if `var' > 2e3
+. }
+(17,929 real changes made, 17,929 to missing)
+(17,929 real changes made, 17,929 to missing)
+(27,089 real changes made, 27,089 to missing)
+(27,089 real changes made, 27,089 to missing)
+(2,952 real changes made, 2,952 to missing)
+(3,024 real changes made, 3,024 to missing)
+(879 real changes made, 879 to missing)
+(933 real changes made, 933 to missing)
+(1,212 real changes made, 1,212 to missing)
+
+. 
+. format own_ria_* repay_mt_2*  %15.0fc
+
+. 
+. sum income [aw = hhwgt],de f
+
+                     Imputed HH Income*
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     425.9851       46.37578
+ 5%     703.8764       85.57071
+10%     955.8587       87.58677       Obs              34,489
+25%     1432.609         101.67       Sum of Wgt.  357,325.46
+
+50%     2604.111                      Mean             3789.9
+                        Largest       Std. Dev.      3742.047
+75%     4826.382       97809.44
+90%     8299.267       99421.62       Variance       1.40e+07
+95%     10803.37       104191.3       Skewness       4.687987
+99%     16097.66       177254.7       Kurtosis       68.79066
+
+. twoway line own_ria_1_hh own_ria_2_hh own_ratio_hh income if state == "33" & ///
+> hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
+> scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
+> hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+> msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
+> title("Maximum affordable mortgage payment (Tamil Nadu: 4-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+> note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
+>      "      The income percentile is for housing owners only weighted by household weight.") ///
+> xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+
+. graph export "${r_output}/ria_owner_size4_mortgage_nss59.png",width(800) height(600) replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Data Output Files/ria_owner_size4_mortgage_nss59.png written in PNG format)
+
+. 
+. sum income [aw = hhwgt],de f
+
+                     Imputed HH Income*
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     425.9851       46.37578
+ 5%     703.8764       85.57071
+10%     955.8587       87.58677       Obs              34,489
+25%     1432.609         101.67       Sum of Wgt.  357,325.46
+
+50%     2604.111                      Mean             3789.9
+                        Largest       Std. Dev.      3742.047
+75%     4826.382       97809.44
+90%     8299.267       99421.62       Variance       1.40e+07
+95%     10803.37       104191.3       Skewness       4.687987
+99%     16097.66       177254.7       Kurtosis       68.79066
+
+. twoway line own_ria_1_hh own_ria_2_hh own_ratio_hh income if state == "33" & ///
+> hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
+> scatter repay_mt_2_max1 repay_mt_2_max2 repay_mt_2_max3 income if state == "33" & ///
+> hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+> msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum Monthly Mortgage Payment") ///
+> title("Maximum affordable mortgage payment (Tamil Nadu: 5-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+> note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
+>      "      The income percentile is for housing owners only weighted by household weight.") ///
+> xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))   //text(2e3 `r(p50)' "50th Percentile", color(black))
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+
+. graph export "${r_output}/ria_owner_size5_mortgage_nss59.png",width(800) height(600) replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Data Output Files/ria_owner_size5_mortgage_nss59.png written in PNG format)
+
+. 
+. ***********plot the affordability curve: maximum affordable housing value and income
+. use "${r_output}\nss59_ria_master_final.dta",clear
+
+. keep if owner == 100 //only on housing owners. 
+(108,796 observations deleted)
+
+. 
+. format max_hse_val* max_loan* %15.1fc
+
+. 
+. sum building_dwelling [aw = hhwgt],de
+
+                   Housing Value (million)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        .0036         .00007
+ 5%         .012          .0003
+10%          .02          .0004       Obs              34,489
+25%          .05          .0004       Sum of Wgt.  357,325.46
+
+50%          .12                      Mean           .2268595
+                        Largest       Std. Dev.      .4724425
+75%         .275             16
+90%           .5             21       Variance        .223202
+95%           .8             22       Skewness       23.54677
+99%          1.5             25       Kurtosis       951.0982
+
+. 
+. foreach var of varlist building_dwelling* {
+  2. replace `var' = `var'/1e6 //change the housing value unit to million 
+  3. }
+(34,489 real changes made)
+(34,455 real changes made)
+variable building_dwelling1 was long now double
+(2,132 real changes made)
+variable building_dwelling2 was long now double
+(4,478 real changes made)
+variable building_dwelling3 was long now double
+(27,879 real changes made)
+
+. 
+. foreach var of varlist max_hse_val_* building_dwelling* {
+  2. replace `var' = . if `var' > 2 //around 80 percentile housing value
+  3. replace `var' = . if `var' <= 0
+  4. }
+(81 real changes made, 81 to missing)
+(17,929 real changes made, 17,929 to missing)
+(65 real changes made, 65 to missing)
+(27,089 real changes made, 27,089 to missing)
+(13 real changes made, 13 to missing)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(34 real changes made, 34 to missing)
+(6 real changes made, 6 to missing)
+(0 real changes made)
+(3 real changes made, 3 to missing)
+(0 real changes made)
+(147 real changes made, 147 to missing)
+(0 real changes made)
+
+. 
+. sum income [aw = hhwgt],de //percentile among urban housing owner. 
+
+                     Imputed HH Income*
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     425.9851       46.37578
+ 5%     703.8764       85.57071
+10%     955.8587       87.58677       Obs              34,489
+25%     1432.609         101.67       Sum of Wgt.  357,325.46
+
+50%     2604.111                      Mean             3789.9
+                        Largest       Std. Dev.      3742.047
+75%     4826.382       97809.44
+90%     8299.267       99421.62       Variance       1.40e+07
+95%     10803.37       104191.3       Skewness       4.687987
+99%     16097.66       177254.7       Kurtosis       68.79066
+
+. twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if state == "33" & ///
+> hh_type == "4" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) ///
+> || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
+> hh_type == "4" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+> msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
+> title("Maximum affordable housing value (Tamil Nadu: 4-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+> note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
+>      "      The income percentile is for housing owners only weighted by household weight.") ///
+> xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))  //text(2e3 `r(p50)' "50th Percentile", color(black))
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+
+. graph export "${r_output}/ria_owner_size4_house_nss59.png",width(800) height(600) replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Data Output Files/ria_owner_size4_house_nss59.png written in PNG format)
+
+. 
+. sum income [aw = hhwgt],de //percentile among urban housing owner. 
+
+                     Imputed HH Income*
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     425.9851       46.37578
+ 5%     703.8764       85.57071
+10%     955.8587       87.58677       Obs              34,489
+25%     1432.609         101.67       Sum of Wgt.  357,325.46
+
+50%     2604.111                      Mean             3789.9
+                        Largest       Std. Dev.      3742.047
+75%     4826.382       97809.44
+90%     8299.267       99421.62       Variance       1.40e+07
+95%     10803.37       104191.3       Skewness       4.687987
+99%     16097.66       177254.7       Kurtosis       68.79066
+
+. twoway line max_hse_val_1 max_hse_val_2 max_hse_val_ratio income if state == "33" & ///
+> hh_type == "5" & inrange(income,0,`r(p90)') ,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || scatter building_dwelling1 building_dwelling2 building_dwelling3 income if state == "33" & ///
+> hh_type == "5" & inrange(income,0,`r(p90)') , msize(tiny) mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
+> msize(tiny tiny tiny) xtitle("Household Monthly Income") ytitle("Maximum affordable housing value (million)") ///
+> title("Maximum affordable housing value (Tamil Nadu: 5-member household, 2003)", size(small)) xline(`r(p50)', lpattern(dash) lcolor(gs4)) ///
+> legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
+> note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS." ///
+>      "      The income percentile is for housing owners only weighted by household weight.") ///
+> xlabel(956 `" "956" "(p10)" "' 1433 `" "1,433" "(p25)" "' 2604 `" "2,604" "(p50)" "' 4826 `" "4,826" "(p75)" "' 8299 `" "8,299" "(p90)" "',labsize(vsmall))   //text(2e3 `r(p50)' "50th Percentile", color(black))
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+(note:  named style p1 not found in class linepattern, default attributes used)
+
+. graph export "${r_output}/ria_owner_size5_house_nss59.png",width(800) height(600) replace
+(file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59\Data Output Files/ria_owner_size5_house_nss59.png written in PNG format)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\02_2_NSS59_Residual_Income_Owner.log
+  log type:  text
+ closed on:  20 Apr 2021, 11:52:22
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
