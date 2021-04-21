@@ -331,7 +331,7 @@ replace `var' = `var'/1e6 //change the housing value unit to million
 }
 
 foreach var of varlist max_hse_val_* building_dwelling* {
-replace `var' = . if `var' > 2 //around 80 percentile housing value
+replace `var' = . if `var' > 2
 replace `var' = . if `var' <= 0
 }
 
