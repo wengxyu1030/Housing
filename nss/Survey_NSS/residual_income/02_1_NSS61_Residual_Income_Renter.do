@@ -17,7 +17,7 @@ if `pc' == 0 global root_nss68 "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Da
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61"
 if `pc' != 0 global root_nss68 "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
 
-if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income"
 
 cd "${root}"
 
@@ -25,7 +25,7 @@ global r_input "${root}\Raw Data & Dictionaries"
 global r_input_nss68 "${root_nss68}\Raw Data & Dictionaries"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\residual_income\02_1_NSS61_Residual_Income_Renter.log",replace
+log using "${script}\02_1_NSS61_Residual_Income_Renter.log",replace
 set linesize 255
 
 ***************************************************************
@@ -93,6 +93,7 @@ drop _merge
    forvalues i = 1/3 {
    gen pline_`i' = pline*`i'
    }	  
+   gen pline_15 = pline*1.5
 
    *Only focus on urban (the Tendulka approach decile is based on urban exp.)
    gen urban = sector - 1
@@ -138,7 +139,7 @@ di  `mpce_pline_15' //6th decile mpce class (urban), different than that in the 
 
 *generate the non-housing poverty line for each state at different budget standard (differ than 2012)
 gen pline_nhs_1 = pline_1- rent_pc_3 // poverty line and 1.5 poverty line (only double pline not rent)
-gen pline_nhs_2 = pline_2- rent_pc_6 //6th decile is where the poverty line mpce class doubled 
+gen pline_nhs_2 = pline_15- rent_pc_6 //6th decile is where the poverty line mpce class doubled 
 
 *estimate income based on expenditure //Picketty approach. 
 xtile exp_100 = mpce_mrp [aw=pwt], nq(100)
@@ -168,7 +169,7 @@ forvalues i = 1/2 {
 gen rent_ria_`i' = mpce_mrp - pline_nhs_`i'
 
   forvalues  q = 0(1)2 {
-  gen rent_ria_income_a`q'_`i' = income_a`q' - pline_nhs_`i'
+  gen rent_ria_income_a`q'_`i' = max(income_a`q' - pline_nhs_`i',0)
   }
 }
 
@@ -215,8 +216,6 @@ egen pline_nhs_`i'_nat = wtmean(pline_nhs_`i'), weight(pwt)  //weighted mean by 
 foreach var in poor poor_double {
 replace `var' = `var'*100 //poverty rate in %
 }
-
-gen pline_15 = pline *1.5 //1.5 time poverty line at 4th decile mpce class.  
 
 gen poor_income_1 = (income_a2 < pline)*100
 gen poor_income_2 = (income_a2 < pline_15)*100
@@ -282,7 +281,7 @@ scatter rent_pc1 rent_pc2 rent_pc3 income_a2 if renter == 100 & inrange(income_a
 msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu,2004)") ///
 xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
-     "      The income percentile is for renters only weighted by household weight.") ///
+     "      The income percentile is for urban India, weighted by household weight.") ///
 xlabel(424 `" "424" "(p10)" "' 571 `" "571" "(p25)" "' 839 `" "839" "(p50)" "' 1551 `" "1,551" "(p75)" "' 2772 `" "2,772" "(p90)" "',labsize(vsmall))  
 
 graph export "${r_output}/ria_renter_nss61.png",width(800) height(600) replace

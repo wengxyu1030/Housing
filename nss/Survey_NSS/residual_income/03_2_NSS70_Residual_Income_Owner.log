@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_2_NSS70_Residual_Income_Owner.log
   log type:  text
- opened on:  14 Apr 2021, 08:57:40
+ opened on:  23 Apr 2021, 10:30:28
 
 . set linesize 255
 
@@ -339,8 +339,8 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 . 
 . *Maximum amount available for mortgage per capita/household
 . forvalues i = 1/2 {
-  2. gen own_ria_`i'_pc = income/hhsize - pline_nhs_`i' //hypothetical expenditure, we are using mpce (actual exp.), different from Australia
-  3. gen own_ria_`i'_hh = income - pline_nhs_`i'*hhsize
+  2. gen own_ria_`i'_pc = max(income/hhsize - pline_nhs_`i', 0) //hypothetical expenditure, we are using mpce (actual exp.), different from Australia
+  3. gen own_ria_`i'_hh = max(income - pline_nhs_`i'*hhsize, 0)
   4. gen pline_nhs_`i'_hh = pline_nhs_`i'*hhsize
   5. }
 
@@ -389,8 +389,8 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
 
 . 
 . forvalues i = 1/2 {
-  2. gen max_loan_`i' = own_ria_`i'_hh * (1 - ((1+$rate)^-$term)) / $rate
-  3. gen max_hse_val_`i' = max_loan_`i' / $ltv
+  2. gen max_loan_`i' = max(own_ria_`i'_hh * (1 - ((1+$rate)^-$term)) / $rate, 0)
+  3. gen max_hse_val_`i' = max(max_loan_`i' / $ltv, 0)
   4. }
 
 . 
@@ -455,9 +455,9 @@ ratio_pay_tx generated as str3
 
 afd_grp_pay |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-         00 | 78,773.949       71.10       71.10
-       0100 | 1,901.1805        1.72       72.81
-     100100 |30,124.8701       27.19      100.00
+         00 |82,698.0663       74.64       74.64
+       0100 |119.8296852        0.11       74.75
+     100100 | 27,982.104       25.25      100.00
 ------------+-----------------------------------
       Total |    110,800      100.00
 
@@ -554,9 +554,9 @@ ratio_tx generated as str3
 
     afd_grp |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-         00 | 85,040.529       76.75       76.75
-       0100 |  7,617.368        6.87       83.63
-     100100 | 18,142.103       16.37      100.00
+         00 | 98,761.548       89.13       89.13
+       0100 | 2,983.4305        2.69       91.83
+     100100 | 9,055.0216        8.17      100.00
 ------------+-----------------------------------
       Total |    110,800      100.00
 
@@ -583,8 +583,8 @@ building_dwel~3 long    %10.0g                building_dwelling, afd_grp == 1001
   3. }
 variable building_dwelling was long now double
 (92,063 real changes made)
-(45,713 real changes made)
-(45,713 real changes made)
+(32,944 real changes made)
+(27,038 real changes made)
 (44,918 real changes made)
 
 . 
@@ -634,17 +634,17 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
           Max Housing Value at NHBS (mean, million)
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%    -.4778554      -2.627616
- 5%    -.2042627      -2.463384
-10%    -.0688074      -2.089942       Obs              32,405
-25%     .2169438       -1.84742       Sum of Wgt.  93824985.6
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              32,405
+25%     .2169438              0       Sum of Wgt.  93824985.6
 
-50%     .7769636                      Mean           1.502959
-                        Largest       Std. Dev.      6.123188
+50%     .7769636                      Mean            1.53018
+                        Largest       Std. Dev.      6.115589
 75%     1.885761       218.1932
-90%     3.538675        315.747       Variance       37.49343
-95%     5.021098       382.1463       Skewness       48.13527
-99%     8.503071       404.0216       Kurtosis       2792.445
+90%     3.538675        315.747       Variance       37.40043
+95%     5.021098       382.1463       Skewness       48.30261
+99%     8.503071       404.0216       Kurtosis        2805.49
 (32,405 real changes made)
 (110,800 missing values generated)
 (110,800 missing values generated)
@@ -652,17 +652,17 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data O
         Max Housing Value at 1.5NHBS (mean, million)
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%    -1.422193       -5.65123
- 5%    -.8639855      -5.441719
-10%    -.6481762      -4.769948       Obs              32,405
-25%    -.2323073      -4.527425       Sum of Wgt.  93824985.6
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              32,405
+25%            0              0       Sum of Wgt.  93824985.6
 
-50%     .3427749                      Mean           1.032113
-                        Largest       Std. Dev.      6.128921
-75%     1.448892       217.6349
-90%     3.117675       314.2802       Variance       37.56367
-95%     4.624209       381.4763       Skewness       47.86302
-99%     8.133195       403.3517       Kurtosis       2772.196
+50%     .5587327                      Mean           1.354159
+                        Largest       Std. Dev.      6.102314
+75%     1.661776       217.9153
+90%     3.330148       315.0131       Variance       37.23824
+95%     4.842315       381.8128       Skewness       48.52224
+99%      8.31284       403.6881       Kurtosis       2823.129
 (32,405 real changes made)
 (110,800 missing values generated)
 (110,800 missing values generated)
@@ -739,14 +739,14 @@ HH 1.5 Poverty Line                           7,107.3      2,660.4      4,579.8 
 %HH Poor at PL                                   13.3          1.8          4.9          8.6         15.1         27.6
 %HH Poor at 1.5PL                                25.3          4.8         12.0         18.6         31.1         46.3
 HH Non-Housing Budget Standard (NHBS)^        4,729.4      1,770.0      3,047.4      4,108.7      5,126.2      7,608.1
-HH 1.5NHBS^                                   9,456.0      3,538.8      6,093.2      8,214.0     10,249.1     15,212.6
+HH 1.5NHBS^                                   7,086.9      2,652.0      4,566.6      6,155.9      7,681.3     11,401.5
 Max Housing Value at NHBS (median, milli          0.8          1.0          0.9          0.9          0.7          0.5
-Max Housing Value at 1.5NHBS (median, mi          0.3          0.9          0.6          0.5          0.2         -0.3
-Max Residual HH Monthly Mortgage at NHBS     15,087.5     17,805.4     15,864.9     15,362.9     14,170.2     13,595.6
-Max Residual HH Monthly Mortgage at 1.5N     10,360.9     16,036.6     12,819.1     11,257.5      9,047.3      5,991.2
+Max Housing Value at 1.5NHBS (median, mi          0.6          0.9          0.8          0.7          0.4          0.1
+Max Residual HH Monthly Mortgage at NHBS     15,360.7     17,813.9     15,902.2     15,461.9     14,401.4     14,346.6
+Max Residual HH Monthly Mortgage at 1.5N     13,593.8     16,961.0     14,503.2     13,682.5     12,424.4     12,038.7
 Unaffordable at 30% Rule (%)                     63.4         58.1         64.0         65.3         64.7         62.9
 Unaffordable at NHBS (%)                         41.8         15.1         28.2         39.4         49.5         60.7
-Unaffordable at 1.5NHBS (%)                      65.7         34.0         56.3         65.2         74.2         82.3
+Unaffordable at 1.5NHBS (%)                      55.5         22.7         43.8         54.3         65.2         74.1
 ----------------------------------------------------------------------------------------------------------------------
 Observations                                   32,405        3,274        4,937        7,944        6,456        9,794
 ----------------------------------------------------------------------------------------------------------------------
@@ -770,13 +770,13 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 . }
 (5,154 real changes made, 5,154 to missing)
 (5,154 real changes made, 5,154 to missing)
-(13,288 real changes made, 13,288 to missing)
-(13,288 real changes made, 13,288 to missing)
-(13,272 real changes made, 13,272 to missing)
+(9,566 real changes made, 9,566 to missing)
+(9,566 real changes made, 9,566 to missing)
+(13,242 real changes made, 13,242 to missing)
 (13,877 real changes made, 13,877 to missing)
-(7,483 real changes made, 7,483 to missing)
-(3,821 real changes made, 3,821 to missing)
-(2,573 real changes made, 2,573 to missing)
+(13,877 real changes made, 13,877 to missing)
+(0 real changes made)
+(0 real changes made)
 
 . 
 . format own_ria_* repay_mt_2*  %15.0fc
@@ -815,7 +815,6 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 (note:  named style p1 not found in class linepattern, default attributes used)
 
 . graph export "${r_output}/ria_owner_size4_mortgage_nss70.png",width(800) height(600) replace
-(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_mortgage_nss70.png not found)
 (file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_mortgage_nss70.png written in PNG format)
 
 . 
@@ -852,7 +851,6 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 (note:  named style p1 not found in class linepattern, default attributes used)
 
 . graph export "${r_output}/ria_owner_size5_mortgage_nss70.png",width(800) height(600) replace
-(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_mortgage_nss70.png not found)
 (file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_mortgage_nss70.png written in PNG format)
 
 . 
@@ -891,9 +889,9 @@ Notes: Homeowners are households own residential building used as dwelling by ho
 variable building_dwelling_area was int now float
 (32,377 real changes made)
 variable building_dwelling1 was long now double
-(10,402 real changes made)
+(13,661 real changes made)
 variable building_dwelling2 was long now double
-(8,288 real changes made)
+(5,029 real changes made)
 variable building_dwelling3 was long now double
 (13,715 real changes made)
 
@@ -904,17 +902,17 @@ variable building_dwelling3 was long now double
   4. }
 (6,554 real changes made, 6,554 to missing)
 (5,154 real changes made, 5,154 to missing)
-(5,023 real changes made, 5,023 to missing)
-(13,288 real changes made, 13,288 to missing)
+(5,716 real changes made, 5,716 to missing)
+(9,566 real changes made, 9,566 to missing)
 (902 real changes made, 902 to missing)
 (0 real changes made)
 (0 real changes made)
 (0 real changes made)
 (0 real changes made)
 (28 real changes made, 28 to missing)
-(809 real changes made, 809 to missing)
+(928 real changes made, 928 to missing)
 (0 real changes made)
-(247 real changes made, 247 to missing)
+(128 real changes made, 128 to missing)
 (0 real changes made)
 (1,613 real changes made, 1,613 to missing)
 (0 real changes made)
@@ -953,7 +951,6 @@ variable building_dwelling3 was long now double
 (note:  named style p1 not found in class linepattern, default attributes used)
 
 . graph export "${r_output}/ria_owner_size4_house_nss70.png",width(800) height(600) replace
-(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_house_nss70.png not found)
 (file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size4_house_nss70.png written in PNG format)
 
 . 
@@ -989,7 +986,6 @@ variable building_dwelling3 was long now double
 (note:  named style p1 not found in class linepattern, default attributes used)
 
 . graph export "${r_output}/ria_owner_size5_house_nss70.png",width(800) height(600) replace
-(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_house_nss70.png not found)
 (file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70\Data Output Files/ria_owner_size5_house_nss70.png written in PNG format)
 
 . 
@@ -997,5 +993,5 @@ variable building_dwelling3 was long now double
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_2_NSS70_Residual_Income_Owner.log
   log type:  text
- closed on:  14 Apr 2021, 08:58:19
+ closed on:  23 Apr 2021, 10:31:00
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

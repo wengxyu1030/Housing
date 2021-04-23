@@ -16,14 +16,14 @@ if "`c(username)'" == "wb308830" local pc = 0
 if "`c(username)'" != "wb308830" local pc = 1
 if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 68"
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
-if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income"
 
 cd "${root}"
 
 global r_input "${root}\Raw Data & Dictionaries"
 global r_output "${root}\Data Output Files"
 
-log using "${script}\residual_income\03_1_NSS68_Residual_Income_Renter.log",replace
+log using "${script}\03_1_NSS68_Residual_Income_Renter.log",replace
 set linesize 255
 
 ***************************************************************
@@ -85,6 +85,8 @@ drop _merge
       gen pline_`i' = pline*`i'
       }
 	  
+	  gen pline_15 = pline*1.5
+	  
 	  sum poor poor_double [aw = pwt]
 	  sum poor poor_double [aw = pwt] if sector == 2
 	 
@@ -112,12 +114,18 @@ drop _merge
 
 *remove rent budget from the original poverty line by state
 gen rent_pc = total_rent/hhsize
+gen rent_pc_impt = total_rent_impt/hhsize
+
 gen rent_mpce = rent_pc/mpce_mrp*100 //share of rent on total expenditure per capita (renters)
+gen rent_mpce_impt = rent_pc_impt/mpce_mrp*100 //share of rent on total expenditure per capita (renters)
+
 
 *stats for renters
 table decile [aw = pwt], c(mean renter ) row 
 table decile [aw = pwt], c(mean rent_mpce mean mpce_mrp) row // for both renters and owners, the poverty line budget share of rent is 2.8%, lower than the 5.3% for exp. survey in 05. 
 table decile if renter == 1 [aw = pwt], c(med rent_pc med mpce_mrp med rent_mpce) row // only for renters 
+
+table decile if rent_pc_impt > 0 & owner == 1 [aw = pwt], c(med rent_pc_impt med mpce_mrp med rent_mpce_impt) row format(%15.1fc)   // only for households with imputed rent
 
 *collapse at state and declie level
 tab poor [aw = pwt] if urban == 1 //13.7% poverty rate in urban India (2012): 2th decile MPCE class
@@ -140,7 +148,7 @@ di  `mpce_pline_15' //4th decile mpce class (urban)
 
 *generate the non-housing poverty line for each state at different budget standard
 gen pline_nhs_1 = pline_1- rent_pc_2 // poverty line and 1.5 poverty line (only double pline not rent)
-gen pline_nhs_2 = pline_2- rent_pc_4 //4th decile is where the poverty line mpce class doubled
+gen pline_nhs_2 = pline_15- rent_pc_4 //4th decile is where the poverty line mpce class doubled
 
 *estimate income based on expenditure //Picketty approach. 
 xtile exp_100 = mpce_mrp [aw=pwt], nq(100)
@@ -169,7 +177,7 @@ forvalues i = 1/2 {
 gen rent_ria_`i' = mpce_mrp - pline_nhs_`i'
 
   forvalues  q = 0(1)2 {
-  gen rent_ria_income_a`q'_`i' = income_a`q' - pline_nhs_`i'
+  gen rent_ria_income_a`q'_`i' = max(income_a`q' - pline_nhs_`i',0)
   }
 }
 
@@ -216,8 +224,6 @@ egen pline_nhs_`i'_nat = wtmean(pline_nhs_`i'), weight(pwt)  //weighted mean by 
 foreach var in poor poor_double {
 replace `var' = `var'*100 //poverty rate in %
 }
-
-gen pline_15 = pline *1.5 //1.5 time poverty line at 4th decile mpce class.  
 
 gen poor_income_1 = (income_a2 < pline)*100
 gen poor_income_2 = (income_a2 < pline_15)*100
@@ -277,13 +283,13 @@ replace `var' = . if `var' > 2e3
 
 format rent_ria_income_a2_1 rent_ria_income_a2_2 income_a2 %9.0fc
 
-sum income_a2 [aw = pwt] ,de f //?how to set the y scale to 0-1e3? 
+sum income_a2 [aw = pwt],de f 
 twoway line rent_ria_income_a2_1 rent_ria_income_a2_2 rent_income_ratio_a2 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33,lpattern(p1 p1 dash) lcolor(cranberry dkorange gs11) || ///
 scatter rent_pc1 rent_pc2 rent_pc3 income_a2 if renter == 100 & inrange(income_a2,0, `r(p90)') & state == 33, mcolor(dkgreen dkorange cranberry) graphregion(color(white)) msymbol(circle triangle square) ///
 msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu, 2012)") ///
 xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
-     "      The income percentile is for renters only weighted by household weight.") ///
+     "      The income percentile is for urban India, weighted by household weight.") ///
 xlabel(909 `" "909" "(p10)" "' 1225 `" "1,255" "(p25)" "' 1866 `" "1,866" "(p50)" "' 3416 `" "3,416" "(p75)" "' 6174 `" "6,147" "(p90)" "',labsize(vsmall))  
 
 graph export "${r_output}/ria_renter_nss68.png",width(800) height(600) replace

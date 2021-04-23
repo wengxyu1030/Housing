@@ -1,8 +1,9 @@
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\02_1_NSS61_Residual_Income_Renter.log
+       log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\02_1_NS
+> S61_Residual_Income_Renter.log
   log type:  text
- opened on:  12 Apr 2021, 03:26:24
+ opened on:  23 Apr 2021, 10:27:38
 
 . set linesize 255
 
@@ -136,6 +137,8 @@
 .    forvalues i = 1/3 {
   2.    gen pline_`i' = pline*`i'
   3.    }      
+
+.    gen pline_15 = pline*1.5
 
 . 
 .    *Only focus on urban (the Tendulka approach decile is based on urban exp.)
@@ -280,7 +283,7 @@ decile    | mean(mpce_mrp)   min(mpce_mrp)   max(mpce_mrp)
 . *generate the non-housing poverty line for each state at different budget standard (differ than 2012)
 . gen pline_nhs_1 = pline_1- rent_pc_3 // poverty line and 1.5 poverty line (only double pline not rent)
 
-. gen pline_nhs_2 = pline_2- rent_pc_6 //6th decile is where the poverty line mpce class doubled 
+. gen pline_nhs_2 = pline_15- rent_pc_6 //6th decile is where the poverty line mpce class doubled 
 
 . 
 . *estimate income based on expenditure //Picketty approach. 
@@ -327,7 +330,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61\Data O
   2. gen rent_ria_`i' = mpce_mrp - pline_nhs_`i'
   3. 
 .   forvalues  q = 0(1)2 {
-  4.   gen rent_ria_income_a`q'_`i' = income_a`q' - pline_nhs_`i'
+  4.   gen rent_ria_income_a`q'_`i' = max(income_a`q' - pline_nhs_`i',0)
   5.   }
   6. }
 
@@ -367,9 +370,9 @@ ratio_tx generated as str1
 
     afd_grp |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-         00 |15,281.3722       33.70       33.70
-         01 | 17,489.915       38.57       72.27
-         11 | 12,574.712       27.73      100.00
+         00 |39,850.6141       87.88       87.88
+         01 | 2,845.7029        6.28       94.16
+         11 |  2,649.683        5.84      100.00
 ------------+-----------------------------------
       Total |     45,346      100.00
 
@@ -397,8 +400,8 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
   2. replace `var' = `var'*100 //unaffordability with income measure.
   3. gen exp_`var' = (rent_pc > rent_`var')*100 //unaffordability with expenditure measure.
   4. }
-(13,479 real changes made)
-(28,482 real changes made)
+(3,166 real changes made)
+(5,601 real changes made)
 (284 real changes made)
 
 . 
@@ -420,9 +423,6 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
   3. }
 (12,503 real changes made)
 (29,848 real changes made)
-
-. 
-. gen pline_15 = pline *1.5 //1.5 time poverty line at 4th decile mpce class.  
 
 . 
 . gen poor_income_1 = (income_a2 < pline)*100
@@ -506,7 +506,7 @@ Renters (%)                                      26.2         13.4         23.1 
 PC Poverty Line (mean)*                         582.8        566.6        580.0        583.0        585.6        588.2
 PC 1.5 Poverty Line (mean)                      874.2        849.8        870.1        874.5        878.4        882.3
 PC NHBS)^                                       581.5        581.5        581.5        581.5        581.5        581.5
-PC 1.5 NHBS                                   1,162.1      1,162.1      1,162.1      1,162.1      1,162.1      1,162.1
+PC 1.5 NHBS                                     870.6        870.6        870.6        870.6        870.6        870.6
 Monthly PC Expenditure (mean)                 1,287.0        434.0        627.2        850.9      1,195.7      2,491.5
 Monthly PC Income (mean)                      1,635.5        434.0        627.2        861.7      1,377.2      3,632.9
 Below PL (exp. < PL) (%)                         14.8         99.8         26.2          0.1          0.0          0.0
@@ -515,11 +515,11 @@ Below PL (income < PL) (%)                       14.8         99.8         26.2 
 Below 1.5PL (income < 1.5PL) (%)**               40.2        100.0        100.0         58.1          0.1          0.0
 PC Rent(mean) (conditional)                     204.4         47.8         74.9        116.9        179.2        444.9
 PC Rent to Income(%, mean) (conditional)         12.6         10.9         11.9         13.6         13.1         12.5
-Max PC Rent at NHBS (mean)                    1,054.3       -131.0         48.8        280.3        793.1      3,046.3
+Max PC Rent at NHBS (mean)                    1,069.7          0.0         60.1        280.3        793.1      3,046.3
 Unaffordable at 30% Rule (%)                      2.0          1.0          1.3          3.4          2.0          1.8
-Max PC Rent at 1.5NHBS (mean)                   474.2       -695.0       -528.6       -300.0        210.2      2,461.0
-Unaffordable at NHBS (%)                         23.0        100.0         63.6          7.1          0.0          0.0
-Unaffordable at 1.5NHBS (%)                      60.9        100.0        100.0         99.9         48.6          0.0
+Max PC Rent at 1.5NHBS (mean)                   860.4          0.0          0.0         41.3        503.0      2,755.1
+Unaffordable at NHBS (%)                         21.7         89.9         62.4          7.1          0.0          0.0
+Unaffordable at 1.5NHBS (%)                      45.2         89.9         95.0         82.7          7.2          0.0
 ----------------------------------------------------------------------------------------------------------------------
 Observations                                   13,139        1,541        2,193        2,258        2,700        4,447
 ----------------------------------------------------------------------------------------------------------------------
@@ -552,15 +552,15 @@ Notes: Renter is defined as tenure status as hired
   4. }
 (12,430 real changes made, 12,430 to missing)
 (13,195 real changes made, 13,195 to missing)
-(27,790 real changes made, 27,790 to missing)
-(8,653 real changes made, 8,653 to missing)
+(22,954 real changes made, 22,954 to missing)
+(10,663 real changes made, 10,663 to missing)
 (0 real changes made)
 (4,036 real changes made, 4,036 to missing)
-(11,040 real changes made, 11,040 to missing)
+(32,598 real changes made, 32,598 to missing)
 (258 real changes made, 258 to missing)
-(11,245 real changes made, 11,245 to missing)
 (0 real changes made)
-(10,313 real changes made, 10,313 to missing)
+(0 real changes made)
+(0 real changes made)
 (0 real changes made)
 
 . 
@@ -589,7 +589,7 @@ Notes: Renter is defined as tenure status as hired
 > msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu,2004)") ///
 > xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 > note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
->      "      The income percentile is for renters only weighted by household weight.") ///
+>      "      The income percentile is for urban India, weighted by household weight.") ///
 > xlabel(424 `" "424" "(p10)" "' 571 `" "571" "(p25)" "' 839 `" "839" "(p50)" "' 1551 `" "1,551" "(p75)" "' 2772 `" "2,772" "(p90)" "',labsize(vsmall))  
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
@@ -605,5 +605,5 @@ Notes: Renter is defined as tenure status as hired
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\02_1_NSS61_Residual_Income_Renter.log
   log type:  text
- closed on:  12 Apr 2021, 03:27:10
+ closed on:  23 Apr 2021, 10:28:25
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

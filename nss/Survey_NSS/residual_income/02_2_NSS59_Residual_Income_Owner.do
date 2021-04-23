@@ -20,7 +20,7 @@ if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS
 if `pc' == 0 global root_61 "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 61"
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS59"
 if `pc' != 0 global root_61 "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS61"
-if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
@@ -30,7 +30,7 @@ di "${r_output}"
 global r_output_61 "${root_61}\Data Output Files"
 di "${r_output_61}"
 
-log using "${script}\residual_income\02_2_NSS59_Residual_Income_Owner.log",replace
+log using "${script}\02_2_NSS59_Residual_Income_Owner.log",replace
 set linesize 255
 
 ***************************************************************
@@ -112,8 +112,8 @@ tab owner [aw = hhwgt]
 
 *Maximum amount available for mortgage per capita/household
 forvalues i = 1/2 {
-gen own_ria_`i'_pc = income/hhsize - pline_nhs_`i' //hypothetical expenditure, we are using mpce (actual exp.), different from Australia
-gen own_ria_`i'_hh = income - pline_nhs_`i'*hhsize
+gen own_ria_`i'_pc = max(income/hhsize - pline_nhs_`i', 0) //hypothetical expenditure, we are using mpce (actual exp.), different from Australia
+gen own_ria_`i'_hh = max(income - pline_nhs_`i'*hhsize, 0)
 gen pline_nhs_`i'_hh = pline_nhs_`i'*hhsize
 }
 
@@ -148,8 +148,8 @@ global term = 108
 global ltv = 0.7
 
 forvalues i = 1/2 {
-gen max_loan_`i' = own_ria_`i'_hh * (1 - ((1+$rate)^-$term)) / $rate
-gen max_hse_val_`i' = max_loan_`i' / $ltv
+gen max_loan_`i' = max(own_ria_`i'_hh * (1 - ((1+$rate)^-$term)) / $rate, 0)
+gen max_hse_val_`i' = max(max_loan_`i' / $ltv, 0)
 }
 
 gen max_loan_ratio = own_ratio_hh * (1 - ((1+$rate)^-$term)) / $rate

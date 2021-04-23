@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_1_NSS68_Residual_Income_Renter.log
   log type:  text
- opened on:  12 Apr 2021, 03:20:46
+ opened on:  23 Apr 2021, 10:29:04
 
 . set linesize 255
 
@@ -125,6 +125,9 @@
   3.       }
 
 .           
+.           gen pline_15 = pline*1.5
+
+.           
 .           sum poor poor_double [aw = pwt]
 
     Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
@@ -187,8 +190,14 @@ All-India-T |
 . *remove rent budget from the original poverty line by state
 . gen rent_pc = total_rent/hhsize
 
+. gen rent_pc_impt = total_rent_impt/hhsize
+
+. 
 . gen rent_mpce = rent_pc/mpce_mrp*100 //share of rent on total expenditure per capita (renters)
 
+. gen rent_mpce_impt = rent_pc_impt/mpce_mrp*100 //share of rent on total expenditure per capita (renters)
+
+. 
 . 
 . *stats for renters
 . table decile [aw = pwt], c(mean renter ) row 
@@ -252,6 +261,27 @@ decile    |  med(rent_pc)  med(mpce_mrp)  med(rent_m~e)
 -------------------------------------------------------
 
 . 
+. table decile if rent_pc_impt > 0 & owner == 1 [aw = pwt], c(med rent_pc_impt med mpce_mrp med rent_mpce_impt) row format(%15.1fc)   // only for households with imputed rent
+
+-------------------------------------------------------------
+Exp.      |
+decile    | med(rent_pc_~t)    med(mpce_mrp)  med(rent_mpc~t)
+----------+--------------------------------------------------
+        1 |           125.0            769.1             17.3
+        2 |           187.5          1,031.0             18.1
+        3 |           240.0          1,252.3             19.0
+        4 |           300.0          1,480.9             20.1
+        5 |           375.0          1,723.7             22.1
+        6 |           500.0          2,004.6             23.1
+        7 |           545.5          2,373.7             22.8
+        8 |           700.0          2,856.3             24.2
+        9 |         1,000.0          3,703.4             25.7
+       10 |         1,750.0          6,163.0             28.6
+          | 
+    Total |           375.0          1,710.6             21.4
+-------------------------------------------------------------
+
+. 
 . *collapse at state and declie level
 . tab poor [aw = pwt] if urban == 1 //13.7% poverty rate in urban India (2012): 2th decile MPCE class
 
@@ -308,7 +338,7 @@ decile    | mean(mpce_mrp)   min(mpce_mrp)   max(mpce_mrp)
 . *generate the non-housing poverty line for each state at different budget standard
 . gen pline_nhs_1 = pline_1- rent_pc_2 // poverty line and 1.5 poverty line (only double pline not rent)
 
-. gen pline_nhs_2 = pline_2- rent_pc_4 //4th decile is where the poverty line mpce class doubled
+. gen pline_nhs_2 = pline_15- rent_pc_4 //4th decile is where the poverty line mpce class doubled
 
 . 
 . *estimate income based on expenditure //Picketty approach. 
@@ -354,7 +384,7 @@ file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data O
   2. gen rent_ria_`i' = mpce_mrp - pline_nhs_`i'
   3. 
 .   forvalues  q = 0(1)2 {
-  4.   gen rent_ria_income_a`q'_`i' = income_a`q' - pline_nhs_`i'
+  4.   gen rent_ria_income_a`q'_`i' = max(income_a`q' - pline_nhs_`i',0)
   5.   }
   6. }
 
@@ -394,9 +424,9 @@ ratio_tx generated as str1
 
     afd_grp |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-         00 | 17,883.856       42.61       42.61
-         01 | 17,771.772       42.35       84.96
-         11 | 6,311.3718       15.04      100.00
+         00 |37,967.9565       90.47       90.47
+         01 | 2,632.9978        6.27       96.74
+         11 | 1,366.0457        3.26      100.00
 ------------+-----------------------------------
       Total |     41,967      100.00
 
@@ -424,8 +454,8 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
   2. replace `var' = `var'*100 //unaffordability with income measure.
   3. gen exp_`var' = (rent_pc > rent_`var')*100 //unaffordability with expenditure measure.
   4. }
-(6,382 real changes made)
-(21,669 real changes made)
+(1,545 real changes made)
+(3,796 real changes made)
 (342 real changes made)
 
 . 
@@ -447,9 +477,6 @@ rent_pc3        float   %9.0g                 rent_pc, afd_grp == 11
   3. }
 (5,856 real changes made)
 (21,481 real changes made)
-
-. 
-. gen pline_15 = pline *1.5 //1.5 time poverty line at 4th decile mpce class.  
 
 . 
 . gen poor_income_1 = (income_a2 < pline)*100
@@ -533,7 +560,7 @@ Renters (%)                                      27.5         12.8         21.5 
 PC Poverty Line (mean)*                       1,027.6        982.5      1,022.9      1,025.4      1,038.6      1,036.1
 PC 1.5 Poverty Line (mean)                    1,541.3      1,473.7      1,534.4      1,538.1      1,557.8      1,554.1
 PC NHBS)^                                     1,023.6      1,023.6      1,023.6      1,023.6      1,023.6      1,023.6
-PC 1.5 NHBS                                   2,046.1      2,046.1      2,046.1      2,046.1      2,046.1      2,046.1
+PC 1.5 NHBS                                   1,533.3      1,533.3      1,533.3      1,533.3      1,533.3      1,533.3
 Monthly PC Expenditure (mean)                 3,037.9        923.2      1,376.2      1,895.2      2,634.5      5,757.8
 Monthly PC Income (mean)                      3,928.6        923.2      1,376.2      1,922.6      3,037.0      8,445.0
 Below PL (exp. < PL) (%)                          5.8         61.6          0.4          0.0          0.0          0.0
@@ -542,11 +569,11 @@ Below PL (income < PL) (%)                        5.8         61.6          0.4 
 Below 1.5PL (income < 1.5PL) (%)**               23.0        100.0         81.0          5.2          0.0          0.0
 PC Rent(mean) (conditional)                     580.8        114.5        198.9        300.7        458.5      1,238.0
 PC Rent to Income(%, mean) (conditional)         14.7         12.4         14.3         15.6         15.2         14.5
-Max PC Rent at NHBS (mean)                    2,903.1        -56.8        355.4        899.4      2,000.4      7,410.8
+Max PC Rent at NHBS (mean)                    2,912.3         41.7        355.5        899.4      2,000.4      7,410.8
 Unaffordable at 30% Rule (%)                      3.6          1.8          3.2          5.4          2.8          3.9
-Max PC Rent at 1.5NHBS (mean)                 1,879.6     -1,037.2       -663.5       -121.9        966.2      6,379.3
-Unaffordable at NHBS (%)                         11.0         84.1         19.5          0.4          0.0          0.0
-Unaffordable at 1.5NHBS (%)                      47.9        100.0        100.0         92.9         17.1          0.0
+Max PC Rent at 1.5NHBS (mean)                 2,471.8          0.0         19.8        393.7      1,485.5      6,897.3
+Unaffordable at NHBS (%)                         10.9         82.9         19.5          0.4          0.0          0.0
+Unaffordable at 1.5NHBS (%)                      31.7         97.8         95.3         38.1          0.4          0.0
 ----------------------------------------------------------------------------------------------------------------------
 Observations                                   11,842        1,146        1,520        1,930        2,996        4,250
 ----------------------------------------------------------------------------------------------------------------------
@@ -579,22 +606,22 @@ Notes: Renter is defined as tenure status as hired
   4. }
 (5,818 real changes made, 5,818 to missing)
 (14,738 real changes made, 14,738 to missing)
-(20,831 real changes made, 20,831 to missing)
-(10,266 real changes made, 10,266 to missing)
+(14,511 real changes made, 14,511 to missing)
+(12,317 real changes made, 12,317 to missing)
 (0 real changes made)
 (4,542 real changes made, 4,542 to missing)
-(12,501 real changes made, 12,501 to missing)
+(28,709 real changes made, 28,709 to missing)
 (413 real changes made, 413 to missing)
-(11,371 real changes made, 11,371 to missing)
 (0 real changes made)
-(4,837 real changes made, 4,837 to missing)
+(0 real changes made)
+(0 real changes made)
 (0 real changes made)
 
 . 
 . format rent_ria_income_a2_1 rent_ria_income_a2_2 income_a2 %9.0fc
 
 . 
-. sum income_a2 [aw = pwt] ,de f //?how to set the y scale to 0-1e3? 
+. sum income_a2 [aw = pwt],de f 
 
                   Monthly PC Income (mean)
 -------------------------------------------------------------
@@ -616,7 +643,7 @@ Notes: Renter is defined as tenure status as hired
 > msize(tiny tiny tiny) ytitle("Maximum Rent (PC in Rs.)") xtitle("Monthly Income (PC in Rs.)") title("Maximum affordable rent payments (Tamil Nadu, 2012)") ///
 > xline(`r(p50)', lpattern(dash) lcolor(gs4))  legend(cols(3) label(1 "PLBS") label(2 "1.5PLBS") size(vsmall)) ///
 > note("Note: PLBS is Poverty Line Budget Standard, 1.5PLBS is 1.5 times PLBS" ///
->      "      The income percentile is for renters only weighted by household weight.") ///
+>      "      The income percentile is for urban India, weighted by household weight.") ///
 > xlabel(909 `" "909" "(p10)" "' 1225 `" "1,255" "(p25)" "' 1866 `" "1,866" "(p50)" "' 3416 `" "3,416" "(p75)" "' 6174 `" "6,147" "(p90)" "',labsize(vsmall))  
 (note:  named style p1 not found in class linepattern, default attributes used)
 (note:  named style p1 not found in class linepattern, default attributes used)
@@ -625,7 +652,6 @@ Notes: Renter is defined as tenure status as hired
 
 . 
 . graph export "${r_output}/ria_renter_nss68.png",width(800) height(600) replace
-(note: file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files/ria_renter_nss68.png not found)
 (file C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68\Data Output Files/ria_renter_nss68.png written in PNG format)
 
 . 
@@ -633,5 +659,5 @@ Notes: Renter is defined as tenure status as hired
       name:  <unnamed>
        log:  C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income\03_1_NSS68_Residual_Income_Renter.log
   log type:  text
- closed on:  12 Apr 2021, 03:21:56
+ closed on:  23 Apr 2021, 10:30:28
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
