@@ -20,7 +20,7 @@ if `pc' == 0 global root "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS
 if `pc' == 0 global root_68 "C:\Users\wb308830\OneDrive - WBG\Documents\TN\Data\NSS 68"
 if `pc' != 0 global root "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS70"
 if `pc' != 0 global root_68 "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\nss_data\NSS68"
-if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS\residual_income"
+if `pc' != 0 global script "C:\Users\wb500886\OneDrive - WBG\7_Housing\survey_all\Housing_git\nss\Survey_NSS"
 
 di "$root"
 global r_input "${root}\Raw Data & Dictionaries"
@@ -30,7 +30,7 @@ di "${r_output}"
 global r_output_68 "${root_68}\Data Output Files"
 di "${r_output_68}"
 
-log using "${script}\03_2_NSS70_Residual_Income_Owner.log",replace
+log using "${script}\residual_income\03_2_NSS70_Residual_Income_Owner.log",replace
 set linesize 255
 
 ***************************************************************
